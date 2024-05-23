@@ -34,7 +34,7 @@ contract PublicationPrimitive {
      *    <quotedPostIds[2]>
      *    which is also similar to what I wrote back in 2019
 `    *    <quotedPostIds[1]>```
-     * 
+     *
      */
     // contentURI = {
     //     "content": "whatever"
@@ -98,9 +98,9 @@ contract PublicationPrimitive {
 
     /*
         FeedPrimitive = PublicationSystem + FollowGraph
-        
+
         ?
-        
+
         [[[[[[[[[[[GOOD QUESTION FOR TOMORROW::::]]]]]]]]]]]
 
         How to link PublicationSystem to a FollowGraph?
@@ -108,6 +108,7 @@ contract PublicationPrimitive {
         2. Or should the FollowGraph point to a PublicationSystem(s)?
         3. Or should they both be pointing (connected) to each other?
         4. Or should there be a separate contract (Feeds?) that connects them?
+        --
         5. Or every post should link to a FollowGraph(s)?
 
         Another thing:
@@ -115,6 +116,62 @@ contract PublicationPrimitive {
         1. What about the multiple authors? >> extradata
         2. What about the apps (like source/origin)? >> extradata
     */
+
+    /*
+
+    Use-cases/Examples:
+    -------------------
+
+    Yogi wants to build Twitter:
+    - We want to have accounts
+    - We want usernames
+    - We want a FollowGraph so these accounts can connect
+    - We want a place to publish posts (PublicationSystem)
+
+    Sasi sees Yogi is succesful and wants to build Instagram:
+    - He can let the same accounts be used
+    - He could use the same usernames as Twitter, or give the user the option to choose a different one
+      * On twitter you can be 0xWagmi, but on Instagram you want to be RedCherries
+      * As a consequence, he creates new app-level usernames space
+
+    - He can use the same FollowGraph as Twitter, or create a new one
+      * Sasi realizes that most of guys want to follow tech&politics content on Twitter, but want to follow friends&family on Instagram
+      * As a consequence, he creates a new FollowGraph
+      * Instagram UI can leverage the Twitter FollowGraph to suggest people to follow, because they still share the same accounts
+
+    - Josh built StreamMe
+      * It has multiple graphs - ordinary followers and paid subscribers
+      * Some posts are shown to followers publically
+      * Some posts are shown to paid subscribers only (content is encoded)
+
+      * An NordVPN comes and wants to make a Promo across Streamers accounts with following conditions:
+        - A Streamer must have >1M public followers
+        - A Streamer must have >10.000 paid subscribers (so make sure its not bots)
+        - If the condition is met - the Streamer can Mirror the NordVPN on your feed and get $100 (mirror can be done only once)
+
+  NordVPN PromoContract:
+    - Where do we find the PublicationSystem contract & FollowGraphs contracts so Streamers cannot cheat with their own custom contracts?
+      * When you create a PromoContract - you can select the PublicationSystem and an array of FollowGraphs contracts for it
+    - Where to get the amount of followers of Account X?
+    - Where to get the amount of paid subscribers of Account X?
+    - How to verify that the Account X posted and it is a Mirror?
+
+  Approach 1: ReferenceModule - money is paid automatically during Posting
+  Approach 2: First you post an ad, then you submit a proof-of-posting & proof-of-following to PromoContract and get paid
+
+
+
+
+
+
+
+
+
+
+
+
+
+   */
 
     function post(
         uint256 postId, // for edits, but we should think if makes sense to do an editPost function instead
@@ -228,7 +285,7 @@ So, the UI then shows "@vicnaum replied with an existing comment"
 This in the UI is like a redirection to the original thread of comments
 
 But also if you are in the original comment, you can see something like "see all places where this comment has been used"
-and then you can discover other comment related threads. 
+and then you can discover other comment related threads.
 
 --------------------------
 
