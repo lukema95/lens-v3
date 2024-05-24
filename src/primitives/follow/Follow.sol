@@ -16,7 +16,24 @@ struct Permissions {
     // have the same level of relevance as the other permissions.
 }
 
+// library ExtensionCalls {
+//     function processFollowIfPresent(
+//         IGraphExtension graphExtension,
+//         address originalMsgSender,
+//         address followerAcount,
+//         address accountToFollow,
+//         uint256 followId,
+//         bytes calldata data
+//     ) internal {
+//         if (address(graphExtension) != address(0)) {
+//             graphExtension.processFollow(originalMsgSender, followerAcount, accountToFollow, followId, data);
+//         }
+//     }
+// }
+
 contract FollowGraph {
+    // using ExtensionCalls for IGraphExtension;
+
     // TODO: This also has the opinion of linking addresses(accounts). A more generic Graph primitive could link bytes,
     // where abi.encode(address) would be a particular case. And accounts can be linked to other entities, or whatever.
     address internal _admin; // TODO: Make the proper Ownable pattern
@@ -34,13 +51,24 @@ contract FollowGraph {
     mapping(address account => Permissions permissions) internal _permissions;
     mapping(address followedAccount => uint256 followersCount) internal _followersCount;
 
+    // Admin functions
+
+    // TODO: We can have this to allow discoverability of entryPoint
+    // function getEntryPoint() external pure returns (address) {
+    //     return address(this);
+    // }
+
     function setGraphExtension(IGraphExtension graphExtension, bytes calldata initializationData) external {
         if (_admin != msg.sender) {
             revert();
         }
         _graphExtension = graphExtension;
-        graphExtension.initialize(initializationData);
+        if (address(_graphExtension) != address(0)) {
+            graphExtension.initialize(initializationData);
+        }
     }
+
+    // Public user functions
 
     function setPermissions(address account, Permissions calldata permissions) external {
         if (_admin != msg.sender) {
@@ -57,7 +85,9 @@ contract FollowGraph {
         _followModules[msg.sender] = followModule;
         // We call the follow module first, in case the graph module requires the follow module to be initialized first.
         followModule.initialize(initializationData);
-        _graphExtension.processFollowModuleChange(msg.sender, followModule, initializationData, graphExtensionData);
+        if (address(_graphExtension) != address(0)) {
+            _graphExtension.processFollowModuleChange(msg.sender, followModule, initializationData, graphExtensionData);
+        }
     }
 
     // TODO: What do we return?
@@ -104,7 +134,6 @@ contract FollowGraph {
         bytes calldata graphExtensionData,
         bytes calldata followModuleData
     ) internal {
-        // First NFT_ID is 1, and then followersCount is 1
         if (followId == 0) {
             followId = ++_lastFollowIdAssigned[accountToFollow];
         } else if (
@@ -115,13 +144,25 @@ contract FollowGraph {
         _follows[followerAccount][accountToFollow] = Follow({id: followId, timestamp: block.timestamp});
         _followers[accountToFollow][followId] = followerAccount;
         _followersCount[accountToFollow]++;
-        _graphExtension.processFollow(msg.sender, followerAccount, accountToFollow, followId, graphExtensionData);
-        _followModules[accountToFollow].processFollow(msg.sender, followerAccount, followId, followModuleData);
+        if (address(_graphExtension) != address(0)) {
+            _graphExtension.processFollow(msg.sender, followerAccount, accountToFollow, followId, graphExtensionData);
+        }
+        if (address(_followModules[accountToFollow]) != address(0)) {
+            _followModules[accountToFollow].processFollow(msg.sender, followerAccount, followId, followModuleData);
+        }
     }
 
     function _unfollow(address followerAccount, address accountToUnfollow, bytes calldata graphExtensionData) internal {
         uint256 followId = _follows[followerAccount][accountToUnfollow].id;
-        _graphExtension.processUnfollow(msg.sender, followerAccount, accountToUnfollow, followId, graphExtensionData);
+        if (address(_graphExtension) != address(0)) {
+            _graphExtension.processUnfollow(
+                msg.sender,
+                followerAccount,
+                accountToUnfollow,
+                followId,
+                graphExtensionData
+            );
+        }
         // We don't have FollowModule.processUnfollow because it can prevent from unfollowing
         _followersCount[accountToUnfollow]--;
         delete _followers[accountToUnfollow][followId];
