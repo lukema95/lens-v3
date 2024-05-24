@@ -1,6 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+// PLAN FOR TOMORROW:
+/*
+  1. Usernames
+  2. Put everything together (maybe that's also what 3 is?)
+  3. We try to implement an example of StreamMe with PublishingSystem + 2 Follow Graphs and a PromoContract
+*/
+
 contract PublicationPrimitive {
     // struct UnopinionatedButAmorfousPost {
     //     bytes data;

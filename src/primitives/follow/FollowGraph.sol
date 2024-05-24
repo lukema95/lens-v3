@@ -6,6 +6,11 @@ struct Follow {
     uint256 timestamp;
 }
 
+struct Permissions {
+    bool canFollow;
+    bool canUnfollow;
+}
+
 contract FollowGraph {
     // TODO: This also has the opinion of linking addresses(accounts). A more generic Graph primitive could link bytes,
     // where abi.encode(address) would be a particular case. And accounts can be linked to other entities, or whatever.
@@ -20,6 +25,8 @@ contract FollowGraph {
     // quantity of follows per account, being [0, 1] follows per account just a special case.
     mapping(address followerAccount => mapping(address followedAccount => Follow)) _follows;
     mapping(address followedAccount => mapping(uint256 followId => address followerAccount)) _followers;
+
+    mapping(address => Permissions) _permissions;
 
     function setGraphModule(
         IGraphModule graphModule,
@@ -55,6 +62,27 @@ contract FollowGraph {
         bytes calldata followModuleData
     ) external {
         uint256 followId = ++_followersCount[accountToFollow];
+        _follow(accountToFollow, followId, graphModuleData, followModuleData);
+    }
+
+    function followWithId(
+        address accountToFollow,
+        uint256 followId,
+        bytes calldata graphModuleData,
+        bytes calldata followModuleData
+    ) external {
+        if (_followers[accountToFollow][followId] != address(0)) {
+            revert();
+        }
+        _follow(accountToFollow, followId, graphModuleData, followModuleData);
+    }
+
+    function _follow(
+        address accountToFollow,
+        uint256 followId,
+        bytes calldata graphModuleData,
+        bytes calldata followModuleData
+    ) internal {
         _follows[msg.sender][accountToFollow] = Follow({
             id: followId,
             timestamp: block.timestamp
@@ -68,10 +96,34 @@ contract FollowGraph {
     }
 
     function unfollow(
+        address followerAccount,
         address accountToUnfollow,
         bytes calldata graphModuleData
     ) external {
+        if (
+            msg.sender != followerAccount &&
+            !_permissions[msg.sender].canUnfollow
+        ) {
+            revert();
+        }
+        _unfollow(followerAccount, accountToUnfollow, graphModuleData);
+    }
+
+    // Helper to simplify things (without providing the followerAccount, but assume msg.sender is the follower)
+    function unfollow(
+        address accountToUnfollow,
+        bytes calldata graphModuleData
+    ) external {
+        _unfollow(msg.sender, accountToUnfollow, graphModuleData);
+    }
+
+    function _unfollow(
+        address followerAccount,
+        address accountToUnfollow,
+        bytes calldata graphModuleData
+    ) internal {
         _graphModule.processUnfollow(accountToUnfollow, graphModuleData);
+        delete _follows[followerAccount][accountToUnfollow];
     }
 }
 
@@ -122,3 +174,38 @@ interface IFollowModule {
         bytes calldata data
     ) external;
 }
+
+// Minter
+
+/*
+    Authentication flow for all the functions:
+
+    ERC721 functions:
+    - transferFrom() - ownerOf(nftID) can do it (or approved)
+    - approve, blablabla - ownerOf(nftID) can do it
+
+    NFT mint/burn functions:
+    - mint()
+      * If you want to mint() an NFT - you must be the one following
+    - burn()
+      * to burn you need to set the minter as a DE in your account - so it can also do unfollow() on burn
+        + That can be done using MultiCall (setDE, burn, unsetDE)
+      * Alternatively, you can burn if no follower is set.
+
+    FollowGraph functions:
+    - follow() - the one who holds the NFT must be able to perform follow (and unfollow the previous guy)
+      * And to perform follow - the one who originally follows should have the DE set and the holder also needs to have the DE set
+    - unfollow()
+    - block()
+    - unblock()
+
+//////////
+
+    1) You have Follower #1 of Stani and you follow him
+    2) You sell the NFT to Josh
+    3) Josh can:
+       - Follow stani using this NFT keeping the Follower #1 id in the FollowGraph
+
+    
+
+*/
