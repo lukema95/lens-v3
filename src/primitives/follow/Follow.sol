@@ -45,6 +45,8 @@ contract FollowGraph {
     // basically the same as seeing the extra key as the Follow array index).
     // This means later the IFollowGraph::processFollow can check for amount of follows done, and then restrict
     // quantity of follows per account, being [0, 1] follows per account just a special case.
+    // => If we stay as 'FollowGraph' we should be opinionated in single-follow, but if we go to the generic 'Graph'
+    // approach, then allowing the multi-edge/multi-link approach would make more sense.
     mapping(address followerAccount => mapping(address followedAccount => Follow)) internal _follows;
     mapping(address followedAccount => mapping(uint256 followId => address followerAccount)) internal _followers;
     // Global permissions over the graph
