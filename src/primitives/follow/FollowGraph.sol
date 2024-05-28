@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import {IFollowGraph} from './IFollowGraph.sol';
 import {IFollowModule} from './IFollowModule.sol';
 import {IGraphExtension} from './IGraphExtension.sol';
 
@@ -31,7 +32,7 @@ struct Permissions {
 //     }
 // }
 
-contract FollowGraph {
+contract FollowGraph is IFollowGraph {
     // using ExtensionCalls for IGraphExtension;
 
     // TODO: This also has the opinion of linking addresses(accounts). A more generic Graph primitive could link bytes,
@@ -156,6 +157,10 @@ contract FollowGraph {
 
     function _unfollow(address followerAccount, address accountToUnfollow, bytes calldata graphExtensionData) internal {
         uint256 followId = _follows[followerAccount][accountToUnfollow].id;
+        if (followId == 0) {
+            // Not following!
+            revert();
+        }
         if (address(_graphExtension) != address(0)) {
             _graphExtension.processUnfollow(
                 msg.sender,
