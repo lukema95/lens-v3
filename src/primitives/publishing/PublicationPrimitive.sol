@@ -189,16 +189,10 @@ contract PublicationPrimitive {
         bytes[] memory extraDatas
     ) external returns (uint256) {
         if (pointedPostId > _posts.length) {
-            revert("Post does not exist");
+            revert('Post does not exist');
         }
-        if (
-            bytes(contentURI).length == 0 &&
-            pointedPostId == 0 &&
-            extraData.length == 0
-        ) {
-            revert(
-                "Post must either have content, point to another post or have extra data"
-            );
+        if (bytes(contentURI).length == 0 && pointedPostId == 0 && extraData.length == 0) {
+            revert('Post must either have content, point to another post or have extra data');
         }
         _posts.push(
             Post({
