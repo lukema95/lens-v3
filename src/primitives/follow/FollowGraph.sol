@@ -38,9 +38,10 @@ contract FollowGraph is IFollowGraph {
     // TODO: This also has the opinion of linking addresses(accounts). A more generic Graph primitive could link bytes,
     // where abi.encode(address) would be a particular case. And accounts can be linked to other entities, or whatever.
     address internal _admin; // TODO: Make the proper Ownable pattern
+    string internal _metadataURI; // Name/title, description, picture, banner, etc.
     IGraphExtension internal _graphExtension;
     mapping(address account => IFollowModule followModule) internal _followModules;
-    mapping(address account => uint256) internal _lastFollowIdAssigned;
+    mapping(address account => uint256 lastFollowIdAssigned) internal _lastFollowIdAssigned;
     // TODO: The `_follows` mapping is assuming one follow per account. If we add one extra key to the mapping, that is
     // a uint, then you can have multiple follows per account (also can be done by using an array of Follows, which is
     // basically the same as seeing the extra key as the Follow array index).
@@ -48,7 +49,7 @@ contract FollowGraph is IFollowGraph {
     // quantity of follows per account, being [0, 1] follows per account just a special case.
     // => If we stay as 'FollowGraph' we should be opinionated in single-follow, but if we go to the generic 'Graph'
     // approach, then allowing the multi-edge/multi-link approach would make more sense.
-    mapping(address followerAccount => mapping(address followedAccount => Follow)) internal _follows;
+    mapping(address followerAccount => mapping(address followedAccount => Follow follow)) internal _follows;
     mapping(address followedAccount => mapping(uint256 followId => address followerAccount)) internal _followers;
     // Global permissions over the graph
     mapping(address account => Permissions permissions) internal _permissions;
