@@ -1,10 +1,10 @@
 Communities:
 
 + Module to grant and revoke memberships. Options that can be implemented with this:
-  - Single user with full authority
-  - Multiple users with equal authority
-  - Multiple users but with a treshold (like a multisig)
-  - Voting like a DAO
+  - Single admin with full authority
+  - Multiple admins with equal authority
+  - Multiple admins but with a treshold (like a multisig)
+  - Voting like a DAO formed by its current memebers
   - Token-gated (NFTs, ERC-20s), time-based, or other conditions
   - Fully permissionless, anyone can join, nobody can revoke
   - Etc.

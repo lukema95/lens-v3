@@ -8,6 +8,4 @@ interface ICommunityModule {
 
     // TODO: Do we need this? To call after leaving a community and clear some state
     function afterLeaving(bytes calldata data) external;
-
-    // TODO: Community Post System functions here? Or different module on the feed?
 }
