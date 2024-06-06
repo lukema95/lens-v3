@@ -3,11 +3,6 @@ pragma solidity ^0.8.0;
 
 import {ICommunityModule} from './ICommunityModule.sol';
 
-struct Membership {
-    uint256 id;
-    uint256 timestamp;
-}
-
 // Two types of modules:
 /*
     1. Restrictive [Rules/Settings?]:
@@ -33,6 +28,16 @@ struct Membership {
  *
  */
 
+struct Membership {
+    uint256 id;
+    uint256 timestamp;
+}
+
+struct Permissions {
+    bool canJoinOnBehalf;
+    bool canLeaveOnBehalf;
+}
+
 contract Community {
     address internal _admin; // TODO: Make the proper Ownable pattern
     string internal _metadataURI; // Name/title, description, picture, banner, etc.
@@ -40,25 +45,49 @@ contract Community {
     uint256 _lastMemberIdAssigned;
     uint256 _numberOfMembers;
     mapping(address account => Membership membership) internal _memberships;
+    mapping(address account => Permissions permissions) internal _permissions;
 
-    function joinCommunity(bytes calldata data) external {
+    function setCommunityModule(ICommunityModule communityModule, bytes calldata initializationData) external {
+        if (_admin != msg.sender) {
+            revert();
+        }
+        _communityModule = communityModule;
+        if (address(communityModule) != address(0)) {
+            _communityModule.initialize(initializationData);
+        }
+    }
+
+    function setPermissions(address account, Permissions calldata permissions) external {
+        if (_admin != msg.sender) {
+            revert();
+        }
+        _permissions[account] = permissions;
+    }
+
+    function joinCommunity(address account, bytes calldata data) external {
+        if (msg.sender != account && !_permissions[msg.sender].canJoinOnBehalf) {
+            revert();
+        }
         _lastMemberIdAssigned++;
         _numberOfMembers++;
-        if (_memberships[msg.sender].id != 0) {
+        if (_memberships[account].id != 0) {
             // Already a member!
             revert();
         }
-        _memberships[msg.sender] = Membership(_lastMemberIdAssigned, block.timestamp);
-        _communityModule.onMembershipGranted(msg.sender, data);
+        _memberships[account] = Membership(_lastMemberIdAssigned, block.timestamp);
+        _communityModule.onMembershipGranted(msg.sender, account, data);
     }
 
-    function leaveCommunity() external {
-        if (_memberships[msg.sender].id == 0) {
+    function leaveCommunity(address account) external {
+        if (msg.sender != account && !_permissions[msg.sender].canLeaveOnBehalf) {
+            revert();
+        }
+        if (_memberships[account].id == 0) {
             // Not a member!
             revert();
         }
         _numberOfMembers--;
-        delete _memberships[msg.sender];
+        delete _memberships[account];
     }
 
     function removeMember(address account, bytes calldata data) external {
@@ -68,6 +97,6 @@ contract Community {
         }
         _numberOfMembers--;
         delete _memberships[account];
-        _communityModule.onMembershipRevoked(account, data);
+        _communityModule.onMembershipRevoked(msg.sender, account, data);
     }
 }
