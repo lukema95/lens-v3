@@ -1,13 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-// PLAN FOR TOMORROW:
-/*
-  1. Usernames
-  2. Put everything together (maybe that's also what 3 is?)
-  3. We try to implement an example of StreamMe with PublishingSystem + 2 Follow Graphs and a PromoContract
-*/
-
 contract PublicationPrimitive {
     // struct UnopinionatedButAmorfousPost {
     //     bytes data;
@@ -80,7 +73,7 @@ contract PublicationPrimitive {
       Article: {
         contentURI: Required,
         metadataURI: Optional,
-        quotedPostIds: One or more,
+        quotedPostIds: Two or more,
         parentPostIds: No,
       },
       Re-Post (aka Mirror): {
@@ -165,19 +158,6 @@ contract PublicationPrimitive {
 
   Approach 1: ReferenceModule - money is paid automatically during Posting
   Approach 2: First you post an ad, then you submit a proof-of-posting & proof-of-following to PromoContract and get paid
-
-
-
-
-
-
-
-
-
-
-
-
-
    */
 
     function post(
