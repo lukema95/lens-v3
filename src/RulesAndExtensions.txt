@@ -1,3 +1,33 @@
+QUESTION: Why don't we give full permissions to the extension, and why don't we allow only one extension.
+Then, we instead of allowing msg.sender OR extension, we check for extension, and ONLY if it is not set, we allow
+msg.sender to call directly. THIS feels like a proper extension, because setting THE extension REALLY OVERRIDES the
+underlying primitve, making it irrelevant without its extension. Basically, extension is always forced to be the entry-point.
+
+Optionally we could let the pirmitive be the entry point, and DELEGATECALL to the extension instead of using its own logic.
+
+WHY THE NEED OF MULTIPLE EXTENSIONS?
+
+1 - It extends the base behaviour in a way that requires SuperUser permissions to do so.
+
+2 - Global rules, apply to all users + control over the local rules setup
+
+3 - Local rules setup for each user
+
+------------------------------------------------------------------------------------------------------------------------
+
+Global Rules => Primitive Rule
+Local Rules => Some entity rule
+
+Example Follow Graph:
+[GLOBAL] In the Follow Graph => Follow Rules
+[LOCAL] In the Follow Graph => Graph Rules
+
+Example Feed:
+[GLOBAL] In the Feed => Feed Rules
+[LOCAL] In the Feed => Post/Reference Rules
+
+------------------------------------------------------------------------------------------------------------------------
+
 Classic notation: (c1 OR c2) AND c3
 
 Polish notation: AND OR C1 C2 C3
@@ -114,3 +144,47 @@ Usernames
     - Pay to mint
 [❌] Individual Rules (user chooses to apply when someone else wants to... do something with their username?)
     - No use-case found so far...
+
+------------------------------------------------------------------------------------------------------------------------
+
+Kimmo@ORB
+
+Communities:
+------------
+  "put my membership on hold (pause), maybe even "upgrade or stake my membership". delegate my community voting rights to XYZ."
+
+- "Leaving the community temporarily" without losing the membership rights (maybe you paid for it, or you did some crazy challenges to get it)
+  * Why do you want to leave it in the first place (even temporarily)?
+- Subscription-based Community membership (pay every month or lose membership). So if you "pause" you don't pay but you don't lose the place.
+  * Why do you want to pause it in the first place?
+
+- Different tiers of memberships, which can be upgraded or downgraded
+
+- Members can participate in Community Voting
+  * The voting is not part of the Community Primitive, but rather a separate contract on the side, which just checks isMember(account) when voting
+  * It can also have a Delegation feature, where Members of the community can delegate their votes, and it will check for isDelegated(account) when voting instead
+
+Usernames/Profiles:
+
+  "I'm thinking here of a company account. Wouldn't it be better, to "allow" username to be shared across profiles for specific cases rather than accounts. I don't want my intern to access my money to collect things, but I want to have the intern to spend money on collecting."
+
+Translation to human:
+  I want intern to be able to collect things from company profile, but not to spend company money on collecting.
+    * Technically this is a Profile Manager without rights to spend money, but with rights to collect things.
+
+LensAccount (which has some money probably?)
+  - Account Manager: Intern (who CanCollect, but cannot Spend LensAccount Money)
+
+1) InternEOA makes an approval to CompanyAccount
+2) InternEOA does a transaction to CompanyAccount to Collect shit for money
+3) CompanyAccount should take InternEOA's money and make an approval to Collect for the same amount?
+    a) How do we know this from CompanyAccount?
+    b) Do we pass it in the data or smth?
+4) CompanyAccount approves money to Collect shit
+5) CompanyAccount calls CollectShit to Collect shit
+6) CollectShit grabs the money from CompanyAccount and mints the Collect
+7) Collect goes to....?
+    a) Who?
+    b) Intern specifies this? Or what?
+
+FINAL BOSS QUESTION: How can we protect the CompanyAccount from Intern not giving it money, and just calling the Collect with Approval?
