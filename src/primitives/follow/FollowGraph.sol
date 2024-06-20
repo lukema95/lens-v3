@@ -17,49 +17,19 @@ struct Permissions {
     // have the same level of relevance as the other permissions.
 }
 
-// library ExtensionCalls {
-//     function processFollowIfPresent(
-//         IFollowGraphRules graphRules,
-//         address originalMsgSender,
-//         address followerAcount,
-//         address accountToFollow,
-//         uint256 followId,
-//         bytes calldata data
-//     ) internal {
-//         if (address(graphRules) != address(0)) {
-//             graphRules.processFollow(originalMsgSender, followerAcount, accountToFollow, followId, data);
-//         }
-//     }
-// }
-
 //TODO: Think about adopting "Verify", "Validate" or "Evaluate" instead of "Process" prefix for the Rules function names.
 contract FollowGraph is IFollowGraph {
-    // TODO: This also has the opinion of linking addresses(accounts). A more generic Graph primitive could link bytes,
-    // where abi.encode(address) would be a particular case. And accounts can be linked to other entities, or whatever.
     address internal _admin; // TODO: Make the proper Ownable pattern - Consider 2-step Ownable
-    string internal _metadataURI; // Name/title, description, picture, banner, etc.
+    string internal _metadataURI;
     IFollowGraphRules internal _graphRules;
     mapping(address account => IFollowRules followRules) internal _followRules;
     mapping(address account => uint256 lastFollowIdAssigned) internal _lastFollowIdAssigned;
-    // TODO: The `_follows` mapping is assuming one follow per account. If we add one extra key to the mapping, that is
-    // a uint, then you can have multiple follows per account (also can be done by using an array of Follows, which is
-    // basically the same as seeing the extra key as the Follow array index).
-    // This means later the IFollowGraph::processFollow can check for amount of follows done, and then restrict
-    // quantity of follows per account, being [0, 1] follows per account just a special case.
-    // => If we stay as 'FollowGraph' we should be opinionated in single-follow, but if we go to the generic 'Graph'
-    // approach, then allowing the multi-edge/multi-link approach would make more sense.
     mapping(address followerAccount => mapping(address followedAccount => Follow follow)) internal _follows;
     mapping(address followedAccount => mapping(uint256 followId => address followerAccount)) internal _followers;
-    // Global permissions over the graph
     mapping(address account => Permissions permissions) internal _permissions;
     mapping(address followedAccount => uint256 followersCount) internal _followersCount;
 
     // Admin functions
-
-    // TODO: We can have this to allow discoverability of entryPoint
-    // function getEntryPoint() external pure returns (address) {
-    //     return address(this);
-    // }
 
     function setGraphRules(IFollowGraphRules graphRules, bytes calldata initializationData) external {
         if (_admin != msg.sender) {
@@ -86,7 +56,7 @@ contract FollowGraph is IFollowGraph {
         bytes calldata graphRulesData
     ) external {
         _followRules[msg.sender] = followRules;
-        // We call the follow module first, in case the graph module requires the follow module to be initialized first.
+        // We call the follow rules first, in case the graph rules requires the follow rules to be initialized first.
         followRules.initialize(initializationData);
         if (address(_graphRules) != address(0)) {
             _graphRules.processFollowRulesChange(msg.sender, followRules, initializationData, graphRulesData);
