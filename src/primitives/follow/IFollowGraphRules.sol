@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IFollowModule} from './IFollowModule.sol';
+import {IFollowRules} from './IFollowRules.sol';
 
-interface IGraphExtension {
+interface IFollowGraphRules {
     function initialize(bytes calldata data) external;
 
     function processFollow(
@@ -32,8 +32,8 @@ interface IGraphExtension {
 
     function processFollowModuleChange(
         address account,
-        IFollowModule followModule,
-        bytes calldata followModuleInitData,
+        IFollowRules followRules,
+        bytes calldata followRulesInitData,
         bytes calldata data
     ) external;
 }

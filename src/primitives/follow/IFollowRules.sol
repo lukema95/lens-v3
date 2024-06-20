@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-interface IFollowModule {
+interface IFollowRules {
     /**
-     * Initializes the FollowModule with the data required to operate.
-     * @param data Data that the FollowModule might require to initialize.
+     * Initializes the FollowRules with the data required to operate.
+     * @param data Data that the FollowRules might require to initialize.
      */
     function initialize(bytes calldata data) external;
 
@@ -12,7 +12,7 @@ interface IFollowModule {
      * Predicate to be evaluated upon each follow using the logic set by `accountToFollow`. Finishes execution
      * successfully if the predicate evalues to "true", reverts if the predicate evaluates to "false".
      * @param accountToFollow The account to be followed.
-     * @param data Data that the FollowModule might require to evalute the follow.
+     * @param data Data that the FollowRules might require to evalute the follow.
      */
     function processFollow(address msgSender, address accountToFollow, uint256 followId, bytes calldata data) external;
 

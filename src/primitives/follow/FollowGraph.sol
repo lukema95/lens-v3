@@ -2,8 +2,8 @@
 pragma solidity ^0.8.20;
 
 import {IFollowGraph} from './IFollowGraph.sol';
-import {IFollowModule} from './IFollowModule.sol';
-import {IGraphExtension} from './IGraphExtension.sol';
+import {IFollowRules} from './IFollowRules.sol';
+import {IFollowGraphRules} from './IFollowGraphRules.sol';
 
 struct Follow {
     uint256 id;
@@ -13,34 +13,33 @@ struct Follow {
 struct Permissions {
     bool canFollow;
     bool canUnfollow;
-    // TODO: Why not having `canSetFollowModule`, `canBlock`, `canUnblock`? It seems more flexible and it feels (un)follow
+    // TODO: Why not having `canSetFollowRules`, `canBlock`, `canUnblock`? It seems more flexible and it feels (un)follow
     // have the same level of relevance as the other permissions.
 }
 
 // library ExtensionCalls {
 //     function processFollowIfPresent(
-//         IGraphExtension graphExtension,
+//         IFollowGraphRules graphRules,
 //         address originalMsgSender,
 //         address followerAcount,
 //         address accountToFollow,
 //         uint256 followId,
 //         bytes calldata data
 //     ) internal {
-//         if (address(graphExtension) != address(0)) {
-//             graphExtension.processFollow(originalMsgSender, followerAcount, accountToFollow, followId, data);
+//         if (address(graphRules) != address(0)) {
+//             graphRules.processFollow(originalMsgSender, followerAcount, accountToFollow, followId, data);
 //         }
 //     }
 // }
 
+//TODO: Think about adopting "Verify", "Validate" or "Evaluate" instead of "Process" prefix for the Rules function names.
 contract FollowGraph is IFollowGraph {
-    // using ExtensionCalls for IGraphExtension;
-
     // TODO: This also has the opinion of linking addresses(accounts). A more generic Graph primitive could link bytes,
     // where abi.encode(address) would be a particular case. And accounts can be linked to other entities, or whatever.
-    address internal _admin; // TODO: Make the proper Ownable pattern
+    address internal _admin; // TODO: Make the proper Ownable pattern - Consider 2-step Ownable
     string internal _metadataURI; // Name/title, description, picture, banner, etc.
-    IGraphExtension internal _graphExtension;
-    mapping(address account => IFollowModule followModule) internal _followModules;
+    IFollowGraphRules internal _graphRules;
+    mapping(address account => IFollowRules followRules) internal _followRules;
     mapping(address account => uint256 lastFollowIdAssigned) internal _lastFollowIdAssigned;
     // TODO: The `_follows` mapping is assuming one follow per account. If we add one extra key to the mapping, that is
     // a uint, then you can have multiple follows per account (also can be done by using an array of Follows, which is
@@ -62,13 +61,13 @@ contract FollowGraph is IFollowGraph {
     //     return address(this);
     // }
 
-    function setGraphExtension(IGraphExtension graphExtension, bytes calldata initializationData) external {
+    function setGraphRules(IFollowGraphRules graphRules, bytes calldata initializationData) external {
         if (_admin != msg.sender) {
             revert();
         }
-        _graphExtension = graphExtension;
-        if (address(_graphExtension) != address(0)) {
-            graphExtension.initialize(initializationData);
+        _graphRules = graphRules;
+        if (address(_graphRules) != address(0)) {
+            graphRules.initialize(initializationData);
         }
     }
 
@@ -81,16 +80,16 @@ contract FollowGraph is IFollowGraph {
         _permissions[account] = permissions;
     }
 
-    function setFollowModule(
-        IFollowModule followModule,
+    function setFollowRules(
+        IFollowRules followRules,
         bytes calldata initializationData,
-        bytes calldata graphExtensionData
+        bytes calldata graphRulesData
     ) external {
-        _followModules[msg.sender] = followModule;
+        _followRules[msg.sender] = followRules;
         // We call the follow module first, in case the graph module requires the follow module to be initialized first.
-        followModule.initialize(initializationData);
-        if (address(_graphExtension) != address(0)) {
-            _graphExtension.processFollowModuleChange(msg.sender, followModule, initializationData, graphExtensionData);
+        followRules.initialize(initializationData);
+        if (address(_graphRules) != address(0)) {
+            _graphRules.processFollowRulesChange(msg.sender, followRules, initializationData, graphRulesData);
         }
     }
 
@@ -99,34 +98,30 @@ contract FollowGraph is IFollowGraph {
         address followerAccount,
         address accountToFollow,
         uint256 followId,
-        bytes calldata graphExtensionData,
-        bytes calldata followModuleData
+        bytes calldata graphRulesData,
+        bytes calldata followRulesData
     ) public {
         if (msg.sender != followerAccount && !_permissions[msg.sender].canFollow) {
             revert();
         }
-        _follow(followerAccount, accountToFollow, followId, graphExtensionData, followModuleData);
+        _follow(followerAccount, accountToFollow, followId, graphRulesData, followRulesData);
     }
 
-    function unfollow(address followerAccount, address accountToUnfollow, bytes calldata graphExtensionData) public {
+    function unfollow(address followerAccount, address accountToUnfollow, bytes calldata graphRulesData) public {
         if (msg.sender != followerAccount && !_permissions[msg.sender].canUnfollow) {
             revert();
         }
-        _unfollow(followerAccount, accountToUnfollow, graphExtensionData);
+        _unfollow(followerAccount, accountToUnfollow, graphRulesData);
     }
 
     // TODO: Think if we need this?
     // Helpers to simplify things (without providing the followerAccount, but assume msg.sender is the follower):
-    function follow(
-        address accountToFollow,
-        bytes calldata graphExtensionData,
-        bytes calldata followModuleData
-    ) external {
-        follow(msg.sender, accountToFollow, 0, graphExtensionData, followModuleData);
+    function follow(address accountToFollow, bytes calldata graphRulesData, bytes calldata followRulesData) external {
+        follow(msg.sender, accountToFollow, 0, graphRulesData, followRulesData);
     }
 
-    function unfollow(address accountToUnfollow, bytes calldata graphExtensionData) external {
-        unfollow(msg.sender, accountToUnfollow, graphExtensionData);
+    function unfollow(address accountToUnfollow, bytes calldata graphRulesData) external {
+        unfollow(msg.sender, accountToUnfollow, graphRulesData);
     }
 
     // Internal functions
@@ -135,8 +130,8 @@ contract FollowGraph is IFollowGraph {
         address followerAccount,
         address accountToFollow,
         uint256 followId,
-        bytes calldata graphExtensionData,
-        bytes calldata followModuleData
+        bytes calldata graphRulesData,
+        bytes calldata followRulesData
     ) internal {
         if (followId == 0) {
             followId = ++_lastFollowIdAssigned[accountToFollow];
@@ -148,30 +143,24 @@ contract FollowGraph is IFollowGraph {
         _follows[followerAccount][accountToFollow] = Follow({id: followId, timestamp: block.timestamp});
         _followers[accountToFollow][followId] = followerAccount;
         _followersCount[accountToFollow]++;
-        if (address(_graphExtension) != address(0)) {
-            _graphExtension.processFollow(msg.sender, followerAccount, accountToFollow, followId, graphExtensionData);
+        if (address(_graphRules) != address(0)) {
+            _graphRules.processFollow(msg.sender, followerAccount, accountToFollow, followId, graphRulesData);
         }
-        if (address(_followModules[accountToFollow]) != address(0)) {
-            _followModules[accountToFollow].processFollow(msg.sender, followerAccount, followId, followModuleData);
+        if (address(_followRules[accountToFollow]) != address(0)) {
+            _followRules[accountToFollow].processFollow(msg.sender, followerAccount, followId, followRulesData);
         }
     }
 
-    function _unfollow(address followerAccount, address accountToUnfollow, bytes calldata graphExtensionData) internal {
+    function _unfollow(address followerAccount, address accountToUnfollow, bytes calldata graphRulesData) internal {
         uint256 followId = _follows[followerAccount][accountToUnfollow].id;
         if (followId == 0) {
             // Not following!
             revert();
         }
-        if (address(_graphExtension) != address(0)) {
-            _graphExtension.processUnfollow(
-                msg.sender,
-                followerAccount,
-                accountToUnfollow,
-                followId,
-                graphExtensionData
-            );
+        if (address(_graphRules) != address(0)) {
+            _graphRules.processUnfollow(msg.sender, followerAccount, accountToUnfollow, followId, graphRulesData);
         }
-        // We don't have FollowModule.processUnfollow because it can prevent from unfollowing
+        // We don't have FollowRules.processUnfollow because it can prevent from unfollowing
         _followersCount[accountToUnfollow]--;
         delete _followers[accountToUnfollow][followId];
         delete _follows[followerAccount][accountToUnfollow];
@@ -191,8 +180,8 @@ contract FollowGraph is IFollowGraph {
         return _follows[followerAccount][followedAccount];
     }
 
-    function getFollowModule(address account) external view returns (IFollowModule) {
-        return _followModules[account];
+    function getFollowRules(address account) external view returns (IFollowRules) {
+        return _followRules[account];
     }
 
     function getPermissions(address account) external view returns (Permissions memory) {
@@ -207,7 +196,7 @@ contract FollowGraph is IFollowGraph {
         return _admin;
     }
 
-    function getGraphExtension() external view returns (IGraphExtension) {
-        return _graphExtension;
+    function getGraphRules() external view returns (IFollowGraphRules) {
+        return _graphRules;
     }
 }
