@@ -39,6 +39,7 @@ struct Post {
     uint256[] quotedPostIds;
     uint256[] parentPostIds;
     bytes[] extraData; // or extra authors and other stuff can be stored here
+    // uint256 sourceAppId
 }
 
 struct Permissions {
@@ -53,6 +54,12 @@ contract Feed {
     uint256 internal _lastPostId;
     IFeedRules _feedRules;
     mapping(address account => Permissions permissions) internal _permissions;
+
+    mapping(uint256 => mapping(bytes32 => bytes)) _postExtraData;
+
+    event PostCreated(address indexed author, uint256 indexed postId, Post postData);
+    event PostEdited(address indexed author, uint256 indexed postId, Post updatedPostData, bytes data);
+    event PostDeleted(address indexed author, uint256 indexed postId, bytes data);
 
     function setFeedRules(IFeedRules feedRules, bytes calldata initializationData) external {
         require(msg.sender == _admin, 'Not the admin');
@@ -79,6 +86,7 @@ contract Feed {
         _posts[_lastPostId] = postData;
         _feedRules.onPost(msg.sender, _lastPostId, postData, data);
         _postHook(msg.sender, _lastPostId, postData, data);
+        emit PostCreated(msg.sender, _lastPostId, postData);
         return _lastPostId;
     }
 
@@ -90,6 +98,7 @@ contract Feed {
         require(postId <= _lastPostId, 'Post does not exist');
         _feedRules.onEdit(msg.sender, postId, updatedPostData, data);
         _posts[postId] = updatedPostData; // TODO: CEI pattern... hmm...
+        emit PostEdited(msg.sender, postId, updatedPostData, data);
     }
 
     function deletePost(uint256 postId, bytes calldata data) external {
@@ -98,6 +107,7 @@ contract Feed {
             'Not the author nor has permissions'
         );
         _feedRules.onDelete(msg.sender, postId, data);
+        emit PostDeleted(msg.sender, postId, data);
         delete _posts[postId];
     }
 }

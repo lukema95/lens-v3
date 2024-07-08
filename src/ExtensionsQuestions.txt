@@ -1,0 +1,87 @@
+Question #1: Should we allow multiple extensions or just a single one?
+
+Question #2: Should extensions (whether there is a single-extension approach or a multi-extension approach) be forced to be a single-entry point or should they co-exist with the underlying primitive?
+
+Question #3: Should permissions be granularly assigned or should we assume the extension always has full permissions, and that owners/admins should know what they are setting as extension.
+
+Question #4: What about the DELEGATECALL approach?
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+Question #1: Should we allow multiple extensions or just a single one?
+    * Multiple
+
+    Question #1.1: Why we don't have multiple global and local rules?
+    Because the rules are called by the primitive. The extensions call the primitive.
+
+Question #2: Should extensions (whether there is a single-extension approach or a multi-extension approach) be forced to be a single-entry point or should they co-exist with the underlying primitive?
+    * They should co-exist with the underlying primitive (that's why they're "Extensions" - they extend, not replace [unless they're designed as a replacement])
+
+Question #3: Should permissions be granularly assigned or should we assume the extension always has full permissions, and that owners/admins should know what they are setting as extension.
+    * Granularly assigned (canPost, canEdit, canDelete, canBan, canView, etc.)
+
+Question #4: What about the DELEGATECALL approach?
+    * No, I think this is a different trick we can apply (not Extension, but something else that modifies the Primitive storage directly - that will be a different story)
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Graph (has follows)
+- follow
+- unfollow
+
+NFT Tokenizer (can mint an NFT from your follow, and can remove [overriding the user permissions] your follow if you burn an NFT, you can still use the Graph without this extension directly if you don't need NFTs)
+- followAndMintNFT
+- burnNFTAndUnfollow
++ follow
++ unfollow
+
+Another Extension (can do something else)
+- doSomethingElseAndFollow
+- doSomethingElseAndUnfollow
++ follow
++ unfollow
+
+And now - how do you combine all three so you have one single-entry point and all the functions in it? And make it dynamic :)
+- followAndMintNFT
+- burnNFTAndUnfollow
+- doSomethingElseAndFollow
+- doSomethingElseAndUnfollow
++ follow
++ unfollow
++ follow
++ unfollow
+
+I AM OK WITH MULTIPLE :D BUT I STILL NOT CONVINCED ON BEING ABLE TO CALL THE PRIMITIVE DIRECTLY
+- 
+
+
+
+Diamond proxy Primitive...
+- just storage and pointing to all its stuff:
+  * pointing to the base layer (FollowGraph)
+  * pointing to the NFT Tokenizer functions
+  * pointing to this and that
+
+////////////////////////
+
+contract GenericRuleOrExtensionThatCanApplyToEveryPrimitive {
+
+    bytes32 immutable private symbolSlot;
+    bytes32 immutable private nameSlot;
+
+    constructor(bytes32 _symbol, bytes32 _name) {
+        symbolSlot = _symbol;
+        nameSlot = _name;
+    } 
+
+    constructor(string _symbolKey, string _nameKey) {
+        symbolSlot = keccack(_symbolKey);
+        nameSlot = keccack(_nameKey);
+    } 
+
+}

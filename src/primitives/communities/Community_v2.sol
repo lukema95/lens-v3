@@ -47,17 +47,13 @@ contract Community {
     mapping(address account => Membership membership) internal _memberships;
     mapping(address account => Permissions permissions) internal _permissions;
 
-    event MemberJoined(address account, uint256 memberId, bytes data);
-    event MemberLeft(address account, uint256 memberId);
-    event MemberRemoved(address account, uint256 memberId, bytes data);
-
     function setCommunityRules(ICommunityRules communityRules, bytes calldata initializationData) external {
         if (_admin != msg.sender) {
             revert();
         }
         _communityRules = communityRules;
         if (address(communityRules) != address(0)) {
-            _communityRules.initialize(initializationData);
+            communityRules.initialize(initializationData);
         }
     }
 
@@ -68,8 +64,14 @@ contract Community {
         _permissions[account] = permissions;
     }
 
-    function joinCommunity(address account, bytes calldata data) external {
-        if (msg.sender != account && !_permissions[msg.sender].canJoinOnBehalf) {
+    // These shouldn't be added as faucet functions
+    function _joinCommunity(
+        address account,
+        bytes calldata data,
+        bool skipAccountAsSenderCheck,
+        bool skipRulesCheck
+    ) public {
+        if (!skipAccountAsSenderCheck && msg.sender != account) {
             revert();
         }
         _lastMemberIdAssigned++;
@@ -79,12 +81,17 @@ contract Community {
             revert();
         }
         _memberships[account] = Membership(_lastMemberIdAssigned, block.timestamp);
-        _communityRules.onMembershipGranted(msg.sender, account, data);
-        emit MemberJoined(account, _lastMemberIdAssigned, data);
+        _communityRules.processJoining(msg.sender, account, data);
     }
 
-    function leaveCommunity(address account) external {
-        if (msg.sender != account && !_permissions[msg.sender].canLeaveOnBehalf) {
+    // These shouldn't be added as faucet functions
+    function _leaveCommunity(
+        address account,
+        bytes calldata data,
+        bool skipAccountAsSenderCheck,
+        bool skipRulesCheck
+    ) public {
+        if (!skipAccountAsSenderCheck && msg.sender != account) {
             revert();
         }
         if (_memberships[account].id == 0) {
@@ -92,18 +99,75 @@ contract Community {
             revert();
         }
         _numberOfMembers--;
-        emit MemberLeft(account, _memberships[account].id);
         delete _memberships[account];
+        if (!skipRulesCheck) {
+            _communityRules.processLeave(msg.sender, account);
+        }
     }
+
+    // TODO: This can be an extension
+    // function removeMember(address account, bytes calldata data) external {
+    //     if (_memberships[account].id == 0) {
+    //         // Not a member!
+    //         revert();
+    //     }
+    //     _numberOfMembers--;
+    //     delete _memberships[account];
+    //     _communityRules.processRemoval(msg.sender, account, data);
+    // }
+    // Like below:
+}
+
+/*
+We need two extenstions to be available simultaneously:
+
+	- Tokenize membership as ERC-721
+	- Admins and extra permissions: admins/mods can delete/edit members
+
+*/
+
+contract SimpleCommunity {
+    // This can be added as a faucet function
+    function joinCommunity(address account, bytes calldata data) public {
+        delegateCall._joinCommunity(account, data, false, false);
+    }
+
+    // This can be added as a faucet function
+    function leaveCommunity(address account, bytes calldata data) public {
+        delegateCall._leaveCommunity(account, data, false, false);
+    }
+}
+
+contract AdminContolledCommunity {
+    // Original Implementation:
+    // function joinCommunityAsNFTHolder(address account, bytes calldata data) external {
+    //     if (holdsNFT(msg.sender)) {
+    //         revert();
+    //     }
+    //     delegateCall._joinCommunity(msg.sender, data, true, true);
+    // }
 
     function removeMember(address account, bytes calldata data) external {
-        if (_memberships[account].id == 0) {
-            // Not a member!
+        if (msg.sender != _admin) {
             revert();
         }
-        _numberOfMembers--;
-        emit MemberRemoved(account, _memberships[account].id, data);
-        delete _memberships[account];
-        _communityRules.onMembershipRevoked(msg.sender, account, data);
+        delegateCall._leaveCommunity(msg.sender, data, true, true);
+    }
+}
+
+contract CommunityTokenizer is Community {
+    // Original Implementation:
+    // function joinCommunityAsNFTHolder(address account, bytes calldata data) external {
+    //     if (holdsNFT(msg.sender)) {
+    //         revert();
+    //     }
+    //     delegateCall._joinCommunity(msg.sender, data, true, true);
+    // }
+
+    function burn(uint256 tokenId) external {
+        if (msg.sender != ownerOf(tokenId)) {
+            revert();
+        }
+        delegateCall._leaveCommunity(msg.sender, data, true, true);
     }
 }

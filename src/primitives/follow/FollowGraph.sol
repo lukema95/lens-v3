@@ -26,8 +26,17 @@ contract FollowGraph is IFollowGraph {
     mapping(address account => uint256 lastFollowIdAssigned) internal _lastFollowIdAssigned;
     mapping(address followerAccount => mapping(address followedAccount => Follow follow)) internal _follows;
     mapping(address followedAccount => mapping(uint256 followId => address followerAccount)) internal _followers;
-    mapping(address account => Permissions permissions) internal _permissions;
+    mapping(address account => Permissions permissionOverrides) internal _permissionOverrides;
     mapping(address followedAccount => uint256 followersCount) internal _followersCount;
+
+    event Followed(
+        address followerAccount,
+        address accountToFollow,
+        uint256 followId,
+        bytes graphRulesData,
+        bytes followRulesData
+    );
+    event Unfollowed(address followerAccount, address accountToUnfollow, uint256 followId, bytes graphRulesData);
 
     // Admin functions
 
@@ -71,7 +80,7 @@ contract FollowGraph is IFollowGraph {
         bytes calldata graphRulesData,
         bytes calldata followRulesData
     ) public {
-        if (msg.sender != followerAccount && !_permissions[msg.sender].canFollow) {
+        if (msg.sender != followerAccount && !_permissionOverrides[msg.sender].canFollow) {
             revert();
         }
         _follow(followerAccount, accountToFollow, followId, graphRulesData, followRulesData);
@@ -119,6 +128,7 @@ contract FollowGraph is IFollowGraph {
         if (address(_followRules[accountToFollow]) != address(0)) {
             _followRules[accountToFollow].processFollow(msg.sender, followerAccount, followId, followRulesData);
         }
+        emit Followed(followerAccount, accountToFollow, followId, graphRulesData, followRulesData);
     }
 
     function _unfollow(address followerAccount, address accountToUnfollow, bytes calldata graphRulesData) internal {
@@ -132,6 +142,7 @@ contract FollowGraph is IFollowGraph {
         }
         // We don't have FollowRules.processUnfollow because it can prevent from unfollowing
         _followersCount[accountToUnfollow]--;
+        emit Unfollowed(followerAccount, accountToUnfollow, followId, graphRulesData);
         delete _followers[accountToUnfollow][followId];
         delete _follows[followerAccount][accountToUnfollow];
     }

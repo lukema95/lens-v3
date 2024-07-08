@@ -25,6 +25,4 @@ contract LensDiamond {
     fallback() external payable {
         // TODO: Code to find facet and delegate call
     }
-
-    receive() external payable {} // TODO: Why is this always present in the diamonds? Is it needed?
 }

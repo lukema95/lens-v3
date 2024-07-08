@@ -1,64 +1,63 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IUsernameModule} from './IUsernameModule.sol';
+import {IUsernameRules} from './IUsernameRules.sol';
 
-// TODO: Kinda bad on consistency that we have "user" here but "account" in the other primitive.
 contract Username {
     address _admin;
     string _namespace;
 
-    IUsernameModule _module;
+    // TODO #1: Implement proper ownable pattern
+    // TODO #2: Implement diamond storage
+    // TODO #3: Implement in a way that allow extensions (taking into account we decided to use Diamond)
+    //// TODO #4: Sample rules to Implement:
+    /////////// - TwitterMigrator (migrateFromX())
+    /////////// - PayByChar (usual processRegister())
+    /////////// - AZValidator
+    //// TODO #5: Sample extensions to Implement:
+    /////////// - NFT Tokenizer (mint(), burn(), etc)
+
+    IUsernameRules _usernameRules;
 
     mapping(string => address) private _nameToUser;
     mapping(address => string) private _userToName; // aka Reverse record
 
-    event UsernameRegistered(string username, address indexed userAddress, bytes data);
-    event UsernameUpdated(string username, address indexed userAddress, bytes data);
+    event UsernameUnregistered(string username, address indexed previousAccount, bytes data);
+    event UsernameRegistered(string username, address indexed account, bytes data);
 
     constructor(string memory namespace) {
         _namespace = namespace;
     }
 
-    function setModule(IUsernameModule module, bytes calldata data) external {
+    function setUsernameRules(IUsernameRules usernameRules, bytes calldata initializationData) external {
         if (_admin != msg.sender) {
             revert();
         }
-        _module = module;
-        module.initialize(data);
+        _usernameRules = usernameRules;
+        if (address(usernameRules) != address(0)) {
+            usernameRules.initialize(initializationData);
+        }
     }
-
-    // TODO: Do we allow addresses that have registering/unregistering permissions? Probably YES!
 
     function registerUsername(string memory username, bytes calldata data) external {
         if (_nameToUser[username] != address(0)) {
             revert(); // Username already taken
         }
-        // Check if username is already taken and its charset.
         _nameToUser[username] = msg.sender;
         _userToName[msg.sender] = username;
-        _module.processRegistering(msg.sender, username, data);
+        _usernameRules.processRegistering(msg.sender, username, data);
         emit UsernameRegistered(username, msg.sender, data);
     }
 
-    // Removing it, updating it, etc.
-
-    /*
-
-        MultiModuleModule:
-         - NFT Tokenizer (mint(), burn(), ERC-721 ones, etc)
-         - TwitterMigrator (migrateFromX())
-         - PayByChar (usual processRegister())
-         - AZValidator
-
-         Will this MultiModuleModule be an entry point?
-         If yes - how?
-
-         Diamond? With fallback trying to go to the right module?
-
-    */
-
-    //////////////////////////////////////
+    function unregisterUsername(string memory username, bytes calldata data) external {
+        if (_nameToUser[username] != msg.sender) {
+            revert(); // Not your username
+        }
+        delete _nameToUser[username];
+        delete _userToName[msg.sender];
+        _usernameRules.processUnregistering(msg.sender, username, data);
+        emit UsernameUnregistered(username, msg.sender, data);
+    }
 
     // Getters
 
