@@ -29,14 +29,19 @@ contract FollowGraph is IFollowGraph {
     mapping(address account => Permissions permissionOverrides) internal _permissionOverrides;
     mapping(address followedAccount => uint256 followersCount) internal _followersCount;
 
-    event Followed(
+    event Lens_Graph_Followed(
         address followerAccount,
         address accountToFollow,
         uint256 followId,
         bytes graphRulesData,
         bytes followRulesData
     );
-    event Unfollowed(address followerAccount, address accountToUnfollow, uint256 followId, bytes graphRulesData);
+    event Lens_Graph_Unfollowed(
+        address followerAccount,
+        address accountToUnfollow,
+        uint256 followId,
+        bytes graphRulesData
+    );
 
     // Admin functions
 
@@ -128,7 +133,7 @@ contract FollowGraph is IFollowGraph {
         if (address(_followRules[accountToFollow]) != address(0)) {
             _followRules[accountToFollow].processFollow(msg.sender, followerAccount, followId, followRulesData);
         }
-        emit Followed(followerAccount, accountToFollow, followId, graphRulesData, followRulesData);
+        emit Lens_Graph_Followed(followerAccount, accountToFollow, followId, graphRulesData, followRulesData);
     }
 
     function _unfollow(address followerAccount, address accountToUnfollow, bytes calldata graphRulesData) internal {
@@ -142,7 +147,7 @@ contract FollowGraph is IFollowGraph {
         }
         // We don't have FollowRules.processUnfollow because it can prevent from unfollowing
         _followersCount[accountToUnfollow]--;
-        emit Unfollowed(followerAccount, accountToUnfollow, followId, graphRulesData);
+        emit Lens_Graph_Unfollowed(followerAccount, accountToUnfollow, followId, graphRulesData);
         delete _followers[accountToUnfollow][followId];
         delete _follows[followerAccount][accountToUnfollow];
     }

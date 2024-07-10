@@ -47,9 +47,9 @@ contract Community {
     mapping(address account => Membership membership) internal _memberships;
     mapping(address account => Permissions permissions) internal _permissions;
 
-    event MemberJoined(address account, uint256 memberId, bytes data);
-    event MemberLeft(address account, uint256 memberId);
-    event MemberRemoved(address account, uint256 memberId, bytes data);
+    event Lens_Community_MemberJoined(address account, uint256 memberId, bytes data);
+    event Lens_Community_MemberLeft(address account, uint256 memberId);
+    event Lens_Community_MemberRemoved(address account, uint256 memberId, bytes data);
 
     function setCommunityRules(ICommunityRules communityRules, bytes calldata initializationData) external {
         if (_admin != msg.sender) {
@@ -80,7 +80,7 @@ contract Community {
         }
         _memberships[account] = Membership(_lastMemberIdAssigned, block.timestamp);
         _communityRules.onMembershipGranted(msg.sender, account, data);
-        emit MemberJoined(account, _lastMemberIdAssigned, data);
+        emit Lens_Community_MemberJoined(account, _lastMemberIdAssigned, data);
     }
 
     function leaveCommunity(address account) external {
@@ -92,7 +92,7 @@ contract Community {
             revert();
         }
         _numberOfMembers--;
-        emit MemberLeft(account, _memberships[account].id);
+        emit Lens_Community_MemberLeft(account, _memberships[account].id);
         delete _memberships[account];
     }
 
@@ -102,7 +102,7 @@ contract Community {
             revert();
         }
         _numberOfMembers--;
-        emit MemberRemoved(account, _memberships[account].id, data);
+        emit Lens_Community_MemberRemoved(account, _memberships[account].id, data);
         delete _memberships[account];
         _communityRules.onMembershipRevoked(msg.sender, account, data);
     }

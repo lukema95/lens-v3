@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {IFollowRules} from './IFollowRules.sol';
 
-interface IFollowGraphRules {
+interface IGraphRules {
     function initialize(bytes calldata data) external;
 
     function processFollow(
