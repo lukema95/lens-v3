@@ -2,6 +2,8 @@
 pragma solidity ^0.8.0;
 
 interface IUsernameRules {
+    // TODO: Add a possibility to reinitialize an individual rule (change it)
+
     function initialize(bytes calldata data) external;
 
     function processRegistering(

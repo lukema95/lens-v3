@@ -41,6 +41,51 @@ struct PNInput {
 
 -----------
 
+/////////
+10.07.2024
+!!!FINAL FINAL FINAL RESUME ABOUT RULES!!!
+
+We store rules as arrays of arrays:
+[
+  [rule1, rule2, rule3],
+  [rule4, rule5],
+  ...
+]
+
+We have a switch with two possible states: AND_OR is the first one, OR_AND is the second one.
+
+Depending on the switch the inner arrays are either AND or OR, and the outer arrays are the other onet (OR or AND).
+
+Switch first Combination is outer, second is inner:
+Example: AND_OR means outer is AND, inner is OR
+Example: OR_AND means outer is OR, inner is AND
+
+Example:
+Switch = AND_OR
+Rules = 
+[
+  [rule1 OR rule2 OR rule3],
+  AND
+  [rule4 OR rule5],
+  AND
+  ...
+]
+
+Example:
+Switch = OR_AND
+Rules = 
+[
+  [rule1 AND rule2 AND rule3],
+  OR
+  [rule4 AND rule5],
+  OR
+  ...
+]
+
+The UI for now only supports a single element in the inner array (so the switch only affects the outer chaining)
+
+//////////
+
 OR_rules = [[addy_o0, addy_o1, ..., addy_oN], ...]
 
 rules = [addy_a0, addy_a1, ..., addy_aM] => [[addy_a0, addy_o0], [addy_a1], ..., [addy_aM]]
@@ -54,7 +99,9 @@ FINAL_STATEMENT = (addy_o0 OR addy_o1 OR ... OR addy_oN) AND (addy_a0 AND addy_a
 1. Do we short-circuit??? => YES
 This means, if you need to do something always, just put it into the AND_rules, and make sure it cannot revert when going through it
 
-2. It's kinda ok... but not super powerful? Like what about: (addy1 OR addy2) AND (addy3 OR addy4)
+2. It's kinda ok... but not super powerful? Like what about:
+((addy1 OR addy2) AND (addy3 OR addy4)) OR (addy5 AND addy6)
+(addy1 OR addy2) AND (addy3 OR addy4 OR (addy5 AND addy6))
 
 "be part of this community" OR "be approved by the community to post once (like a DAO)"
 AND
