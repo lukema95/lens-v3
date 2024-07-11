@@ -19,6 +19,7 @@ contract Username is IUsername {
         if (address(usernameRules) != address(0)) {
             IUsernameRules(usernameRules).initialize(initializationData);
         }
+        emit Lens_Username_RulesSet(usernameRules, initializationData);
     }
 
     // Public functions

@@ -2,6 +2,8 @@
 pragma solidity ^0.8.0;
 
 interface IUsername {
+    event Lens_Username_RulesSet(address usernameRules, bytes initializationData);
+
     event Lens_Username_Registered(string username, address indexed account, bytes data);
 
     event Lens_Username_Unregistered(string username, address indexed previousAccount, bytes data);

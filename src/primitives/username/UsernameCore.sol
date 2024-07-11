@@ -3,10 +3,6 @@ pragma solidity ^0.8.0;
 
 library UsernameCore {
     // Storage
-
-    // keccak256('lens.username.core.storage')
-    bytes32 constant CORE_STORAGE_SLOT = 0x99859b45773300f37fd6dda5224af64cfd118242932458b3472b7865bfa1b249;
-
     struct Storage {
         string namespace;
         mapping(string => address) usernameToAccount;
@@ -14,6 +10,9 @@ library UsernameCore {
         address owner;
         address usernameRules;
     }
+
+    // keccak256('lens.username.core.storage')
+    bytes32 constant CORE_STORAGE_SLOT = 0x99859b45773300f37fd6dda5224af64cfd118242932458b3472b7865bfa1b249;
 
     function $storage() internal pure returns (Storage storage _storage) {
         assembly {
