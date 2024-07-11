@@ -8,8 +8,5 @@ interface ICommunityRules {
 
     function processRemoval(address originalMsgSender, address account, bytes calldata data) external;
 
-    function processLeave(address originalMsgSender, address account, bytes calldata data) external;
-
-    // TODO: Do we need this? To call after leaving a community and clear some state
-    function afterLeaving(bytes calldata data) external;
+    function processLeaving(address originalMsgSender, address account, bytes calldata data) external;
 }
