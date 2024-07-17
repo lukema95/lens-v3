@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import {IRules} from './IRules.sol';
 import {IUsernameRules} from './IUsernameRules.sol';
 
-contract RulesCombinator {
+contract RulesCombinator is IRules {
     enum CombinationMode {
         AND,
         OR
@@ -11,6 +12,96 @@ contract RulesCombinator {
 
     address[] internal _rules;
     CombinationMode internal _combinationMode;
+
+    enum Mode {
+        ADD,
+        REMOVE,
+        UPDATE
+    }
+
+    struct RuleConfiguration {
+        address rule;
+        bytes ruleData;
+    }
+
+    // configure() function of the RuleCombinator can do magic:
+    // - You pass a MODE: Add, Remove, Update
+    // - You pass a list of rules to remove, or to update or to add
+    function configure(bytes calldata data) external virtual {
+        (Mode mode, bytes memory rulesData) = abi.decode(data, (Mode, bytes));
+
+        if (mode == Mode.ADD) {
+            _addRules(rulesData);
+        } else if (mode == Mode.REMOVE) {
+            _removeRules(rulesData);
+        } else if (mode == Mode.UPDATE) {
+            _updateRules(rulesData);
+        } else {
+            revert('UsernameRulesCombinator: Invalid mode');
+        }
+    }
+
+    function setCombinationMode(CombinationMode combinationMode) external {
+        _combinationMode = combinationMode;
+    }
+
+    function getCombinationMode() external view returns (CombinationMode) {
+        return _combinationMode;
+    }
+
+    function _addRules(bytes memory rulesData) internal {
+        RuleConfiguration[] memory rules = abi.decode(rulesData, (RuleConfiguration[]));
+        for (uint256 i = 0; i < rules.length; i++) {
+            _addRule(rules[i]);
+        }
+    }
+
+    function _addRule(RuleConfiguration memory rule) internal {
+        // Check if the rule address already exists in the array
+        for (uint256 i = 0; i < _rules.length; i++) {
+            if (_rules[i] == rule.rule) {
+                revert('UsernameRulesCombinator: Rule already exists');
+            }
+        }
+        _rules.push(rule.rule);
+        IUsernameRules(rule.rule).configure(rule.ruleData);
+    }
+
+    function _removeRules(bytes memory rulesData) internal {
+        address[] memory rulesToRemove = abi.decode(rulesData, (address[]));
+        for (uint256 i = 0; i < rulesToRemove.length; i++) {
+            _removeRule(rulesToRemove[i]);
+        }
+    }
+
+    function _removeRule(address ruleToRemove) internal {
+        // Find the rule index and delete it from the _rules array
+        for (uint256 i = 0; i < _rules.length; i++) {
+            if (_rules[i] == ruleToRemove) {
+                delete _rules[i];
+                return;
+            }
+        }
+        revert('UsernameRulesCombinator: Rule not found');
+    }
+
+    function _updateRules(bytes memory rulesData) internal {
+        RuleConfiguration[] memory rules = abi.decode(rulesData, (RuleConfiguration[]));
+        for (uint256 i = 0; i < rules.length; i++) {
+            _updateRule(rules[i]);
+        }
+    }
+
+    function _updateRule(RuleConfiguration memory rule) internal {
+        // Find the rule index and update it
+        for (uint256 i = 0; i < _rules.length; i++) {
+            if (_rules[i] == rule.rule) {
+                IUsernameRules(rule.rule).configure(rule.ruleData);
+                return;
+            }
+        }
+        revert('UsernameRulesCombinator: Rule not found');
+    }
 
     function _setRules(address[] memory rules, CombinationMode combinationMode) internal {
         rules = rules;
@@ -51,21 +142,6 @@ contract RulesCombinator {
 }
 
 contract UsernameRulesCombinator is RulesCombinator, IUsernameRules {
-    // TODO: Add a possibility to reinitialize an individual rule (change it)
-
-    function initialize(bytes calldata data) external override {
-        (address[] memory rules, CombinationMode combinationMode, bytes[] memory rulesInitDatas) = abi.decode(
-            data,
-            (address[], CombinationMode, bytes[])
-        );
-
-        _setRules(rules, combinationMode);
-
-        for (uint256 i = 0; i < rules.length; i++) {
-            IUsernameRules(rules[i]).initialize(rulesInitDatas[i]);
-        }
-    }
-
     function processRegistering(
         address originalMsgSender,
         address account,

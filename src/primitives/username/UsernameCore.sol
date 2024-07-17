@@ -33,6 +33,7 @@ library UsernameCore {
     // Internal functions - Use these functions to be called as an inlined library
 
     function _registerUsername(address account, string memory username) internal {
+        require(bytes(username).length > 0); // Username must not be empty
         require($storage().usernameToAccount[username] == address(0)); // Username must not be registered yet
         require(bytes($storage().accountToUsername[account]).length == 0); // Account must not have a username yet
         $storage().usernameToAccount[username] = account;

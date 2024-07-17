@@ -1,0 +1,19 @@
+- Having an Access Control (AC) primitive is a GREAT idea
+- Having an AC for the primitive, and then others for rules makes sense, altough most likely people will use the same AC for everything
+- They way we defined the AC interface and all the versatily it brings is AMAZING
+- Rules makes sense to be composable, combinable, because of our dashboard "single-click" vision. Otherwise, if we do not
+  use something like the "Rule Combinator" we would need to build a new custom rule contract for each combination desired
+  The conclusion is, Rule Combinator makes sense as it is now
+
+- Things I am not convinced of how they will work are:
+
+1. Changing an specific rule configuration. For example, you wanna change the amount in the "Paid to do X" rule, but you
+   are using a Rule Combinator. So it's like you are changing inner state but not changing the rule address nor anything else.
+   This is still important to be flagged, API need to index this, so then UIs can set the proper paid amount or token.
+
+- We want rules to hold state? What are the pros, what are the cons. What are the actual benefits or use cases?
+  Is it only for upgrading the rules and keeping configuration/storage? (e.g. a leaderboard, points, scores, etc)
+
+We might have the Rule Combinator, we might have better version of it, or whatever.
+Then, it means that if the Rule Combinator was holding the state... you will lose everything by switching it.
+Unless you make it a proxy.

@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-interface IUsernameRules {
-    // TODO: Add a possibility to reinitialize an individual rule (change it)
+import {IRules} from './IRules.sol';
 
-    function initialize(bytes calldata data) external;
-
+interface IUsernameRules is IRules {
     function processRegistering(
         address originalMsgSender,
         address account,
