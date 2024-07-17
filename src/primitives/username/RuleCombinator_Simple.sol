@@ -13,7 +13,7 @@ contract RulesCombinator is IRules {
     address[] internal _rules;
     CombinationMode internal _combinationMode;
 
-    enum Mode {
+    enum Operation {
         ADD,
         REMOVE,
         UPDATE
@@ -28,13 +28,13 @@ contract RulesCombinator is IRules {
     // - You pass a MODE: Add, Remove, Update
     // - You pass a list of rules to remove, or to update or to add
     function configure(bytes calldata data) external virtual {
-        (Mode mode, bytes memory rulesData) = abi.decode(data, (Mode, bytes));
+        (Operation operation, bytes memory rulesData) = abi.decode(data, (Operation, bytes));
 
-        if (mode == Mode.ADD) {
+        if (operation == Operation.ADD) {
             _addRules(rulesData);
-        } else if (mode == Mode.REMOVE) {
+        } else if (operation == Operation.REMOVE) {
             _removeRules(rulesData);
-        } else if (mode == Mode.UPDATE) {
+        } else if (operation == Operation.UPDATE) {
             _updateRules(rulesData);
         } else {
             revert('UsernameRulesCombinator: Invalid mode');
