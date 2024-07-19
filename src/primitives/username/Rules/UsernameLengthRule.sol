@@ -8,7 +8,11 @@ contract UsernameLengthRule is IUsernameRules {
     uint256 _minLength; // "lens.username.rules.UsernameLengthRule.minLength"
     uint256 _maxLength; // "lens.username.rules.UsernameLengthRule.maxLength"
 
-    IAccessControl accessControl; // "lens.username.accessControl"
+    // TODO: This "_accessControl" address is not initliazed here because this is assumed being initialized in the combinator contract
+    // and shared across all rules. We need to think about this, specially if this rule can be used standalone without a combinator too.
+    //
+    // But if somebody wants to have a specific per-rule accessControl - then they can use a local variable to store it.
+    IAccessControl internal _accessControl; // "lens.username.accessControl"
 
     struct Permissions {
         bool canSetRolePermissions;
@@ -30,7 +34,7 @@ contract UsernameLengthRule is IUsernameRules {
         bool canSkipMinLengthRestriction,
         bool canSkipMaxLengthRestriction
     ) external {
-        require(_rolePermissions[accessControl.getRole(msg.sender)].canSetRolePermissions); // Must have canSetRolePermissions
+        require(_rolePermissions[_accessControl.getRole(msg.sender)].canSetRolePermissions); // Must have canSetRolePermissions
         _rolePermissions[role] = Permissions(
             canSetRolePermissions,
             canSkipMinLengthRestriction,
@@ -38,7 +42,7 @@ contract UsernameLengthRule is IUsernameRules {
         );
     }
 
-    function initialize(bytes calldata data) external override {
+    function configure(bytes calldata data) external override {
         require(address(this) != IMPLEMENTATION); // Cannot initialize implementation contract
         (
             uint256 minLength,
@@ -66,10 +70,10 @@ contract UsernameLengthRule is IUsernameRules {
     ) external view override {
         uint256 usernameLength = bytes(username).length;
         if (usernameLength < _minLength) {
-            require(_rolePermissions[accessControl.getRole(originalMsgSender)].canSkipMinLengthRestriction);
+            require(_rolePermissions[_accessControl.getRole(originalMsgSender)].canSkipMinLengthRestriction);
         }
         if (_maxLength != 0 && usernameLength > _maxLength) {
-            require(_rolePermissions[accessControl.getRole(originalMsgSender)].canSkipMaxLengthRestriction);
+            require(_rolePermissions[_accessControl.getRole(originalMsgSender)].canSkipMaxLengthRestriction);
         }
     }
 

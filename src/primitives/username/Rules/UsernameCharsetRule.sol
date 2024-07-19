@@ -5,7 +5,11 @@ import {IAccessControl} from './../../access-control/IAccessControl.sol';
 import {IUsernameRules} from './../IUsernameRules.sol';
 
 contract UsernameCharsetRule is IUsernameRules {
-    IAccessControl accessControl; // "lens.username.accessControl"
+    // TODO: This "_accessControl" address is not initliazed here because this is assumed being initialized in the combinator contract
+    // and shared across all rules. We need to think about this, specially if this rule can be used standalone without a combinator too.
+    //
+    // But if somebody wants to have a specific per-rule accessControl - then they can use a local variable to store it.
+    IAccessControl internal _accessControl; // "lens.username.accessControl"
 
     struct Permissions {
         bool canSetRolePermissions;
@@ -36,11 +40,11 @@ contract UsernameCharsetRule is IUsernameRules {
         bool canSetRolePermissions, // TODO: Think about this better
         bool canSkipCharsetRestrictions
     ) external {
-        require(_rolePermissions[accessControl.getRole(msg.sender)].canSetRolePermissions); // Must have canSetRolePermissions
+        require(_rolePermissions[_accessControl.getRole(msg.sender)].canSetRolePermissions); // Must have canSetRolePermissions
         _rolePermissions[role] = Permissions(canSetRolePermissions, canSkipCharsetRestrictions);
     }
 
-    function initialize(bytes calldata data) external override {
+    function configure(bytes calldata data) external override {
         require(address(this) != IMPLEMENTATION); // Cannot initialize implementation contract
         (
             Restrictions memory charsetRestrictions,
@@ -58,7 +62,7 @@ contract UsernameCharsetRule is IUsernameRules {
         string memory username,
         bytes calldata
     ) external view override {
-        if (_rolePermissions[accessControl.getRole(originalMsgSender)].canSkipCharsetRestrictions) {
+        if (_rolePermissions[_accessControl.getRole(originalMsgSender)].canSkipCharsetRestrictions) {
             return;
         }
         // Cannot start with a character in the cannotStartWith charset
