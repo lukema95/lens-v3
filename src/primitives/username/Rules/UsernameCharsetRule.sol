@@ -5,12 +5,6 @@ import {IAccessControl} from './../../access-control/IAccessControl.sol';
 import {IUsernameRules} from './../IUsernameRules.sol';
 
 contract UsernameCharsetRule is IUsernameRules {
-    // TODO: This "_accessControl" address is not initliazed here because this is assumed being initialized in the combinator contract
-    // and shared across all rules. We need to think about this, specially if this rule can be used standalone without a combinator too.
-    //
-    // But if somebody wants to have a specific per-rule accessControl - then they can use a local variable to store it.
-    IAccessControl internal _accessControl; // "lens.username.accessControl"
-
     struct Permissions {
         bool canSetRolePermissions;
         bool canSkipCharsetRestrictions;
@@ -25,14 +19,37 @@ contract UsernameCharsetRule is IUsernameRules {
         string cannotStartWith; // Optional (pass empty string if not needed)
     }
 
+    // TODO: This "_accessControl" address is not initliazed here because this is assumed being initialized in the combinator contract
+    // and shared across all rules. We need to think about this, specially if this rule can be used standalone without a combinator too.
+    //
+    // But if somebody wants to have a specific per-rule accessControl - then they can use a local variable to store it.
+    IAccessControl internal _accessControl; // "lens.username.accessControl"
+
     Restrictions internal _charsetRestrictions;
 
     mapping(uint256 => Permissions) _rolePermissions; // "lens.username.rules.UsernameLengthRule.rolePermissions"
 
     address immutable IMPLEMENTATION;
 
-    constructor() {
+    constructor(IAccessControl accessControl) {
         IMPLEMENTATION = address(this);
+        // Initialize the access control. If this will be used with a proxy, we suggest to pass address(0) in impl.
+        _accessControl = accessControl;
+    }
+
+    /**
+     * Option #1: It is used directly.
+     *      - Access control set in the constructor.
+     * Option #2: It is used with a UUPS, Transparent or Beacon proxy.
+     *      - Access control set through initialize function.
+     * Option #3: It is used with a combinator (which is like a proxy too).
+     *      - Access control set in the combinator contract.
+     */
+    // We need this function for the Option #2: Proxy.
+    function initiliaze(IAccessControl accessControl) external {
+        // TODO: This should be read from the "lens.username.accessControl" slot
+        require(address(_accessControl) == address(0), 'UsernameCharsetRule: Already initialized');
+        _accessControl = accessControl;
     }
 
     function setRolePermissions(
