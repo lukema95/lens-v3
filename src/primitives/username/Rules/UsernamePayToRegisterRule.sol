@@ -13,18 +13,11 @@ contract UsernamePayToRegisterRule is IUsernameRules {
     address _token; // "lens.username.rules.UsernamePayToRegisterRule.token"
     uint256 _price; // "lens.username.rules.UsernamePayToRegisterRule.price"
 
-    // TODO: This "_accessControl" address is not initliazed here because this is assumed being initialized in the combinator contract
-    // and shared across all rules. We need to think about this, specially if this rule can be used standalone without a combinator too.
-    //
-    // But if somebody wants to have a specific per-rule accessControl - then they can use a local variable to store it.
     IAccessControl internal _accessControl; // "lens.username.accessControl"
 
-    struct Permissions {
-        bool canSetRolePermissions;
-        bool canSkipPayment;
-    }
-
-    mapping(uint256 => Permissions) _rolePermissions; // "lens.username.rules.UsernamePayToRegisterRule.rolePermissions"
+    // TODO: We can think and choose proper values for this ResourceID, like "lens.skip_payment.permission" or "lens.usernames.rules.can_skip_payment.permission" or whatever, depending how global/local we want it
+    uint256 constant SKIP_PAYMENT_RID = uint256(keccak256('SKIP_PAYMENT'));
+    uint256 constant CHANGE_RULE_ACCESS_CONTROL_RID = uint256(keccak256('CHANGE_RULE_ACCESS_CONTROL'));
 
     address immutable IMPLEMENTATION;
 
@@ -32,18 +25,23 @@ contract UsernamePayToRegisterRule is IUsernameRules {
         IMPLEMENTATION = address(this);
     }
 
-    function setRolePermissions(uint256 role, bool canSetRolePermissions, bool canSkipPayment) external {
-        require(_rolePermissions[_accessControl.getRole(msg.sender)].canSetRolePermissions); // Must have canSetRolePermissions
-        _rolePermissions[role] = Permissions(canSetRolePermissions, canSkipPayment);
-    }
-
     function configure(bytes calldata data) external override {
         require(address(this) != IMPLEMENTATION); // Cannot initialize implementation contract
-        (address token, uint256 price, uint256 ownerRoleId, bool canSetRolePermissions, bool canSkipPayment) = abi
-            .decode(data, (address, uint256, uint256, bool, bool));
+        // TODO: Who can run configure?
+        (address token, uint256 price, address accessControl) = abi.decode(data, (address, uint256, address));
         _token = token;
         _price = price;
-        _rolePermissions[ownerRoleId] = Permissions(canSetRolePermissions, canSkipPayment);
+        if (accessControl != address(_accessControl)) {
+            require(
+                _accessControl.hasAccess({
+                    account: msg.sender,
+                    resourceLocation: address(this),
+                    resourceId: CHANGE_RULE_ACCESS_CONTROL_RID
+                }),
+                'UsernamePayToRegisterRule: access denied'
+            );
+            _accessControl = IAccessControl(accessControl);
+        }
     }
 
     function processRegistering(
@@ -52,7 +50,13 @@ contract UsernamePayToRegisterRule is IUsernameRules {
         string memory,
         bytes calldata
     ) external override {
-        if (_rolePermissions[_accessControl.getRole(originalMsgSender)].canSkipPayment) {
+        if (
+            _accessControl.hasAccess({
+                account: originalMsgSender,
+                resourceLocation: address(this),
+                resourceId: SKIP_PAYMENT_RID
+            })
+        ) {
             return;
         }
         require(

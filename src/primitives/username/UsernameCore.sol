@@ -7,7 +7,7 @@ library UsernameCore {
         string namespace;
         mapping(string => address) usernameToAccount;
         mapping(address => string) accountToUsername;
-        address owner;
+        address accessControl;
         address usernameRules;
     }
 

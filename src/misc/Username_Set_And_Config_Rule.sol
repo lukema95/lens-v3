@@ -16,7 +16,7 @@ contract Username is IUsername {
 
     // Owner functions
 
-    function setUsernameRules(address usernameRules) external {
+    function setUsernameRules(address usernameRules, bytes calldata configurationData) external {
         require(
             IAccessControl(Core.$storage().accessControl).hasAccess({
                 account: msg.sender,
@@ -25,7 +25,10 @@ contract Username is IUsername {
             })
         ); // msg.sender must have permissions to set rules
         Core.$storage().usernameRules = usernameRules;
-        emit Lens_Username_RulesSet(usernameRules);
+        if (address(usernameRules) != address(0)) {
+            IUsernameRules(usernameRules).configure(msg.sender, configurationData);
+        }
+        emit Lens_Username_RulesSet(usernameRules, configurationData);
     }
 
     // Public functions

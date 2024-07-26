@@ -5,10 +5,9 @@ import {IAccessControl} from './../../access-control/IAccessControl.sol';
 import {IUsernameRules} from './../IUsernameRules.sol';
 
 contract UsernameCharsetRule is IUsernameRules {
-    struct Permissions {
-        bool canSetRolePermissions;
-        bool canSkipCharsetRestrictions;
-    }
+    uint256 constant SKIP_CHARSET_RID = uint256(keccak256('SKIP_CHARSET'));
+    uint256 constant CHANGE_RULE_ACCESS_CONTROL_RID = uint256(keccak256('CHANGE_RULE_ACCESS_CONTROL'));
+    uint256 constant CONFIGURE_RULE_RID = uint256(keccak256('CONFIGURE_RULE'));
 
     struct Restrictions {
         bool allowNumeric;
@@ -19,58 +18,66 @@ contract UsernameCharsetRule is IUsernameRules {
         string cannotStartWith; // Optional (pass empty string if not needed)
     }
 
-    // TODO: This "_accessControl" address is not initliazed here because this is assumed being initialized in the combinator contract
-    // and shared across all rules. We need to think about this, specially if this rule can be used standalone without a combinator too.
-    //
-    // But if somebody wants to have a specific per-rule accessControl - then they can use a local variable to store it.
     IAccessControl internal _accessControl; // "lens.username.accessControl"
 
     Restrictions internal _charsetRestrictions;
 
-    mapping(uint256 => Permissions) _rolePermissions; // "lens.username.rules.UsernameLengthRule.rolePermissions"
-
     address immutable IMPLEMENTATION;
+    bool internal _stateless;
 
-    constructor(IAccessControl accessControl) {
+    // Provide accessControl to constructor if the rule is set directly
+    constructor(IAccessControl accessControl, bool stateless) {
         IMPLEMENTATION = address(this);
-        // Initialize the access control. If this will be used with a proxy, we suggest to pass address(0) in impl.
+        // Initialize the access control.
+        // If this will be used with a proxy, pass stateless = true and accessControl = address(0).
         _accessControl = accessControl;
+        _stateless = stateless;
     }
 
-    /**
-     * Option #1: It is used directly.
-     *      - Access control set in the constructor.
-     * Option #2: It is used with a UUPS, Transparent or Beacon proxy.
-     *      - Access control set through initialize function.
-     * Option #3: It is used with a combinator (which is like a proxy too).
-     *      - Access control set in the combinator contract.
-     */
-    // We need this function for the Option #2: Proxy.
+    function setAccessControl(address newAccessControl) external {
+        // Check if it's a direct implementation - then it should check if the msg.sender has a permission to SetAccessControl
+        _accessControl = IAccessControl(newAccessControl);
+    }
+
+    // We need this function in case this is used through a proxy (e.g. UUPS, Transparent or Beacon proxy).
     function initiliaze(IAccessControl accessControl) external {
         // TODO: This should be read from the "lens.username.accessControl" slot
         require(address(_accessControl) == address(0), 'UsernameCharsetRule: Already initialized');
         _accessControl = accessControl;
     }
 
-    function setRolePermissions(
-        uint256 role,
-        bool canSetRolePermissions, // TODO: Think about this better
-        bool canSkipCharsetRestrictions
-    ) external {
-        require(_rolePermissions[_accessControl.getRole(msg.sender)].canSetRolePermissions); // Must have canSetRolePermissions
-        _rolePermissions[role] = Permissions(canSetRolePermissions, canSkipCharsetRestrictions);
+    // TODO: Is configure() allowed to be called directly? Or only from the Primitive?
+    // TODO: If yes - how do we check that it's a primitive?
+    // TODO: If we initialize the rule with some Primitive that only can call it - then we need to deploy a rule for every primitive? I thought these were singletons.
+    function configure(bytes calldata data) external override {
+        require(!_stateless); // Cannot configure implementation contract (no direct calls allowed, only delegateCall allowed)
+        (Restrictions memory newCharsetRestrictions, address accessControl) = abi.decode(data, (Restrictions, address));
+
+        if (_differsFromCurrentRestrictions(newCharsetRestrictions)) {
+            require(
+                _accessControl.hasAccess({
+                    account: msg.sender,
+                    resourceLocation: address(this),
+                    resourceId: CONFIGURE_RULE_RID
+                })
+            ); // Must have can configure permission
+            _charsetRestrictions = newCharsetRestrictions;
+        }
+
+        if (accessControl != address(0)) {
+            require(
+                _accessControl.hasAccess({
+                    account: msg.sender,
+                    resourceLocation: address(this),
+                    resourceId: CHANGE_RULE_ACCESS_CONTROL_RID
+                })
+            ); // Must have canSetAccessControl
+            _accessControl = IAccessControl(accessControl);
+        }
     }
 
-    function configure(bytes calldata data) external override {
-        require(address(this) != IMPLEMENTATION); // Cannot initialize implementation contract
-        (
-            Restrictions memory charsetRestrictions,
-            uint256 ownerRoleId,
-            bool canSetRolePermissions,
-            bool canSkipCharsetRestrictions
-        ) = abi.decode(data, (Restrictions, uint256, bool, bool));
-        _charsetRestrictions = charsetRestrictions;
-        _rolePermissions[ownerRoleId] = Permissions(canSetRolePermissions, canSkipCharsetRestrictions);
+    function _differsFromCurrentRestrictions(Restrictions memory newRestrictions) internal view returns (bool) {
+        return keccak256(abi.encode(_charsetRestrictions)) != keccak256(abi.encode(newRestrictions));
     }
 
     function processRegistering(
@@ -79,7 +86,13 @@ contract UsernameCharsetRule is IUsernameRules {
         string memory username,
         bytes calldata
     ) external view override {
-        if (_rolePermissions[_accessControl.getRole(originalMsgSender)].canSkipCharsetRestrictions) {
+        if (
+            _accessControl.hasAccess({
+                account: originalMsgSender,
+                resourceLocation: address(this),
+                resourceId: SKIP_CHARSET_RID
+            })
+        ) {
             return;
         }
         // Cannot start with a character in the cannotStartWith charset

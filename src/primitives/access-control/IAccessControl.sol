@@ -2,9 +2,16 @@
 pragma solidity ^0.8.0;
 
 interface IAccessControl {
-    function setRole(address account, uint256 roleId) external;
+    // TODO: Does the `hasAccess` should be a non-view function, so it can change internal state if required?
+    // e.g. you allow access for a single time, so after queried it gets "expired/revoked" immediatly
 
-    function hasRole(address account, uint256 roleId) external view returns (bool);
-
-    function getRole(address account) external view returns (uint256);
+    /**
+     * Returns true if the account has access to the specified resource, false otherwise.
+     * This function MUST NOT revert. Instead, return false.
+     *
+     * @param account The account to check if has access to a resource.
+     * @param resourceLocation The address where the resource is located.
+     * @param resourceId The ID of the resource.
+     */
+    function hasAccess(address account, address resourceLocation, uint256 resourceId) external view returns (bool);
 }

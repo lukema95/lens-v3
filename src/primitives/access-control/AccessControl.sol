@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IAccessControl} from './IAccessControl.sol';
+import {IRoleBasedAccessControl} from './IRoleBasedAccessControl.sol';
 
-contract AccessControl is IAccessControl {
+contract AccessControl is IRoleBasedAccessControl {
     struct Permissions {
         bool canGrant;
         bool canRevoke;
@@ -20,7 +20,7 @@ contract AccessControl is IAccessControl {
         _roles[owner] = keccak256('OWNER');
     }
 
-    function setRole(address account, uint256 roleId) external override {
+    function setRole(address account, uint256 roleId, bytes calldata data) external override {
         // if (role == keccak256('OWNER')) {
         //     require(msg.sender == _owner);
         //     // transfer ownership - here you start the 2-step secure transfer process
@@ -34,4 +34,49 @@ contract AccessControl is IAccessControl {
     function hasRole(address account, uint256 roleId) external view override returns (bool) {}
 
     function getRole(address account) external view override returns (uint256) {}
+
+    function hasAccess(
+        address account,
+        address resourceLocation,
+        uint256 resourceId,
+        bytes calldata data
+    ) external view override returns (bool) {}
+
+    function hasAccess(
+        uint256 roleId,
+        address resourceLocation,
+        uint256 resourceId,
+        bytes calldata data
+    ) external view override returns (bool) {}
+
+    function setGlobalAccess(
+        uint256 roleId,
+        uint256 resourceId,
+        AccessPermission accessPermission,
+        bytes calldata data
+    ) external override {}
+
+    function setScopedAccess(
+        uint256 roleId,
+        address resourceLocation,
+        uint256 resourceId,
+        AccessPermission accessPermission,
+        bytes calldata data
+    ) external override {}
+
+    function getGlobalAccess(uint256 roleId, uint256 resourceId) external view override returns (AccessPermission) {}
+
+    function getGlobalAccess(address account, uint256 resourceId) external view override returns (AccessPermission) {}
+
+    function getScopedAccess(
+        uint256 roleId,
+        address resourceLocation,
+        uint256 resourceId
+    ) external view override returns (AccessPermission) {}
+
+    function getScopedAccess(
+        address account,
+        address resourceLocation,
+        uint256 resourceId
+    ) external view override returns (AccessPermission) {}
 }

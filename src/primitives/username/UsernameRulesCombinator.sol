@@ -5,15 +5,6 @@ import {RulesCombinator} from 'src/primitives/rules/RulesCombinator.sol';
 import {IUsernameRules} from './IUsernameRules.sol';
 
 contract UsernameRulesCombinator is RulesCombinator, IUsernameRules {
-    function setRolePermissions(
-        uint256 role,
-        bool canSetRolePermissions,
-        bool canConfigureRulesAndCombinationMode
-    ) external {
-        require(_rolePermissions[_accessControl.getRole(msg.sender)].canSetRolePermissions); // Must have canSetRolePermissions
-        _rolePermissions[role] = Permissions(canSetRolePermissions, canConfigureRulesAndCombinationMode);
-    }
-
     function processRegistering(
         address originalMsgSender,
         address account,

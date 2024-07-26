@@ -8,19 +8,10 @@ contract UsernameLengthRule is IUsernameRules {
     uint256 _minLength; // "lens.username.rules.UsernameLengthRule.minLength"
     uint256 _maxLength; // "lens.username.rules.UsernameLengthRule.maxLength"
 
-    // TODO: This "_accessControl" address is not initliazed here because this is assumed being initialized in the combinator contract
-    // and shared across all rules. We need to think about this, specially if this rule can be used standalone without a combinator too.
-    //
-    // But if somebody wants to have a specific per-rule accessControl - then they can use a local variable to store it.
     IAccessControl internal _accessControl; // "lens.username.accessControl"
 
-    struct Permissions {
-        bool canSetRolePermissions;
-        bool canSkipMinLengthRestriction;
-        bool canSkipMaxLengthRestriction;
-    }
-
-    mapping(uint256 => Permissions) _rolePermissions; // "lens.username.rules.UsernameLengthRule.rolePermissions"
+    uint256 constant SKIP_MIN_LENGTH_RID = uint256(keccak256('SKIP_MIN_LENGTH'));
+    uint256 constant SKIP_MAX_LENGTH_RID = uint256(keccak256('SKIP_MAX_LENGTH'));
 
     address immutable IMPLEMENTATION;
 
@@ -28,38 +19,15 @@ contract UsernameLengthRule is IUsernameRules {
         IMPLEMENTATION = address(this);
     }
 
-    function setRolePermissions(
-        uint256 role,
-        bool canSetRolePermissions, // TODO: Think about this better
-        bool canSkipMinLengthRestriction,
-        bool canSkipMaxLengthRestriction
-    ) external {
-        require(_rolePermissions[_accessControl.getRole(msg.sender)].canSetRolePermissions); // Must have canSetRolePermissions
-        _rolePermissions[role] = Permissions(
-            canSetRolePermissions,
-            canSkipMinLengthRestriction,
-            canSkipMaxLengthRestriction
-        );
-    }
-
+    // TODO: We will write this assuming it's used only and JUST ONLY by the RuleCombinator.
+    // TODO: Do we want to support other 2 options (direct and non-combinator proxy) in our implementation?
     function configure(bytes calldata data) external override {
         require(address(this) != IMPLEMENTATION); // Cannot initialize implementation contract
-        (
-            uint256 minLength,
-            uint256 maxLength,
-            uint256 ownerRoleId,
-            bool canSetRolePermissions,
-            bool canSkipMinLengthRestriction,
-            bool canSkipMaxLengthRestriction
-        ) = abi.decode(data, (uint256, uint256, uint256, bool, bool, bool));
-        require(minLength <= maxLength); // Min length cannot be greater than max length
+        (uint256 minLength, uint256 maxLength) = abi.decode(data, (uint256, uint256));
+        require(minLength > 0); // Empty username is not allowed
+        require(maxLength == 0 || minLength <= maxLength); // Min length cannot be greater than max length
         _minLength = minLength;
         _maxLength = maxLength; // maxLength = 0 means unlimited length
-        _rolePermissions[ownerRoleId] = Permissions(
-            canSetRolePermissions,
-            canSkipMinLengthRestriction,
-            canSkipMaxLengthRestriction
-        );
     }
 
     function processRegistering(
@@ -70,10 +38,24 @@ contract UsernameLengthRule is IUsernameRules {
     ) external view override {
         uint256 usernameLength = bytes(username).length;
         if (usernameLength < _minLength) {
-            require(_rolePermissions[_accessControl.getRole(originalMsgSender)].canSkipMinLengthRestriction);
+            require(
+                _accessControl.hasAccess({
+                    account: originalMsgSender,
+                    resourceLocation: address(this),
+                    resourceId: SKIP_MIN_LENGTH_RID
+                }),
+                'UsernameLengthRule: cannot skip min length restriction'
+            );
         }
         if (_maxLength != 0 && usernameLength > _maxLength) {
-            require(_rolePermissions[_accessControl.getRole(originalMsgSender)].canSkipMaxLengthRestriction);
+            require(
+                _accessControl.hasAccess({
+                    account: originalMsgSender,
+                    resourceLocation: address(this),
+                    resourceId: SKIP_MAX_LENGTH_RID
+                }),
+                'UsernameLengthRule: cannot skip max length restriction'
+            );
         }
     }
 

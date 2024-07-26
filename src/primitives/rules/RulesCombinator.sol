@@ -5,6 +5,16 @@ import {IRules} from './IRules.sol';
 import {IAccessControl} from 'src/primitives/access-control/IAccessControl.sol';
 
 abstract contract RulesCombinator is IRules {
+    // Custom RulesCombinator's operation events
+    // TODO: Decide betweet plain initilize event + inner operation events, or single initialize event with params
+    event Lens_RuleCombinator_Initialized();
+    // event Lens_RuleCombinator_Initialized(CombinationMode combinationMode, address accessControl, bytes addRulesData);
+    event Lens_RuleCombinator_CombinationModeChanged(CombinationMode combinationMode);
+    event Lens_RuleCombinator_AccessControlChanged(address accessControl);
+    event Lens_RuleCombinator_RulesAdded(RuleConfiguration[] addedRules);
+    event Lens_RuleCombinator_RulesRemoved(RuleConfiguration[] removedRules);
+    event Lens_RuleCombinator_RulesUpdated(RuleConfiguration[] updatedRules);
+
     IAccessControl internal _accessControl; // TODO: This should be located at some storage place so the inner rules can access it via delegatecall
     address immutable IMPLEMENTATION;
 
@@ -12,132 +22,127 @@ abstract contract RulesCombinator is IRules {
         IMPLEMENTATION = address(this);
     }
 
-    struct Permissions {
-        bool canSetAccessControl;
-        bool canSetRolePermissions;
-        bool canConfigure;
-    }
-
-    mapping(uint256 => Permissions) _rolePermissions; // TODO: Think on the naming: "lens.RulesCombinator.UsernameRulesCombinator.rolePermissions"
+    uint256 constant CHANGE_RULE_ACCESS_CONTROL_RID = uint256(keccak256('CHANGE_RULE_ACCESS_CONTROL'));
+    uint256 constant CONFIGURE_RULE_RID = uint256(keccak256('CONFIGURE_RULE'));
 
     enum CombinationMode {
         AND,
         OR
     }
 
+    // INITIALIZE is just a special operation for (CHANGE_ACCESS_CONTROL + CHANGE_COMBINATION_MODE + ADD)
     enum Operation {
-        INITIALIZE, // Can be called by anyone if not initialized
-        ADD, // _canConfigure()
-        REMOVE, // _canConfigure()
-        UPDATE, // _canConfigure()
-        SET_COMBINATION_MODE, // _canConfigure()
-        SET_ACCESS_CONTROL, // _canSetAccessControl()
-        SET_ROLES_PERMISSIONS // _canSetRolePermissions()
+        INITIALIZE, // No Resource ID permission required, the access control is just being provided.
+        ADD_RULES, // CONFIGURE_RULE_RID
+        REMOVE_RULES, // CONFIGURE_RULE_RID
+        UPDATE_RULES, // CONFIGURE_RULE_RID
+        CHANGE_COMBINATION_MODE, // CONFIGURE_RULE_RID
+        CHANGE_ACCESS_CONTROL // CHANGE_RULE_ACCESS_CONTROL_RID
     }
 
     struct RuleConfiguration {
+        // TODO: We can have Operation here and have one CONFIGURE_RULES operation instead of three ADD/REMOVE/UPDATE
         address contractAddress;
         bytes data;
-        // TODO: We can have Operation here and have one CONFIGURE_RULES operation instead of three ADD/REMOVE/UPDATE
     }
 
     address[] internal _rules;
     CombinationMode internal _combinationMode; // Default is AND mode
-    bool internal _initialized;
 
-    // configure() function of the RuleCombinator has two different usages:
-    // 1st time use (ala initialization)
-    // non-1st time use (configuration updates - add rules, remove rules, etc)
-    //
-    // Configuration can do magic:
-    // - You pass an operation: Add, Remove, Update
-    // - You pass a list of rules to remove, or to update or to add
-    function configure(bytes calldata data) external virtual {
+    function configure(bytes calldata data) external virtual override {
         require(address(this) != IMPLEMENTATION); // Cannot initialize implementation contract
-
         (Operation operation, bytes memory operationData) = abi.decode(data, (Operation, bytes));
-
         if (operation == Operation.INITIALIZE) {
-            // Initialization: First time being configured.
-            if (_initialized) {
-                revert('RulesCombinator: Already initialized');
-            }
+            // Initialization: First time being configured. No permissions required in this case.
             _initialize(operationData);
-            _initialized = true;
-        } else if (operation == Operation.SET_ACCESS_CONTROL) {
-            require(_canSetAccessControl(msg.sender), 'RulesCombinator: Access denied');
-            _accessControl = IAccessControl(abi.decode(operationData, (address)));
-        } else if (operation == Operation.SET_ROLES_PERMISSIONS) {
-            require(_canSetRolePermissions(msg.sender), 'RulesCombinator: Access denied');
-            _setRolesPermissions(operationData);
+        } else if (operation == Operation.CHANGE_ACCESS_CONTROL) {
+            _changeAccessControl(operationData);
         } else {
-            require(_initialized, 'RulesCombinator: Not initialized');
             require(_canConfigure(msg.sender), 'RulesCombinator: Access denied');
-
-            if (operation == Operation.SET_COMBINATION_MODE) {
+            if (operation == Operation.CHANGE_COMBINATION_MODE) {
                 _combinationMode = abi.decode(operationData, (CombinationMode));
             } else {
                 RuleConfiguration[] memory rules = abi.decode(operationData, (RuleConfiguration[]));
-
-                if (operation == Operation.ADD) {
+                if (operation == Operation.ADD_RULES) {
                     _addRules(rules);
-                } else if (operation == Operation.REMOVE) {
+                } else if (operation == Operation.REMOVE_RULES) {
                     _removeRules(rules);
-                } else if (operation == Operation.UPDATE) {
+                } else if (operation == Operation.UPDATE_RULES) {
                     _updateRules(rules);
                 } else {
                     revert('RulesCombinator: Invalid operation');
                 }
             }
         }
-    }
-
-    function _initialize(bytes memory operationData) internal virtual {
-        (
-            CombinationMode combinationMode,
-            address accessControl,
-            uint256 ownerRoleId,
-            bool canSetAccessControl,
-            bool canSetRolePermissions,
-            bool canConfigure,
-            bytes memory addRulesData
-        ) = abi.decode(operationData, (CombinationMode, address, uint256, bool, bool, bool, bytes));
-        _combinationMode = combinationMode;
-        _accessControl = IAccessControl(accessControl);
-        _rolePermissions[ownerRoleId] = Permissions(canSetAccessControl, canSetRolePermissions, canConfigure);
-        if (addRulesData.length > 0) {
-            _addRules(abi.decode(addRulesData, (RuleConfiguration[])));
-        }
-    }
-
-    function _canConfigure(address msgSender) internal virtual returns (bool) {
-        return _rolePermissions[_accessControl.getRole(msgSender)].canConfigure;
-    }
-
-    function _canSetAccessControl(address msgSender) internal virtual returns (bool) {
-        return _rolePermissions[_accessControl.getRole(msgSender)].canSetAccessControl;
-    }
-
-    function _canSetRolePermissions(address msgSender) internal virtual returns (bool) {
-        return _rolePermissions[_accessControl.getRole(msgSender)].canSetRolePermissions;
-    }
-
-    function _setRolesPermissions(bytes memory data) internal virtual {
-        (uint256[] memory roleIds, Permissions[] memory permissions) = abi.decode(data, (uint256[], Permissions[]));
-        require(roleIds.length == permissions.length, 'RulesCombinator: Invalid data');
-        for (uint256 i = 0; i < roleIds.length; i++) {
-            _rolePermissions[roleIds[i]] = permissions[i];
-        }
+        emit Lens_RuleConfigured(data);
     }
 
     function getCombinationMode() external view returns (CombinationMode) {
         return _combinationMode;
     }
 
+    function getRules() external view returns (address[] memory) {
+        return _rules;
+    }
+
+    function getAccessControl() external view returns (IAccessControl) {
+        return _accessControl;
+    }
+
+    function _isInitialized() internal view returns (bool) {
+        return address(_accessControl) != address(0);
+    }
+
+    function _initialize(bytes memory operationData) internal virtual {
+        if (_isInitialized()) {
+            revert('RulesCombinator: Already initialized');
+        }
+        (CombinationMode combinationMode, address accessControl, bytes memory addRulesData) = abi.decode(
+            operationData,
+            (CombinationMode, address, bytes)
+        );
+        // TODO: We check all with 0, but we could standrize a Resource ID that is used for this address test/check only
+        IAccessControl(accessControl).hasAccess(address(0), address(0), 0); // We expect this to not panic.
+        _accessControl = IAccessControl(accessControl);
+        emit Lens_RuleCombinator_Initialized();
+        emit Lens_RuleCombinator_AccessControlChanged(accessControl);
+        _combinationMode = combinationMode;
+        emit Lens_RuleCombinator_CombinationModeChanged(combinationMode);
+        if (addRulesData.length > 0) {
+            _addRules(abi.decode(addRulesData, (RuleConfiguration[])));
+        }
+    }
+
+    function _changeAccessControl(bytes memory operationData) internal virtual {
+        require(_canSetAccessControl(msg.sender), 'RulesCombinator: Access denied');
+        IAccessControl newAccessControl = IAccessControl(abi.decode(operationData, (address)));
+        newAccessControl.hasAccess(address(0), address(0), 0); // We expect this to not panic.
+        _accessControl = newAccessControl;
+    }
+
+    function _canConfigure(address msgSender) internal virtual returns (bool) {
+        return
+            _accessControl.hasAccess({
+                account: msgSender,
+                resourceLocation: address(this),
+                resourceId: CONFIGURE_RULE_RID
+            });
+    }
+
+    function _canSetAccessControl(address msgSender) internal virtual returns (bool) {
+        return
+            _accessControl.hasAccess({
+                account: msgSender,
+                resourceLocation: address(this),
+                resourceId: CHANGE_RULE_ACCESS_CONTROL_RID
+            });
+    }
+
     function _addRules(RuleConfiguration[] memory rules) internal virtual {
         for (uint256 i = 0; i < rules.length; i++) {
             _addRule(rules[i]);
         }
+        emit Lens_RuleCombinator_RulesAdded(rules);
     }
 
     function _addRule(RuleConfiguration memory rule) internal virtual {
@@ -148,17 +153,20 @@ abstract contract RulesCombinator is IRules {
             }
         }
         _rules.push(rule.contractAddress);
-        IRules(rule.contractAddress).configure(rule.data);
+        (bool success, ) = rule.contractAddress.delegatecall(abi.encodeCall(IRules.configure, (rule.data)));
+        require(success, 'RulesCombinator: Rule configuration failed');
     }
 
     function _removeRules(RuleConfiguration[] memory rules) internal virtual {
         for (uint256 i = 0; i < rules.length; i++) {
             _removeRule(rules[i]);
         }
+        emit Lens_RuleCombinator_RulesRemoved(rules);
     }
 
     function _removeRule(RuleConfiguration memory rule) internal virtual {
         // Find the rule index and delete it from the _rules array
+        // TODO: We can overoptimize this later...
         for (uint256 i = 0; i < _rules.length; i++) {
             if (_rules[i] == rule.contractAddress) {
                 delete _rules[i];
@@ -172,26 +180,20 @@ abstract contract RulesCombinator is IRules {
         for (uint256 i = 0; i < rules.length; i++) {
             _updateRule(rules[i]);
         }
+        emit Lens_RuleCombinator_RulesUpdated(rules);
     }
 
     function _updateRule(RuleConfiguration memory rule) internal virtual {
         // Find the rule index and update it
+        // TODO: We can overoptimize this later...
         for (uint256 i = 0; i < _rules.length; i++) {
             if (_rules[i] == rule.contractAddress) {
-                IRules(rule.contractAddress).configure(rule.data);
+                (bool success, ) = rule.contractAddress.delegatecall(abi.encodeCall(IRules.configure, (rule.data)));
+                require(success, 'RulesCombinator: Rule configuration failed');
                 return;
             }
         }
         revert('RulesCombinator: Rule not found');
-    }
-
-    function _setRules(address[] memory rules, CombinationMode combinationMode) internal virtual {
-        rules = rules;
-        _combinationMode = combinationMode;
-    }
-
-    function getRules() external view returns (address[] memory, CombinationMode) {
-        return (_rules, _combinationMode);
     }
 
     function _processRules(bytes[] memory datas) internal virtual {
@@ -205,9 +207,7 @@ abstract contract RulesCombinator is IRules {
     function _processRules_AND(bytes[] memory datas) internal virtual {
         for (uint256 i = 0; i < _rules.length; i++) {
             (bool success, ) = _rules[i].delegatecall(datas[i]);
-            if (!success) {
-                revert('RulesCombinator: Some rule failed while using AND combination');
-            }
+            require(success, 'RulesCombinator: Some rule failed while using AND combination');
         }
         return; // If it didn't revert above - all passed
     }
