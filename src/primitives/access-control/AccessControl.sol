@@ -31,23 +31,15 @@ contract AccessControl is IRoleBasedAccessControl {
         // require(_rolePermissions[msgSenderRole][role].canGrant);
     }
 
-    function hasRole(address account, uint256 roleId) external view override returns (bool) {}
-
-    function getRole(address account) external view override returns (uint256) {}
-
     function hasAccess(
         address account,
         address resourceLocation,
-        uint256 resourceId,
-        bytes calldata data
+        uint256 resourceId
     ) external view override returns (bool) {}
 
-    function hasAccess(
-        uint256 roleId,
-        address resourceLocation,
-        uint256 resourceId,
-        bytes calldata data
-    ) external view override returns (bool) {}
+    function hasRole(address account, uint256 roleId) external view override returns (bool) {}
+
+    function getRole(address account) external view override returns (uint256) {}
 
     function setGlobalAccess(
         uint256 roleId,

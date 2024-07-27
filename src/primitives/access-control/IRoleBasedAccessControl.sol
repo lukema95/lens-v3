@@ -11,9 +11,6 @@ interface IRoleBasedAccessControl is IAccessControl {
         DENIED
     }
 
-    // Role-flavored function to query access
-    function hasAccess(uint256 roleId, address resourceLocation, uint256 resourceId) external view returns (bool);
-
     // Role functions
     function setRole(address account, uint256 roleId, bytes calldata data) external;
 

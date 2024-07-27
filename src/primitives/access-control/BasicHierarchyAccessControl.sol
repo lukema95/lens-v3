@@ -33,35 +33,17 @@ contract BasicHierarchyAccessControl is IRoleBasedAccessControl {
      * OWNER: All ADMIN stuff. Can change ADMINs. Can change OWNER (transfer ownership).
      */
 
-    address public owner;
-
-    mapping(address => Role) public _roles;
-
-    function setRole(address account, uint256 roleId, bytes calldata data) external override {
-        // Implement it so it has into account the NONE < MODERATOR < ADMIN < OWNER hierarchy.
-    }
-
-    function hasRole(address account, uint256 roleId) external view override returns (bool) {
-        return _roles[account] == Role(roleId);
-    }
-
-    function getRole(address account) external view override returns (uint256) {
-        return uint256(_roles[account]);
-    }
-
     function hasAccess(
         address account,
         address resourceLocation,
-        uint256 resourceId,
-        bytes calldata data
+        uint256 resourceId
     ) external view override returns (bool) {}
 
-    function hasAccess(
-        uint256 roleId,
-        address resourceLocation,
-        uint256 resourceId,
-        bytes calldata data
-    ) external view override returns (bool) {}
+    function setRole(address account, uint256 roleId, bytes calldata data) external override {}
+
+    function hasRole(address account, uint256 roleId) external view override returns (bool) {}
+
+    function getRole(address account) external view override returns (uint256) {}
 
     function setGlobalAccess(
         uint256 roleId,
