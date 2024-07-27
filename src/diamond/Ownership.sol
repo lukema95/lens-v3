@@ -8,8 +8,13 @@ contract Ownership is IOwnership {
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     bool private _transferConfirmedByOwnerCandidate;
-    address private _owner;
+    address internal _owner;
     address private _ownerCandidate;
+
+    modifier onlyOwner() {
+        require(_owner == msg.sender);
+        _;
+    }
 
     constructor(address owner) {
         _owner = owner;
