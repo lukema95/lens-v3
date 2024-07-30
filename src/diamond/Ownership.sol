@@ -56,9 +56,10 @@ contract Ownership is IOwnership {
         }
     }
 
-    function _confirmOwnershipTransfer(address newOwner) internal virtual {
+    function _confirmOwnershipTransfer(address newOwner) internal virtual returns (address) {
         address oldOwner = _owner;
         _owner = newOwner;
         emit OwnershipTransferred(oldOwner, newOwner);
+        return oldOwner;
     }
 }
