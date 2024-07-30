@@ -2,8 +2,9 @@
 pragma solidity ^0.8.0;
 
 import {IRoleBasedAccessControl} from './IRoleBasedAccessControl.sol';
+import {Ownership} from './../../diamond/Ownership.sol';
 
-contract BasicHierarchyAccessControl is IRoleBasedAccessControl {
+contract HierarchyRolesAccessControl is Ownership, IRoleBasedAccessControl {
     enum Role {
         NONE, /////// 0 - No special control
         MODERATOR, // 1 - Soft control
@@ -33,11 +34,40 @@ contract BasicHierarchyAccessControl is IRoleBasedAccessControl {
      * OWNER: All ADMIN stuff. Can change ADMINs. Can change OWNER (transfer ownership).
      */
 
+    mapping(address account => Role roleId) internal _roles;
+    mapping(Role roleId => mapping(uint256 resourceId => AccessPermission permission)) internal _globalAccess;
+    mapping(Role roleId => mapping(address resourceLocation => mapping(uint256 resourceId => AccessPermission permission)))
+        internal _scopedAccess;
+
+    constructor(address owner) Ownership(owner) {}
+
+    function _confirmOwnershipTransfer(address newOwner) internal virtual override returns (address) {
+        address oldOwner = super._confirmOwnershipTransfer(newOwner);
+        _roles[oldOwner] = Role.NONE;
+        _roles[newOwner] = Role.OWNER;
+        return oldOwner;
+    }
+
     function hasAccess(
         address account,
         address resourceLocation,
         uint256 resourceId
-    ) external view override returns (bool) {}
+    ) external view override returns (bool) {
+        // TODO: Implementas in the AddressBasedAccessControl instead of this. Move this to the _getScopedAccess, etc
+        Role roleId = _roles[account];
+        if (roleId == Role.OWNER) {
+            return true;
+        } else if (roleId == Role.NONE) {
+            return false;
+        } else {
+            AccessPermission permission = _scopedAccess[roleId][resourceLocation][resourceId];
+            if (permission == AccessPermission.UNDEFINED) {
+                permission = _globalAccess[roleId][resourceId];
+            }
+
+            return permission == AccessPermission.GRANTED;
+        }
+    }
 
     function setRole(address account, uint256 roleId, bytes calldata data) external override {}
 
