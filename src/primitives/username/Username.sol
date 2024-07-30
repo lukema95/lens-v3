@@ -7,14 +7,21 @@ import {IUsername} from './IUsername.sol';
 import {IAccessControl} from './../access-control/IAccessControl.sol';
 
 contract Username is IUsername {
+    // Resource IDs involved in the contract
+    uint256 constant SET_RULES_RID = uint256(keccak256('SET_RULES'));
+
+    // Storage fields and structs
+    struct LengthRestriction {
+        uint128 min;
+        uint128 max;
+    }
+
     constructor(string memory namespace, IAccessControl accessControl) {
         Core.$storage().namespace = namespace;
         Core.$storage().accessControl = address(accessControl);
     }
 
-    uint256 constant SET_RULES_RID = uint256(keccak256('SET_RULES'));
-
-    // Owner functions
+    // Access Controlled functions
 
     function setUsernameRules(address usernameRules) external {
         require(
@@ -28,11 +35,12 @@ contract Username is IUsername {
         emit Lens_Username_RulesSet(usernameRules);
     }
 
-    // Public functions
+    // Permissionless functions
 
     function registerUsername(address account, string memory username, bytes calldata data) external {
         require(msg.sender == account); // msg.sender must be the account
         IUsernameRules(Core.$storage().usernameRules).processRegistering(msg.sender, account, username, data);
+        _validateUsernameLength(username);
         Core._registerUsername(account, username);
         emit Lens_Username_Registered(username, account, data);
     }
@@ -52,6 +60,32 @@ contract Username is IUsername {
         IUsernameRules(Core.$storage().usernameRules).processUnregistering(msg.sender, account, username, data);
         Core._unregisterUsername(username);
         emit Lens_Username_Unregistered(username, account, data);
+    }
+
+    // Internal
+
+    function _validateUsernameLength(string memory username) internal pure {
+        // TODO: Add the RIDs for skipping length restrictions.
+        LengthRestriction memory lengthRestriction = $lengthRestriction();
+        uint256 usernameLength = bytes(username).length;
+        if (lengthRestriction.min != 0) {
+            require(usernameLength >= lengthRestriction.min, 'Username: too short');
+        }
+        if (lengthRestriction.max != 0) {
+            require(usernameLength <= lengthRestriction.max, 'Username: too long');
+        }
+    }
+
+    // Storage utility & helper functions
+
+    // keccak256('lens.username.storage.length.restriction')
+    bytes32 constant LENGTH_RESTRICTION_STORAGE_SLOT =
+        0x2d828a00137871809f1a4bee7ddd78f42d45a25fe20299ceaf25638343e83134;
+
+    function $lengthRestriction() internal pure returns (LengthRestriction storage _lengthRestriction) {
+        assembly {
+            _lengthRestriction.slot := LENGTH_RESTRICTION_STORAGE_SLOT
+        }
     }
 
     // Getters

@@ -9,7 +9,7 @@ contract UsernameCharsetRule is IUsernameRules {
     uint256 constant CHANGE_RULE_ACCESS_CONTROL_RID = uint256(keccak256('CHANGE_RULE_ACCESS_CONTROL'));
     uint256 constant CONFIGURE_RULE_RID = uint256(keccak256('CONFIGURE_RULE'));
 
-    struct Restrictions {
+    struct CharsetRestrictions {
         bool allowNumeric;
         bool allowLatinLowercase;
         bool allowLatinUppercase;
@@ -20,7 +20,7 @@ contract UsernameCharsetRule is IUsernameRules {
 
     IAccessControl internal _accessControl; // "lens.username.accessControl"
 
-    Restrictions internal _charsetRestrictions;
+    CharsetRestrictions internal _charsetRestrictions;
 
     address immutable IMPLEMENTATION;
     bool internal _stateless;
@@ -51,7 +51,10 @@ contract UsernameCharsetRule is IUsernameRules {
     // TODO: If we initialize the rule with some Primitive that only can call it - then we need to deploy a rule for every primitive? I thought these were singletons.
     function configure(bytes calldata data) external override {
         require(!_stateless); // Cannot configure implementation contract (no direct calls allowed, only delegateCall allowed)
-        (Restrictions memory newCharsetRestrictions, address accessControl) = abi.decode(data, (Restrictions, address));
+        (CharsetRestrictions memory newCharsetRestrictions, address accessControl) = abi.decode(
+            data,
+            (CharsetRestrictions, address)
+        );
 
         if (_differsFromCurrentRestrictions(newCharsetRestrictions)) {
             require(
@@ -76,7 +79,7 @@ contract UsernameCharsetRule is IUsernameRules {
         }
     }
 
-    function _differsFromCurrentRestrictions(Restrictions memory newRestrictions) internal view returns (bool) {
+    function _differsFromCurrentRestrictions(CharsetRestrictions memory newRestrictions) internal view returns (bool) {
         return keccak256(abi.encode(_charsetRestrictions)) != keccak256(abi.encode(newRestrictions));
     }
 
