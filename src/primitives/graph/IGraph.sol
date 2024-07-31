@@ -4,11 +4,28 @@ pragma solidity ^0.8.20;
 import {IFollowRules} from './IFollowRules.sol';
 import {IGraphRules} from './IGraphRules.sol';
 
-interface IFollowGraph {
+interface IGraph {
     struct Follow {
         uint256 id;
         uint256 timestamp;
     }
+
+    event Lens_Graph_RulesSet(address graphRules);
+
+    event Lens_Graph_Followed(
+        address followerAccount,
+        address accountToFollow,
+        uint256 followId,
+        bytes graphRulesData,
+        bytes followRulesData
+    );
+
+    event Lens_Graph_Unfollowed(
+        address followerAccount,
+        address accountToUnfollow,
+        uint256 followId,
+        bytes graphRulesData
+    );
 
     function setGraphRules(IGraphRules graphRules, bytes calldata initializationData) external;
 
@@ -37,8 +54,6 @@ interface IFollowGraph {
     function getFollow(address followerAccount, address followedAccount) external view returns (Follow memory);
 
     function getFollowersCount(address account) external view returns (uint256);
-
-    function getAdmin() external view returns (address);
 
     function getFollowRules(address account) external view returns (IFollowRules);
 

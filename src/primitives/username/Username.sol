@@ -46,6 +46,7 @@ contract Username is IUsername {
     }
 
     // TODO: Decide if it worth to have a "before/after" hook for the rules, or if we are covered just with the "before"
+    // Think about CEI pattern and if we are OK with the "before", because it looks more like CIE than CEI.
     // function registerUsername(address account, string memory username, bytes calldata data) external {
     //     require(msg.sender == account); // msg.sender must be the account
     //     IUsernameRules(Core.$storage().usernameRules).beforeRegistering(msg.sender, account, username, data);

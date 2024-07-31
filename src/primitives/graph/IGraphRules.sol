@@ -3,9 +3,9 @@ pragma solidity ^0.8.20;
 
 import {IFollowRules} from './IFollowRules.sol';
 
-interface IGraphRules {
-    function initialize(bytes calldata data) external;
+import {IRules} from 'src/primitives/rules/IRules.sol';
 
+interface IGraphRules is IRules {
     function processFollow(
         address originalMsgSender,
         address followerAcount,
@@ -30,10 +30,5 @@ interface IGraphRules {
 
     function processUnblock(address account, bytes calldata data) external;
 
-    function processFollowModuleChange(
-        address account,
-        IFollowRules followRules,
-        bytes calldata followRulesInitData,
-        bytes calldata data
-    ) external;
+    function processFollowRulesChange(address account, IFollowRules followRules, bytes calldata data) external;
 }

@@ -8,17 +8,30 @@ struct Follow {
 }
 
 //TODO: Can be a Library instead of a Contract. It requires proper storage management.
-contract GraphCore {
-    string internal _metadataURI;
-    mapping(address account => uint256 lastFollowIdAssigned) internal _lastFollowIdAssigned;
-    mapping(address followerAccount => mapping(address followedAccount => Follow follow)) internal _follows;
-    mapping(address followedAccount => mapping(uint256 followId => address followerAccount)) internal _followers;
-    mapping(address followedAccount => uint256 followersCount) internal _followersCount;
+library GraphCore {
+    // Storage
+    struct Storage {
+        address accessControl;
+        address graphRules;
+        mapping(address account => address followRules) followRules;
+        string metadataURI;
+        mapping(address account => uint256 lastFollowIdAssigned) lastFollowIdAssigned;
+        mapping(address followerAccount => mapping(address followedAccount => Follow follow)) follows;
+        mapping(address followedAccount => mapping(uint256 followId => address followerAccount)) followers;
+        mapping(address followedAccount => uint256 followersCount) followersCount;
+        mapping(address account => mapping(address target => bool isBlocked)) isBlocked;
+    }
 
-    // event Graph_Followed(address followerAccount, address accountToFollow, uint256 followId);
-    // event Graph_Unfollowed(address followerAccount, address accountToUnfollow, uint256 followId);
+    // keccak256('lens.graph.core.storage')
+    bytes32 constant CORE_STORAGE_SLOT = 0x29a85df5a038cd27b30b628cc380bae0d47a34cf0abae91c50f7411863dd209b;
 
-    // External functions
+    function $storage() internal pure returns (Storage storage _storage) {
+        assembly {
+            _storage.slot := CORE_STORAGE_SLOT
+        }
+    }
+
+    // External functions - Use these functions to be called through DELEGATECALL
 
     function follow(address followerAccount, address accountToFollow, uint256 followId) external returns (uint256) {
         return _follow(followerAccount, accountToFollow, followId);
@@ -28,33 +41,27 @@ contract GraphCore {
         return _unfollow(followerAccount, accountToUnfollow);
     }
 
-    // Internal functions (Only makes sense to have this if we do this a library)
+    // Internal functions - Use these functions to be called as an inlined library
 
     function _follow(address followerAccount, address accountToFollow, uint256 followId) internal returns (uint256) {
         if (followId == 0) {
-            followId = ++_lastFollowIdAssigned[accountToFollow];
-        } else if (
-            followId > _lastFollowIdAssigned[accountToFollow] || _followers[accountToFollow][followId] != address(0)
-        ) {
-            revert();
+            followId = ++$storage().lastFollowIdAssigned[accountToFollow];
+        } else {
+            require(followId < $storage().lastFollowIdAssigned[accountToFollow]); // Only previous Follow IDs allowed to be reused
+            require($storage().followers[accountToFollow][followId] == address(0)); // Follow ID is already taken
         }
-        _follows[followerAccount][accountToFollow] = Follow({id: followId, timestamp: block.timestamp});
-        _followers[accountToFollow][followId] = followerAccount;
-        _followersCount[accountToFollow]++;
-        // emit Graph_Followed(followerAccount, accountToFollow, followId);
+        $storage().follows[followerAccount][accountToFollow] = Follow({id: followId, timestamp: block.timestamp});
+        $storage().followers[accountToFollow][followId] = followerAccount;
+        $storage().followersCount[accountToFollow]++;
         return followId;
     }
 
     function _unfollow(address followerAccount, address accountToUnfollow) internal returns (uint256) {
-        uint256 followId = _follows[followerAccount][accountToUnfollow].id;
-        if (followId == 0) {
-            // Not following!
-            revert();
-        }
-        _followersCount[accountToUnfollow]--;
-        // emit Graph_Unfollowed(followerAccount, accountToUnfollow, followId);
-        delete _followers[accountToUnfollow][followId];
-        delete _follows[followerAccount][accountToUnfollow];
+        uint256 followId = $storage().follows[followerAccount][accountToUnfollow].id;
+        require(followId != 0); // Must be following
+        $storage().followersCount[accountToUnfollow]--;
+        delete $storage().followers[accountToUnfollow][followId];
+        delete $storage().follows[followerAccount][accountToUnfollow];
         return followId;
     }
 }
