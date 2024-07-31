@@ -10,9 +10,9 @@ library CommunityCore {
     // Storage
 
     struct Storage {
-        address owner;
-        string metadataURI;
+        address accessControl;
         address communityRules;
+        string metadataURI;
         uint256 lastMemberIdAssigned;
         uint256 numberOfMembers;
         mapping(address account => Membership membership) memberships;

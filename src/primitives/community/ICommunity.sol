@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 interface ICommunity {
     event Lens_Community_MetadataUriSet(string metadataURI);
 
-    event Lens_Community_RulesSet(address communityRules, bytes initializationData);
+    event Lens_Community_RulesSet(address communityRules);
 
     event Lens_Community_MemberJoined(address account, uint256 memberId, bytes data);
 
@@ -12,7 +12,7 @@ interface ICommunity {
 
     event Lens_Community_MemberRemoved(address account, uint256 memberId, bytes data);
 
-    function setCommunityRules(address communityRules, bytes calldata initializationData) external;
+    function setCommunityRules(address communityRules) external;
 
     function setMetadataURI(string calldata metadataURI) external;
 
@@ -32,5 +32,5 @@ interface ICommunity {
 
     function getCommunityRules() external view returns (address);
 
-    function getOwner() external view returns (address);
+    function getAccessControl() external view returns (address);
 }
