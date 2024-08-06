@@ -1,113 +1,191 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-interface IFeedRules {
-    function initialize(bytes calldata data) external;
+import {IFeed, Post} from './IFeed.sol';
+import {IFeedRules} from './IFeedRules.sol';
+import {FeedCore as Core} from './FeedCore.sol';
 
-    // TODO: Author or Authors?
+contract Feed is IFeed {
+    // Resource IDs involved in the contract
+    uint256 constant SET_RULES_RID = uint256(keccak256('SET_RULES'));
+    uint256 constant SET_METADATA_RID = uint256(keccak256('SET_METADATA'));
+    uint256 constant DELETE_POST_RID = uint256(keccak256('DELETE_POST'));
 
-    function onPost(address originalMsgSender, uint256 postId, Post memory post, bytes calldata data) external;
+    // Access Controlled functions
 
-    function onEdit(
-        address originalMsgSender,
-        uint256 postId,
-        Post memory updatedPostData,
-        bytes calldata data
-    ) external;
+    function setFeedRules(IFeedRules feedRules) external override {
+        require(
+            IAccessControl(Core.$storage().accessControl).hasAccess({
+                account: msg.sender,
+                resourceLocation: address(this),
+                resourceId: SET_RULES_RID
+            })
+        );
+        Core.$storage().feedRules = address(feedRules);
+        emit Lens_Feed_RulesSet(address(feedRules));
+    }
 
-    // TODO: 👀
-    function onDelete(address originalMsgSender, uint256 postId, bytes calldata data) external;
-}
+    // Public user functions
 
-/**
- * //TODO:
- * Make a type resolver that can be put into the events ?
- *
- * We dont validate input, that should be done in the Post modules/extensions, same place where they could ask the author
- * to belong to a certain community or any other rules. So they check that quoted or parent posts are existent.
- * Or any other logic like (we only allow things if have contentURI set).
- *
- * Just a post function or we allow multiple? This maybe can be also done on top as extension, but the core underlying
- * primitive just has a post function, and on top you can have comment, quote, whatever type you wish.
- * Even the type can be emitted by this extension, and maybe the core primitive does not care about types are all...
- */
-
-struct Post {
-    address author; // TODO: Array of authors?
-    string contentURI; // You might want to store content on IPFS
-    string metadataURI; // But metadata on a S3 server
-    uint256[] quotedPostIds;
-    uint256[] parentPostIds;
-    bytes[] extraData; // // TODO: This probably should be replaced with some custom named value shit
-    // uint256 sourceAppId
-}
-
-struct Permissions {
-    bool canPost;
-    bool canEdit;
-    bool canDelete;
-}
-
-contract Feed {
-    address internal _admin; // TODO: Make the proper Ownable pattern
-    mapping(uint256 postId => Post post) internal _posts;
-    uint256 internal _lastPostId;
-    IFeedRules _feedRules;
-    mapping(address account => Permissions permissions) internal _permissions;
-
-    mapping(uint256 => mapping(bytes32 => bytes)) _postExtraData;
-
-    event Lens_Feed_PostCreated(address indexed author, uint256 indexed postId, Post postData);
-    event Lens_Feed_PostEdited(address indexed author, uint256 indexed postId, Post updatedPostData, bytes data);
-    event Lens_Feed_PostDeleted(address indexed author, uint256 indexed postId, bytes data);
-
-    function setFeedRules(IFeedRules feedRules, bytes calldata initializationData) external {
-        require(msg.sender == _admin, 'Not the admin');
-        _feedRules = feedRules;
-        if (address(feedRules) != address(0)) {
-            feedRules.initialize(initializationData);
+    function createPost(
+        PostParams calldata postParams,
+        bytes calldata feedRulesData
+    ) external override returns (uint256) {
+        require(msg.sender == postParams.author);
+        // Provided timestamp can belong to the past, so people could migrate their posts from other platforms
+        // maintaining the original timestamps of them. However, the provided timestamp cannot be in the future.
+        require(postParams.timestamp <= block.timestamp);
+        uint256 postId = Core._createPost(postParams);
+        if (address(Core.$storage().feedRules) != address(0)) {
+            IFeedRules(Core.$storage().feedRules).processCreatePost(msg.sender, postId, postParams, feedRulesData);
         }
+        emit Lens_Feed_PostCreated(postId, postParams, feedRulesData, _getPostTypeId(postParams));
+        return postId;
     }
 
-    function setPermissions(address account, Permissions calldata permissions) external {
-        require(msg.sender == _admin, 'Not the admin');
-        _permissions[account] = permissions;
-    }
-
-    // Two params: One is for "hooks", the other is to store associated with the post.
-    // For hooks => data
-    // To store => attributes
-    function post(Post calldata postData, bytes calldata data) external returns (uint256) {
-        require(
-            msg.sender == postData.author || _permissions[msg.sender].canPost,
-            'Not the author nor has permissions'
+    function editPost(
+        uint256 postId,
+        PostParams calldata newPostParams,
+        bytes calldata editPostFeedRulesData,
+        bytes calldata postRulesChangeFeedRulesData
+    ) external override {
+        require(msg.sender == Core.$storage().posts[postId].author);
+        // TODO: Think if we need this restriction:
+        // require(postParams.timestamp <= Core.$storage().posts[postId].submissionTimestamp);
+        // Or we should have this one at least:
+        require(postParams.timestamp <= block.timestamp);
+        if (address(Core.$storage().feedRules) != address(0)) {
+            IFeedRules(Core.$storage().feedRules).processEditPost(
+                msg.sender,
+                postId,
+                newPostParams,
+                editPostFeedRulesData
+            );
+        }
+        if (newPostParams.postRules != Core.$storage().posts[postId].postRules) {
+            IFeedRules(Core.$storage().feedRules).processPostRulesChange(
+                msg.sender,
+                postId,
+                newPostParams.postRules,
+                postRulesChangeFeedRulesData
+            );
+        }
+        Core._editPost(postId, newPostParams);
+        emit Lens_Feed_PostEdited(
+            postId,
+            newPostParams,
+            editPostFeedRulesData,
+            postRulesChangeFeedRulesData,
+            _getPostTypeId(newPostParams)
         );
-        _lastPostId++;
-        _posts[_lastPostId] = postData;
-        _feedRules.onPost(msg.sender, _lastPostId, postData, data);
-        _postHook(msg.sender, _lastPostId, postData, data);
-        emit Lens_Feed_PostCreated(msg.sender, _lastPostId, postData);
-        return _lastPostId;
     }
 
-    function editPost(uint256 postId, Post calldata updatedPostData, bytes calldata data) external {
-        require(
-            msg.sender == _posts[postId].author || _permissions[msg.sender].canEdit,
-            'Not the author nor has permissions'
-        );
-        require(postId <= _lastPostId, 'Post does not exist');
-        _feedRules.onEdit(msg.sender, postId, updatedPostData, data);
-        _posts[postId] = updatedPostData; // TODO: CEI pattern... hmm...
-        emit Lens_Feed_PostEdited(msg.sender, postId, updatedPostData, data);
+    // TODO: How we decided to do moderation (moderator is able to delete spam posts, skipping an author check):
+    /*
+
+    */
+
+    function deletePost(uint256 postId, bytes calldata feedRulesData) external override {
+        if (msg.sender != Core.$storage().posts[postId].author) {
+            require(_canDeletePost(msg.sender));
+        }
+        if (address(Core.$storage().feedRules) != address(0)) {
+            IFeedRules(Core.$storage().feedRules).processDeletePost(postId, feedRulesData);
+        }
+        Core._deletePost(postId);
+        emit Lens_Feed_PostDeleted(postId, feedRulesData);
     }
 
-    function deletePost(uint256 postId, bytes calldata data) external {
-        require(
-            msg.sender == _posts[postId].author || _permissions[msg.sender].canDelete,
-            'Not the author nor has permissions'
-        );
-        _feedRules.onDelete(msg.sender, postId, data);
-        emit Lens_Feed_PostDeleted(msg.sender, postId, data);
-        delete _posts[postId];
+    function _canDeletePost(uint256 postId) internal virtual returns (bool) {
+        return
+            IAccessControl(Core.$storage().accessControl).hasAccess({
+                account: msg.sender,
+                resourceLocation: address(this),
+                resourceId: DELETE_POST_RID
+            });
+    }
+
+    enum Cardinality {
+        NONE,
+        ONE,
+        MANY
+    }
+
+    function _getPostTypeId(PostParams memory post) internal pure override returns (uint8) {
+        // Probably better with an enum: { NONE, ONE, MANY }
+        Cardinality contentURICardinality = bytes(post.contentURI).length > 0 ? Cardinality.ONE : Cardinality.NONE;
+        Cardinality metadataURICardinality = bytes(post.metadataURI).length > 0 ? Cardinality.ONE : Cardinality.NONE;
+        Cardinality quotedPostCardinality = post.quotedPostIds.length > 0
+            ? (post.quotedPostIds.length > 1 ? Cardinality.MANY : Cardinality.ONE)
+            : Cardinality.NONE;
+        Cardinality parentPostCardinality = post.parentPostIds.length > 0
+            ? (post.parentPostIds.length > 1 ? Cardinality.MANY : Cardinality.ONE)
+            : Cardinality.NONE;
+
+        /*
+        We use 6 bits to encode the post type:
+        00 00  0  0
+         ^  ^  ^  ^
+         ^  ^  ^  contentURICardinality
+         ^  ^  ^
+         ^  ^  metadataURICardinality
+         ^  ^
+         ^  quotedPostCardinality 
+         ^
+         parentPostCardinality
+
+        It will have some gaps, but it's easy to encode/decode by shifting bits.
+        */
+        uint8 postType = uint8(contentURICardinality) |
+            (uint8(metadataURICardinality) << 1) |
+            (uint8(quotedPostCardinality) << 2) |
+            (uint8(parentPostCardinality) << 4);
+
+        return postType;
+    }
+
+    // Getters
+
+    function getPost(uint256 postId) external view override returns (Post memory) {
+        return
+            Post({
+                author: Core.$storage().posts[postId].author,
+                contentURI: Core.$storage().posts[postId].contentURI,
+                metadataURI: Core.$storage().posts[postId].metadataURI,
+                quotedPostIds: Core.$storage().posts[postId].quotedPostIds,
+                parentPostIds: Core.$storage().posts[postId].parentPostIds,
+                postRules: Core.$storage().posts[postId].postRules,
+                timestamp: Core.$storage().posts[postId].timestamp,
+                submissionTimestamp: Core.$storage().posts[postId].submissionTimestamp,
+                lastUpdatedTimestamp: Core.$storage().posts[postId].lastUpdatedTimestamp
+            });
+    }
+
+    function getPostTypeId(uint256 postId) external returns (uint8) {
+        return _getPostTypeId(Core.$storage().posts[postId]);
+    }
+
+    function getPostAuthor(uint256 postId) external view override returns (address) {
+        return Core.$storage().posts[postId].author;
+    }
+
+    function getFeedRules() external view override returns (IFeedRules) {
+        return IFeedRules(Core.$storage().feedRules);
+    }
+
+    function getPostRules(uint256 postId) external view override returns (IPostRules) {
+        return Core.$storage().posts[postId].postRules;
+    }
+
+    function getPostCount() external view override returns (uint256) {
+        return Core.$storage().postCount;
+    }
+
+    function getFeedMetadataURI() external view override returns (string memory) {
+        return Core.$storage().feedMetadataURI;
+    }
+
+    function getAccessControl() external view override returns (IAccessControl) {
+        return IAccessControl(Core.$storage().accessControl);
     }
 }

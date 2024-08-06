@@ -7,7 +7,6 @@ struct Follow {
     uint256 timestamp;
 }
 
-//TODO: Can be a Library instead of a Contract. It requires proper storage management.
 library GraphCore {
     // Storage
     struct Storage {
