@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IFeed, Post} from './IFeed.sol';
+import {IFeed, Post, PostParams} from './IFeed.sol';
 import {IFeedRules} from './IFeedRules.sol';
 import {FeedCore as Core} from './FeedCore.sol';
+import {IPostRules} from 'src/primitives/feed/IPostRules.sol';
+import {IAccessControl} from 'src/primitives/access-control/IAccessControl.sol';
 
 contract Feed is IFeed {
     // Resource IDs involved in the contract
@@ -53,7 +55,7 @@ contract Feed is IFeed {
         // TODO: Think if we need this restriction:
         // require(postParams.timestamp <= Core.$storage().posts[postId].submissionTimestamp);
         // Or we should have this one at least:
-        require(postParams.timestamp <= block.timestamp);
+        require(newPostParams.timestamp <= block.timestamp);
         if (address(Core.$storage().feedRules) != address(0)) {
             IFeedRules(Core.$storage().feedRules).processEditPost(
                 msg.sender,
@@ -62,7 +64,7 @@ contract Feed is IFeed {
                 editPostFeedRulesData
             );
         }
-        if (newPostParams.postRules != Core.$storage().posts[postId].postRules) {
+        if (address(newPostParams.postRules) != Core.$storage().posts[postId].postRules) {
             IFeedRules(Core.$storage().feedRules).processPostRulesChange(
                 msg.sender,
                 postId,
@@ -85,21 +87,25 @@ contract Feed is IFeed {
 
     */
 
-    function deletePost(uint256 postId, bytes calldata feedRulesData) external override {
+    function deletePost(
+        uint256 postId,
+        bytes32[] calldata extraDataKeysToDelete,
+        bytes calldata feedRulesData
+    ) external override {
         if (msg.sender != Core.$storage().posts[postId].author) {
             require(_canDeletePost(msg.sender));
         }
         if (address(Core.$storage().feedRules) != address(0)) {
-            IFeedRules(Core.$storage().feedRules).processDeletePost(postId, feedRulesData);
+            IFeedRules(Core.$storage().feedRules).processDeletePost(msg.sender, postId, feedRulesData);
         }
-        Core._deletePost(postId);
+        Core._deletePost(postId, extraDataKeysToDelete);
         emit Lens_Feed_PostDeleted(postId, feedRulesData);
     }
 
-    function _canDeletePost(uint256 postId) internal virtual returns (bool) {
+    function _canDeletePost(address account) internal virtual returns (bool) {
         return
             IAccessControl(Core.$storage().accessControl).hasAccess({
-                account: msg.sender,
+                account: account,
                 resourceLocation: address(this),
                 resourceId: DELETE_POST_RID
             });
@@ -111,7 +117,7 @@ contract Feed is IFeed {
         MANY
     }
 
-    function _getPostTypeId(PostParams memory post) internal pure override returns (uint8) {
+    function _getPostTypeId(PostParams memory post) internal pure returns (uint8) {
         // Probably better with an enum: { NONE, ONE, MANY }
         Cardinality contentURICardinality = bytes(post.contentURI).length > 0 ? Cardinality.ONE : Cardinality.NONE;
         Cardinality metadataURICardinality = bytes(post.metadataURI).length > 0 ? Cardinality.ONE : Cardinality.NONE;
@@ -150,19 +156,23 @@ contract Feed is IFeed {
         return
             Post({
                 author: Core.$storage().posts[postId].author,
+                source: Core.$storage().posts[postId].source,
                 contentURI: Core.$storage().posts[postId].contentURI,
                 metadataURI: Core.$storage().posts[postId].metadataURI,
                 quotedPostIds: Core.$storage().posts[postId].quotedPostIds,
                 parentPostIds: Core.$storage().posts[postId].parentPostIds,
-                postRules: Core.$storage().posts[postId].postRules,
+                postRules: IPostRules(Core.$storage().posts[postId].postRules),
                 timestamp: Core.$storage().posts[postId].timestamp,
                 submissionTimestamp: Core.$storage().posts[postId].submissionTimestamp,
                 lastUpdatedTimestamp: Core.$storage().posts[postId].lastUpdatedTimestamp
             });
     }
 
-    function getPostTypeId(uint256 postId) external returns (uint8) {
-        return _getPostTypeId(Core.$storage().posts[postId]);
+    function getPostTypeId(uint256 postId) external view returns (uint8) {
+        PostParams memory post;
+        post.quotedPostIds = Core.$storage().posts[postId].quotedPostIds;
+        post.parentPostIds = Core.$storage().posts[postId].parentPostIds;
+        return _getPostTypeId(post);
     }
 
     function getPostAuthor(uint256 postId) external view override returns (address) {
@@ -174,7 +184,7 @@ contract Feed is IFeed {
     }
 
     function getPostRules(uint256 postId) external view override returns (IPostRules) {
-        return Core.$storage().posts[postId].postRules;
+        return IPostRules(Core.$storage().posts[postId].postRules);
     }
 
     function getPostCount() external view override returns (uint256) {

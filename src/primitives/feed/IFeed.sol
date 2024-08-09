@@ -2,6 +2,8 @@
 pragma solidity ^0.8.0;
 
 import {IPostRules} from './IPostRules.sol';
+import {IFeedRules} from './IFeedRules.sol';
+import {IAccessControl} from '../access-control/IAccessControl.sol';
 
 /*
     TODO: Natspec
@@ -23,6 +25,7 @@ struct DataElement {
 
 struct PostParams {
     address author; // Multiple authors can be added in extraData
+    address source; // Client source, if any
     string contentURI; // We have these separate, because: "You might want to store content on IPFS..."
     string metadataURI; // "...but metadata on a S3 server"
     uint256[] quotedPostIds;
@@ -35,6 +38,7 @@ struct PostParams {
 // This is a return type (for getters)
 struct Post {
     address author;
+    address source;
     string contentURI;
     string metadataURI;
     uint256[] quotedPostIds;
@@ -46,9 +50,9 @@ struct Post {
 }
 
 interface IFeed {
-    event PostCreated(uint256 indexed postId, PostParams postParams, bytes feedRulesData, uint256 postTypeId);
+    event Lens_Feed_PostCreated(uint256 indexed postId, PostParams postParams, bytes feedRulesData, uint256 postTypeId);
 
-    event PostEdited(
+    event Lens_Feed_PostEdited(
         uint256 indexed postId,
         PostParams newPostParams,
         bytes feedRulesData,
@@ -56,13 +60,44 @@ interface IFeed {
         uint256 postTypeId
     );
 
-    event PostDeleted(uint256 indexed postId, bytes feedRulesData);
+    event Lens_Feed_PostDeleted(uint256 indexed postId, bytes feedRulesData);
 
-    function post(PostParams calldata postParams, bytes calldata data) external returns (uint256);
+    event Lens_Feed_RulesSet(address feedRules);
 
-    function editPost(uint256 postId, PostParams calldata updatedPostParams, bytes calldata data) external;
+    function createPost(PostParams calldata postParams, bytes calldata data) external returns (uint256);
+
+    function editPost(
+        uint256 postId,
+        PostParams calldata newPostParams,
+        bytes calldata editPostFeedRulesData,
+        bytes calldata postRulesChangeFeedRulesData
+    ) external;
 
     // "Delete" - u know u cannot delete stuff from the internet, right? :]
     // But this will at least remove it from the current state, so contracts accesing it will know.
-    function deletePost(uint256 postId, bytes calldata data) external;
+    function deletePost(
+        uint256 postId,
+        bytes32[] calldata extraDataKeysToDelete,
+        bytes calldata feedRulesData
+    ) external;
+
+    function setFeedRules(IFeedRules feedRules) external;
+
+    // Getters
+
+    function getPost(uint256 postId) external view returns (Post memory);
+
+    function getPostTypeId(uint256 postId) external view returns (uint8);
+
+    function getPostAuthor(uint256 postId) external view returns (address);
+
+    function getFeedRules() external view returns (IFeedRules);
+
+    function getPostRules(uint256 postId) external view returns (IPostRules);
+
+    function getPostCount() external view returns (uint256);
+
+    function getFeedMetadataURI() external view returns (string memory);
+
+    function getAccessControl() external view returns (IAccessControl);
 }

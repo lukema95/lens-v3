@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IGraph} from './IGraph.sol';
+import {Follow, IGraph} from './IGraph.sol';
 import {IFollowRules} from './IFollowRules.sol';
 import {IGraphRules} from './IGraphRules.sol';
 import {GraphCore as Core} from './GraphCore.sol';
@@ -43,51 +43,51 @@ contract Graph is IGraph {
 
     function follow(
         address followerAccount,
-        address accountToFollow,
+        address targetAccount,
         uint256 followId,
         bytes calldata graphRulesData,
         bytes calldata followRulesData
     ) public returns (uint256) {
         require(msg.sender == followerAccount);
-        uint256 assignedFollowId = Core._follow(followerAccount, accountToFollow, followId);
+        uint256 assignedFollowId = Core._follow(followerAccount, targetAccount, followId);
         if (address(Core.$storage().graphRules) != address(0)) {
-            Core.$storage().graphRules.processFollow(
+            IGraphRules(Core.$storage().graphRules).processFollow(
                 msg.sender,
                 followerAccount,
-                accountToFollow,
+                targetAccount,
                 assignedFollowId,
                 graphRulesData
             );
         }
-        if (address(Core.$storage().followRules[accountToFollow]) != address(0)) {
-            Core.$storage().followRules[accountToFollow].processFollow(
+        if (address(Core.$storage().followRules[targetAccount]) != address(0)) {
+            IFollowRules(Core.$storage().followRules[targetAccount]).processFollow(
                 msg.sender,
                 followerAccount,
                 assignedFollowId,
                 followRulesData
             );
         }
-        emit Lens_Graph_Followed(followerAccount, accountToFollow, assignedFollowId, graphRulesData, followRulesData);
+        emit Lens_Graph_Followed(followerAccount, targetAccount, assignedFollowId, graphRulesData, followRulesData);
         return assignedFollowId;
     }
 
     function unfollow(
         address followerAccount,
-        address accountToUnfollow,
+        address targetAccount,
         bytes calldata graphRulesData
     ) public returns (uint256) {
         require(msg.sender == followerAccount);
-        uint256 followId = Core._unfollow(followerAccount, accountToUnfollow);
+        uint256 followId = Core._unfollow(followerAccount, targetAccount);
         if (address(Core.$storage().graphRules) != address(0)) {
-            Core.$storage().graphRules.processUnfollow(
+            IGraphRules(Core.$storage().graphRules).processUnfollow(
                 msg.sender,
                 followerAccount,
-                accountToUnfollow,
+                targetAccount,
                 followId,
                 graphRulesData
             );
         }
-        emit Lens_Graph_Unfollowed(followerAccount, accountToUnfollow, followId, graphRulesData);
+        emit Lens_Graph_Unfollowed(followerAccount, targetAccount, followId, graphRulesData);
         return followId;
     }
 
@@ -101,15 +101,12 @@ contract Graph is IGraph {
         return Core.$storage().followers[account][followId];
     }
 
-    function getFollow(
-        address followerAccount,
-        address followedAccount
-    ) external view override returns (Follow memory) {
-        return Core.$storage().follows[followerAccount][followedAccount];
+    function getFollow(address followerAccount, address targetAccount) external view override returns (Follow memory) {
+        return Core.$storage().follows[followerAccount][targetAccount];
     }
 
     function getFollowRules(address account) external view override returns (IFollowRules) {
-        return Core.$storage().followRules[account];
+        return IFollowRules(Core.$storage().followRules[account]);
     }
 
     function getFollowersCount(address account) external view override returns (uint256) {

@@ -9,17 +9,17 @@ import {PostParams} from './IFeed.sol';
 contract FeedRulesCombinator is RulesCombinator, IFeedRules {
     function processCreatePost(
         address originalMsgSender,
-        address account,
+        uint256 postId,
         PostParams calldata postParams,
         bytes calldata data
-    ) external {
+    ) external override {
         bytes[] memory ruleSpecificDatas = abi.decode(data, (bytes[]));
         bytes[] memory datas = new bytes[](_rules.length);
         for (uint256 i = 0; i < _rules.length; i++) {
             datas[i] = abi.encodeWithSelector(
                 IFeedRules.processCreatePost.selector,
                 originalMsgSender,
-                account,
+                postId,
                 postParams,
                 ruleSpecificDatas[i]
             );
@@ -29,7 +29,6 @@ contract FeedRulesCombinator is RulesCombinator, IFeedRules {
 
     function processEditPost(
         address originalMsgSender,
-        address account,
         uint256 postId,
         PostParams calldata newPostParams,
         bytes calldata data
@@ -40,7 +39,6 @@ contract FeedRulesCombinator is RulesCombinator, IFeedRules {
             datas[i] = abi.encodeWithSelector(
                 IFeedRules.processEditPost.selector,
                 originalMsgSender,
-                account,
                 postId,
                 newPostParams,
                 ruleSpecificDatas[i]
@@ -49,19 +47,13 @@ contract FeedRulesCombinator is RulesCombinator, IFeedRules {
         _processRules(datas);
     }
 
-    function processDeletePost(
-        address originalMsgSender,
-        address account,
-        uint256 postId,
-        bytes calldata data
-    ) external {
+    function processDeletePost(address originalMsgSender, uint256 postId, bytes calldata data) external {
         bytes[] memory ruleSpecificDatas = abi.decode(data, (bytes[]));
         bytes[] memory datas = new bytes[](_rules.length);
         for (uint256 i = 0; i < _rules.length; i++) {
             datas[i] = abi.encodeWithSelector(
                 IFeedRules.processDeletePost.selector,
                 originalMsgSender,
-                account,
                 postId,
                 ruleSpecificDatas[i]
             );
@@ -71,7 +63,6 @@ contract FeedRulesCombinator is RulesCombinator, IFeedRules {
 
     function processPostRulesChange(
         address originalMsgSender,
-        address account,
         uint256 postId,
         IPostRules newPostRules,
         bytes calldata data
@@ -82,7 +73,6 @@ contract FeedRulesCombinator is RulesCombinator, IFeedRules {
             datas[i] = abi.encodeWithSelector(
                 IFeedRules.processPostRulesChange.selector,
                 originalMsgSender,
-                account,
                 postId,
                 newPostRules,
                 ruleSpecificDatas[i]

@@ -50,7 +50,7 @@ contract Community is ICommunity {
         if (address(rules) != address(0)) {
             rules.processJoining(msg.sender, account, data);
         }
-        uint256 membershipId = Core.grantMembership(account);
+        uint256 membershipId = Core._grantMembership(account);
         emit Lens_Community_MemberJoined(account, membershipId, data);
     }
 
@@ -60,7 +60,7 @@ contract Community is ICommunity {
         if (address(rules) != address(0)) {
             rules.processLeaving(msg.sender, account, data);
         }
-        uint256 membershipId = Core.revokeMembership(account);
+        uint256 membershipId = Core._revokeMembership(account);
         emit Lens_Community_MemberLeft(account, membershipId, data);
     }
 
@@ -70,7 +70,7 @@ contract Community is ICommunity {
         ICommunityRules rules = ICommunityRules(Core.$storage().communityRules);
         require(address(rules) != address(0), 'Community: rules are required to remove members');
         rules.processRemoval(msg.sender, account, data);
-        uint256 membershipId = Core.revokeMembership(account);
+        uint256 membershipId = Core._revokeMembership(account);
         emit Lens_Community_MemberRemoved(account, membershipId, data);
     }
 

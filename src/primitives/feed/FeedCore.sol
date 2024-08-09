@@ -5,6 +5,7 @@ import {PostParams} from './IFeed.sol';
 
 struct PostStorage {
     address author;
+    address source;
     string contentURI;
     string metadataURI;
     uint256[] quotedPostIds;
@@ -46,7 +47,7 @@ library FeedCore {
     }
 
     function deletePost(uint256 postId, bytes32[] calldata extraDataKeysToDelete) external {
-        _deletePost(postId, extraDataKeys);
+        _deletePost(postId, extraDataKeysToDelete);
     }
 
     // Internal functions - Use these functions to be called as an inlined library
@@ -55,11 +56,12 @@ library FeedCore {
         uint256 postId = ++$storage().postCount;
         PostStorage storage _newPost = $storage().posts[postId];
         _newPost.author = postParams.author;
+        _newPost.source = postParams.source;
         _newPost.contentURI = postParams.contentURI;
         _newPost.metadataURI = postParams.metadataURI;
         _newPost.quotedPostIds = postParams.quotedPostIds;
         _newPost.parentPostIds = postParams.parentPostIds;
-        _newPost.postRules = postParams.postRules;
+        _newPost.postRules = address(postParams.postRules); // TODO: Probably change to type address in PostParams struct
         _newPost.timestamp = postParams.timestamp;
         _newPost.submissionTimestamp = uint80(block.timestamp);
         _newPost.lastUpdatedTimestamp = uint80(block.timestamp);
@@ -72,17 +74,18 @@ library FeedCore {
     function _editPost(uint256 postId, PostParams calldata postParams) internal {
         PostStorage storage _post = $storage().posts[postId];
         _post.author = postParams.author;
+        _post.source = postParams.source; // TODO: Can you edit the source? you might be editing from a diff source than the original source...
         _post.contentURI = postParams.contentURI;
         _post.metadataURI = postParams.metadataURI;
         _post.quotedPostIds = postParams.quotedPostIds;
         _post.parentPostIds = postParams.parentPostIds;
-        IPostRules currentPostRules = _post.postRules;
+        address currentPostRules = _post.postRules;
         if (address(currentPostRules) != address(postParams.postRules)) {
             // Basically, a hook is called in the rules, cause maybe the previous rules have some "immutable" flag!
             // currentPostRules.onRuleChanged(postId, postParams.postRules);
             // TODO: In the core we do not know interfaces of rules! It's made abstract, just addresses.
             // TODO: Maybe the immutability should be at the post-level, not rule-level...
-            _post.postRules = postParams.postRules;
+            _post.postRules = address(postParams.postRules); // TODO: Probably change to type address in PostParams struct
         }
         _post.timestamp = postParams.timestamp;
         _post.lastUpdatedTimestamp = uint80(block.timestamp);
@@ -92,8 +95,8 @@ library FeedCore {
     }
 
     function _deletePost(uint256 postId, bytes32[] calldata extraDataKeysToDelete) internal {
-        for (uint256 i = 0; i < extraDataKeys.length; i++) {
-            delete $storage().posts[postId].extraData[extraDataKeys[i]];
+        for (uint256 i = 0; i < extraDataKeysToDelete.length; i++) {
+            delete $storage().posts[postId].extraData[extraDataKeysToDelete[i]];
         }
         delete $storage().posts[postId];
     }

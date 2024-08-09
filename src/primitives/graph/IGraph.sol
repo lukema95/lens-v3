@@ -4,13 +4,15 @@ pragma solidity ^0.8.20;
 import {IFollowRules} from './IFollowRules.sol';
 import {IGraphRules} from './IGraphRules.sol';
 
-interface IGraph {
-    struct Follow {
-        uint256 id;
-        uint256 timestamp;
-    }
+struct Follow {
+    uint256 id;
+    uint256 timestamp;
+}
 
+interface IGraph {
     event Lens_Graph_RulesSet(address graphRules);
+
+    event Lens_Graph_FollowRulesSet(address account, address followRules, bytes graphRulesData);
 
     event Lens_Graph_Followed(
         address followerAccount,
@@ -27,13 +29,9 @@ interface IGraph {
         bytes graphRulesData
     );
 
-    function setGraphRules(IGraphRules graphRules, bytes calldata initializationData) external;
+    function setGraphRules(IGraphRules graphRules) external;
 
-    function setFollowRules(
-        IFollowRules followRules,
-        bytes calldata followRulesInitData,
-        bytes calldata graphRulesData
-    ) external;
+    function setFollowRules(address account, IFollowRules followRules, bytes calldata graphRulesData) external;
 
     function follow(
         address followerAccount,
@@ -41,9 +39,13 @@ interface IGraph {
         uint256 followId,
         bytes calldata graphRulesData,
         bytes calldata followRulesData
-    ) external;
+    ) external returns (uint256);
 
-    function unfollow(address followerAccount, address targetAccount, bytes calldata graphRulesData) external;
+    function unfollow(
+        address followerAccount,
+        address targetAccount,
+        bytes calldata graphRulesData
+    ) external returns (uint256);
 
     // Getters
 

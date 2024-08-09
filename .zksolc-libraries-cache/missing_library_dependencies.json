@@ -1,0 +1,7 @@
+[
+  {
+    "contract_name": "CommunityCore",
+    "contract_path": "src/primitives/community/CommunityCore.sol",
+    "missing_libraries": []
+  }
+]

@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-// TODO: We can do storage packing if we want to...
-struct Follow {
-    uint256 id;
-    uint256 timestamp;
-}
+import {Follow} from './IGraph.sol';
 
 library GraphCore {
     // Storage

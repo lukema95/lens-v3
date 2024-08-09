@@ -15,14 +15,19 @@ contract LensDiamond {
     // they will never be able to make the diamond to lose its owner.
     // As a consequence of this, having a facet add/remove hardcoded function that is only available for the owner,
     // allows to recover any facet state at any time.
-    function editFacets(address facet, bytes4[] calldata functionSelectors, bool[] calldata isAdding) external {
-        if (_ownership.getOwner() != msg.sender) {
-            revert();
-        }
-        // TODO: add/remove facets
-    }
+    // function editFacets(address facet, bytes4[] calldata functionSelectors, bool[] calldata isAdding) external {
+    //     if (_ownership.getOwner() != msg.sender) {
+    //         revert();
+    //     }
+    //     // TODO: add/remove facets
+    // }
 
     fallback() external payable {
         // TODO: Code to find facet and delegate call
+    }
+
+    receive() external payable {
+        // This function was added just to avoid compiler warnings.
+        revert();
     }
 }
