@@ -9,6 +9,7 @@ import {IAccessControl} from './../access-control/IAccessControl.sol';
 contract Username is IUsername {
     // Resource IDs involved in the contract
     uint256 constant SET_RULES_RID = uint256(keccak256('SET_RULES'));
+    uint256 constant CHANGE_ACCESS_CONTROL_RID = uint256(keccak256('CHANGE_ACCESS_CONTROL'));
 
     // Storage fields and structs
     struct LengthRestriction {
@@ -18,10 +19,24 @@ contract Username is IUsername {
 
     constructor(string memory namespace, IAccessControl accessControl) {
         Core.$storage().namespace = namespace;
+        accessControl.hasAccess(address(0), address(0), 0); // We expect this to not panic.
         Core.$storage().accessControl = address(accessControl);
     }
 
     // Access Controlled functions
+
+    // TODO: This is a 1-step operation, while some of our AC owner transfers are a 2-step, or even 3-step operations.
+    function setAccessControl(IAccessControl accessControl) external {
+        require(
+            IAccessControl(Core.$storage().accessControl).hasAccess({
+                account: msg.sender,
+                resourceLocation: address(this),
+                resourceId: CHANGE_ACCESS_CONTROL_RID
+            })
+        ); // msg.sender must have permissions to change access control
+        accessControl.hasAccess(address(0), address(0), 0); // We expect this to not panic.
+        Core.$storage().accessControl = address(accessControl);
+    }
 
     function setUsernameRules(address usernameRules) external {
         require(
