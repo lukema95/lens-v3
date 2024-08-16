@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {RulesCombinator} from 'src/primitives/rules/RulesCombinator.sol';
-import {IUsernameRules} from './IUsernameRules.sol';
+import {RuleCombinator} from 'src/primitives/rules/RuleCombinator.sol';
+import {IUsernameRule} from './IUsernameRule.sol';
 
-contract UsernameRulesCombinator is RulesCombinator, IUsernameRules {
+contract UsernameRuleCombinator is RuleCombinator, IUsernameRule {
     function processRegistering(
         address originalMsgSender,
         address account,
@@ -15,7 +15,7 @@ contract UsernameRulesCombinator is RulesCombinator, IUsernameRules {
         bytes[] memory datas = new bytes[](_rules.length);
         for (uint256 i = 0; i < _rules.length; i++) {
             datas[i] = abi.encodeWithSelector(
-                IUsernameRules.processRegistering.selector,
+                IUsernameRule.processRegistering.selector,
                 originalMsgSender,
                 account,
                 username,
@@ -35,7 +35,7 @@ contract UsernameRulesCombinator is RulesCombinator, IUsernameRules {
         bytes[] memory datas = new bytes[](_rules.length);
         for (uint256 i = 0; i < _rules.length; i++) {
             datas[i] = abi.encodeWithSelector(
-                IUsernameRules.processUnregistering.selector,
+                IUsernameRule.processUnregistering.selector,
                 originalMsgSender,
                 account,
                 username,

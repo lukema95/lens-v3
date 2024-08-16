@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {UsernameCore as Core} from './UsernameCore.sol';
-import {IUsernameRules} from './IUsernameRules.sol';
+import {IUsernameRule} from './IUsernameRule.sol';
 import {IUsername} from './IUsername.sol';
 import {IAccessControl} from './../access-control/IAccessControl.sol';
 
@@ -54,7 +54,7 @@ contract Username is IUsername {
 
     function registerUsername(address account, string memory username, bytes calldata data) external {
         require(msg.sender == account); // msg.sender must be the account
-        IUsernameRules(Core.$storage().usernameRules).processRegistering(msg.sender, account, username, data);
+        IUsernameRule(Core.$storage().usernameRules).processRegistering(msg.sender, account, username, data);
         _validateUsernameLength(username);
         Core._registerUsername(account, username);
         emit Lens_Username_Registered(username, account, data);
@@ -64,16 +64,16 @@ contract Username is IUsername {
     // Think about CEI pattern and if we are OK with the "before", because it looks more like CIE than CEI.
     // function registerUsername(address account, string memory username, bytes calldata data) external {
     //     require(msg.sender == account); // msg.sender must be the account
-    //     IUsernameRules(Core.$storage().usernameRules).beforeRegistering(msg.sender, account, username, data);
+    //     IUsernameRule(Core.$storage().usernameRules).beforeRegistering(msg.sender, account, username, data);
     //     Core._registerUsername(account, username);
-    //     IUsernameRules(Core.$storage().usernameRules).afterRegistering(msg.sender, account, username, data);
+    //     IUsernameRule(Core.$storage().usernameRules).afterRegistering(msg.sender, account, username, data);
     //     emit Lens_Username_Registered(username, account, data);
     // }
 
     function unregisterUsername(string memory username, bytes calldata data) external {
         address account = Core.$storage().usernameToAccount[username];
         require(msg.sender == account); // msg.sender must be the account
-        IUsernameRules(Core.$storage().usernameRules).processUnregistering(msg.sender, account, username, data);
+        IUsernameRule(Core.$storage().usernameRules).processUnregistering(msg.sender, account, username, data);
         Core._unregisterUsername(username);
         emit Lens_Username_Unregistered(username, account, data);
     }

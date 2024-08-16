@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IFollowRules} from './IFollowRules.sol';
-import {IGraphRules} from './IGraphRules.sol';
+import {IFollowRule} from './IFollowRule.sol';
+import {IGraphRule} from './IGraphRule.sol';
 
 struct Follow {
     uint256 id;
@@ -29,9 +29,9 @@ interface IGraph {
         bytes graphRulesData
     );
 
-    function setGraphRules(IGraphRules graphRules) external;
+    function setGraphRules(IGraphRule graphRules) external;
 
-    function setFollowRules(address account, IFollowRules followRules, bytes calldata graphRulesData) external;
+    function setFollowRules(address account, IFollowRule followRules, bytes calldata graphRulesData) external;
 
     function follow(
         address followerAccount,
@@ -57,7 +57,7 @@ interface IGraph {
 
     function getFollowersCount(address account) external view returns (uint256);
 
-    function getFollowRules(address account) external view returns (IFollowRules);
+    function getFollowRules(address account) external view returns (IFollowRule);
 
-    function getGraphRules() external view returns (IGraphRules);
+    function getGraphRules() external view returns (IGraphRule);
 }

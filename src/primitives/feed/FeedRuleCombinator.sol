@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {RulesCombinator} from 'src/primitives/rules/RulesCombinator.sol';
-import {IPostRules} from './IPostRules.sol';
-import {IFeedRules} from './IFeedRules.sol';
+import {RuleCombinator} from 'src/primitives/rules/RuleCombinator.sol';
+import {IPostRule} from './IPostRule.sol';
+import {IFeedRule} from './IFeedRule.sol';
 import {PostParams} from './IFeed.sol';
 
-contract FeedRulesCombinator is RulesCombinator, IFeedRules {
+contract FeedRuleCombinator is RuleCombinator, IFeedRule {
     function processCreatePost(
         address originalMsgSender,
         uint256 postId,
@@ -17,7 +17,7 @@ contract FeedRulesCombinator is RulesCombinator, IFeedRules {
         bytes[] memory datas = new bytes[](_rules.length);
         for (uint256 i = 0; i < _rules.length; i++) {
             datas[i] = abi.encodeWithSelector(
-                IFeedRules.processCreatePost.selector,
+                IFeedRule.processCreatePost.selector,
                 originalMsgSender,
                 postId,
                 postParams,
@@ -37,7 +37,7 @@ contract FeedRulesCombinator is RulesCombinator, IFeedRules {
         bytes[] memory datas = new bytes[](_rules.length);
         for (uint256 i = 0; i < _rules.length; i++) {
             datas[i] = abi.encodeWithSelector(
-                IFeedRules.processEditPost.selector,
+                IFeedRule.processEditPost.selector,
                 originalMsgSender,
                 postId,
                 newPostParams,
@@ -52,7 +52,7 @@ contract FeedRulesCombinator is RulesCombinator, IFeedRules {
         bytes[] memory datas = new bytes[](_rules.length);
         for (uint256 i = 0; i < _rules.length; i++) {
             datas[i] = abi.encodeWithSelector(
-                IFeedRules.processDeletePost.selector,
+                IFeedRule.processDeletePost.selector,
                 originalMsgSender,
                 postId,
                 ruleSpecificDatas[i]
@@ -64,14 +64,14 @@ contract FeedRulesCombinator is RulesCombinator, IFeedRules {
     function processPostRulesChange(
         address originalMsgSender,
         uint256 postId,
-        IPostRules newPostRules,
+        IPostRule newPostRules,
         bytes calldata data
     ) external {
         bytes[] memory ruleSpecificDatas = abi.decode(data, (bytes[]));
         bytes[] memory datas = new bytes[](_rules.length);
         for (uint256 i = 0; i < _rules.length; i++) {
             datas[i] = abi.encodeWithSelector(
-                IFeedRules.processPostRulesChange.selector,
+                IFeedRule.processPostRulesChange.selector,
                 originalMsgSender,
                 postId,
                 newPostRules,

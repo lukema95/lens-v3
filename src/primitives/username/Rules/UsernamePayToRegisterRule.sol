@@ -2,14 +2,14 @@
 pragma solidity ^0.8.0;
 
 import {IAccessControl} from './../../access-control/IAccessControl.sol';
-import {IUsernameRules} from './../IUsernameRules.sol';
+import {IUsernameRule} from './../IUsernameRule.sol';
 
 // TODO: Replace this with an actual import if needed
 interface IERC20 {
     function safeTransferFrom(address from, address to, uint256 value) external returns (bool);
 }
 
-contract UsernamePayToRegisterRule is IUsernameRules {
+contract UsernamePayToRegisterRule is IUsernameRule {
     // Resource IDs involved in the contract
     uint256 constant SKIP_PAYMENT_RID = uint256(keccak256('SKIP_PAYMENT'));
     uint256 constant CONFIGURE_RULES_RID = uint256(keccak256('CONFIGURE_RULES'));

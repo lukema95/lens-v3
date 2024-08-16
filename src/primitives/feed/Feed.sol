@@ -2,9 +2,9 @@
 pragma solidity ^0.8.0;
 
 import {IFeed, Post, PostParams} from './IFeed.sol';
-import {IFeedRules} from './IFeedRules.sol';
+import {IFeedRule} from './IFeedRule.sol';
 import {FeedCore as Core} from './FeedCore.sol';
-import {IPostRules} from 'src/primitives/feed/IPostRules.sol';
+import {IPostRule} from 'src/primitives/feed/IPostRule.sol';
 import {IAccessControl} from 'src/primitives/access-control/IAccessControl.sol';
 
 contract Feed is IFeed {
@@ -15,7 +15,7 @@ contract Feed is IFeed {
 
     // Access Controlled functions
 
-    function setFeedRules(IFeedRules feedRules) external override {
+    function setFeedRules(IFeedRule feedRules) external override {
         require(
             IAccessControl(Core.$storage().accessControl).hasAccess({
                 account: msg.sender,
@@ -39,7 +39,7 @@ contract Feed is IFeed {
         require(postParams.timestamp <= block.timestamp);
         uint256 postId = Core._createPost(postParams);
         if (address(Core.$storage().feedRules) != address(0)) {
-            IFeedRules(Core.$storage().feedRules).processCreatePost(msg.sender, postId, postParams, feedRulesData);
+            IFeedRule(Core.$storage().feedRules).processCreatePost(msg.sender, postId, postParams, feedRulesData);
         }
         emit Lens_Feed_PostCreated(postId, postParams, feedRulesData, _getPostTypeId(postParams));
         return postId;
@@ -57,7 +57,7 @@ contract Feed is IFeed {
         // Or we should have this one at least:
         require(newPostParams.timestamp <= block.timestamp);
         if (address(Core.$storage().feedRules) != address(0)) {
-            IFeedRules(Core.$storage().feedRules).processEditPost(
+            IFeedRule(Core.$storage().feedRules).processEditPost(
                 msg.sender,
                 postId,
                 newPostParams,
@@ -65,7 +65,7 @@ contract Feed is IFeed {
             );
         }
         if (address(newPostParams.postRules) != Core.$storage().posts[postId].postRules) {
-            IFeedRules(Core.$storage().feedRules).processPostRulesChange(
+            IFeedRule(Core.$storage().feedRules).processPostRulesChange(
                 msg.sender,
                 postId,
                 newPostParams.postRules,
@@ -96,7 +96,7 @@ contract Feed is IFeed {
             require(_canDeletePost(msg.sender));
         }
         if (address(Core.$storage().feedRules) != address(0)) {
-            IFeedRules(Core.$storage().feedRules).processDeletePost(msg.sender, postId, feedRulesData);
+            IFeedRule(Core.$storage().feedRules).processDeletePost(msg.sender, postId, feedRulesData);
         }
         Core._deletePost(postId, extraDataKeysToDelete);
         emit Lens_Feed_PostDeleted(postId, feedRulesData);
@@ -161,7 +161,7 @@ contract Feed is IFeed {
                 metadataURI: Core.$storage().posts[postId].metadataURI,
                 quotedPostIds: Core.$storage().posts[postId].quotedPostIds,
                 parentPostIds: Core.$storage().posts[postId].parentPostIds,
-                postRules: IPostRules(Core.$storage().posts[postId].postRules),
+                postRules: IPostRule(Core.$storage().posts[postId].postRules),
                 timestamp: Core.$storage().posts[postId].timestamp,
                 submissionTimestamp: Core.$storage().posts[postId].submissionTimestamp,
                 lastUpdatedTimestamp: Core.$storage().posts[postId].lastUpdatedTimestamp
@@ -179,12 +179,12 @@ contract Feed is IFeed {
         return Core.$storage().posts[postId].author;
     }
 
-    function getFeedRules() external view override returns (IFeedRules) {
-        return IFeedRules(Core.$storage().feedRules);
+    function getFeedRules() external view override returns (IFeedRule) {
+        return IFeedRule(Core.$storage().feedRules);
     }
 
-    function getPostRules(uint256 postId) external view override returns (IPostRules) {
-        return IPostRules(Core.$storage().posts[postId].postRules);
+    function getPostRules(uint256 postId) external view override returns (IPostRule) {
+        return IPostRule(Core.$storage().posts[postId].postRules);
     }
 
     function getPostCount() external view override returns (uint256) {

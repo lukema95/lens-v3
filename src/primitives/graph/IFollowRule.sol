@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IRules} from 'src/primitives/rules/IRules.sol';
+import {IRule} from 'src/primitives/rules/IRule.sol';
 
-interface IFollowRules is IRules {
+interface IFollowRule is IRule {
     /**
      * Predicate to be evaluated upon each follow using the logic set by `accountToFollow`. Finishes execution
      * successfully if the predicate evalues to "true", reverts if the predicate evaluates to "false".

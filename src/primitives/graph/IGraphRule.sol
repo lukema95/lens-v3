@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IFollowRules} from './IFollowRules.sol';
+import {IFollowRule} from './IFollowRule.sol';
 
-import {IRules} from 'src/primitives/rules/IRules.sol';
+import {IRule} from 'src/primitives/rules/IRule.sol';
 
-interface IGraphRules is IRules {
+interface IGraphRule is IRule {
     function processFollow(
         address originalMsgSender,
         address followerAcount,
@@ -30,5 +30,5 @@ interface IGraphRules is IRules {
 
     function processUnblock(address account, bytes calldata data) external;
 
-    function processFollowRulesChange(address account, IFollowRules followRules, bytes calldata data) external;
+    function processFollowRulesChange(address account, IFollowRule followRules, bytes calldata data) external;
 }

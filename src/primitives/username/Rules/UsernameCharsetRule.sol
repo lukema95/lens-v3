@@ -2,9 +2,9 @@
 pragma solidity ^0.8.0;
 
 import {IAccessControl} from './../../access-control/IAccessControl.sol';
-import {IUsernameRules} from './../IUsernameRules.sol';
+import {IUsernameRule} from './../IUsernameRule.sol';
 
-contract UsernameCharsetRule is IUsernameRules {
+contract UsernameCharsetRule is IUsernameRule {
     uint256 constant SKIP_CHARSET_RID = uint256(keccak256('SKIP_CHARSET'));
     uint256 constant CHANGE_RULE_ACCESS_CONTROL_RID = uint256(keccak256('CHANGE_RULE_ACCESS_CONTROL'));
     uint256 constant CONFIGURE_RULE_RID = uint256(keccak256('CONFIGURE_RULE'));

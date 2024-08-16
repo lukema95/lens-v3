@@ -2,9 +2,9 @@
 pragma solidity ^0.8.0;
 
 import {IAccessControl} from './../../access-control/IAccessControl.sol';
-import {IUsernameRules} from './../IUsernameRules.sol';
+import {IUsernameRule} from './../IUsernameRule.sol';
 
-contract UsernameLengthRule is IUsernameRules {
+contract UsernameLengthRule is IUsernameRule {
     uint256 _minLength; // "lens.username.rules.UsernameLengthRule.minLength"
     uint256 _maxLength; // "lens.username.rules.UsernameLengthRule.maxLength"
 

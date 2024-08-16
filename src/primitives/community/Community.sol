@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {ICommunity} from './ICommunity.sol';
-import {ICommunityRules} from './ICommunityRules.sol';
+import {ICommunityRule} from './ICommunityRule.sol';
 import {CommunityCore as Core} from './CommunityCore.sol';
 import {IAccessControl} from './../access-control/IAccessControl.sol';
 
@@ -10,6 +10,7 @@ contract Community is ICommunity {
     // Resource IDs involved in the contract
     uint256 constant SET_RULES_RID = uint256(keccak256('SET_RULES'));
     uint256 constant SET_METADATA_RID = uint256(keccak256('SET_METADATA'));
+    uint256 constant CHANGE_ACCESS_CONTROL_RID = uint256(keccak256('CHANGE_ACCESS_CONTROL'));
 
     constructor(string memory metadataURI, IAccessControl accessControl) {
         Core.$storage().metadataURI = metadataURI;
@@ -42,11 +43,24 @@ contract Community is ICommunity {
         emit Lens_Community_MetadataUriSet(metadataURI);
     }
 
+    // TODO: This is a 1-step operation, while some of our AC owner transfers are a 2-step, or even 3-step operations.
+    function setAccessControl(IAccessControl accessControl) external {
+        require(
+            IAccessControl(Core.$storage().accessControl).hasAccess({
+                account: msg.sender,
+                resourceLocation: address(this),
+                resourceId: CHANGE_ACCESS_CONTROL_RID
+            })
+        ); // msg.sender must have permissions to change access control
+        accessControl.hasAccess(address(0), address(0), 0); // We expect this to not panic.
+        Core.$storage().accessControl = address(accessControl);
+    }
+
     // Public functions
 
     function joinCommunity(address account, bytes calldata data) external override {
         require(msg.sender == account);
-        ICommunityRules rules = ICommunityRules(Core.$storage().communityRules);
+        ICommunityRule rules = ICommunityRule(Core.$storage().communityRules);
         if (address(rules) != address(0)) {
             rules.processJoining(msg.sender, account, data);
         }
@@ -56,7 +70,7 @@ contract Community is ICommunity {
 
     function leaveCommunity(address account, bytes calldata data) external override {
         require(msg.sender == account);
-        ICommunityRules rules = ICommunityRules(Core.$storage().communityRules);
+        ICommunityRule rules = ICommunityRule(Core.$storage().communityRules);
         if (address(rules) != address(0)) {
             rules.processLeaving(msg.sender, account, data);
         }
@@ -67,7 +81,7 @@ contract Community is ICommunity {
     // TODO: Why don't we have addMember? Because we don't want to kidnap someone into the community?
 
     function removeMember(address account, bytes calldata data) external override {
-        ICommunityRules rules = ICommunityRules(Core.$storage().communityRules);
+        ICommunityRule rules = ICommunityRule(Core.$storage().communityRules);
         require(address(rules) != address(0), 'Community: rules are required to remove members');
         rules.processRemoval(msg.sender, account, data);
         uint256 membershipId = Core._revokeMembership(account);

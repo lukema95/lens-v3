@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IPostRules} from './IPostRules.sol';
-import {IFeedRules} from './IFeedRules.sol';
+import {IPostRule} from './IPostRule.sol';
+import {IFeedRule} from './IFeedRule.sol';
 import {IAccessControl} from '../access-control/IAccessControl.sol';
 
 /*
@@ -30,7 +30,7 @@ struct PostParams {
     string metadataURI; // "...but metadata on a S3 server"
     uint256[] quotedPostIds;
     uint256[] parentPostIds;
-    IPostRules postRules;
+    IPostRule postRules;
     uint80 timestamp;
     DataElement[] extraData;
 }
@@ -43,7 +43,7 @@ struct Post {
     string metadataURI;
     uint256[] quotedPostIds;
     uint256[] parentPostIds;
-    IPostRules postRules;
+    IPostRule postRules;
     uint80 timestamp; // Passed-in by the author or client
     uint80 submissionTimestamp; // Automatically fetched from the block once submitted
     uint80 lastUpdatedTimestamp; // Automatically fetched from the block once updated
@@ -81,7 +81,7 @@ interface IFeed {
         bytes calldata feedRulesData
     ) external;
 
-    function setFeedRules(IFeedRules feedRules) external;
+    function setFeedRules(IFeedRule feedRules) external;
 
     // Getters
 
@@ -91,9 +91,9 @@ interface IFeed {
 
     function getPostAuthor(uint256 postId) external view returns (address);
 
-    function getFeedRules() external view returns (IFeedRules);
+    function getFeedRules() external view returns (IFeedRule);
 
-    function getPostRules(uint256 postId) external view returns (IPostRules);
+    function getPostRules(uint256 postId) external view returns (IPostRule);
 
     function getPostCount() external view returns (uint256);
 

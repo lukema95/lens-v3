@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IRules} from './IRules.sol';
+import {IRule} from './IRule.sol';
 import {IAccessControl} from 'src/primitives/access-control/IAccessControl.sol';
 
-abstract contract RulesCombinator is IRules {
-    // Custom RulesCombinator's operation events
+abstract contract RuleCombinator is IRule {
+    // Custom RuleCombinator's operation events
     // TODO: Decide betweet plain initilize event + inner operation events, or single initialize event with params
     event Lens_RuleCombinator_Initialized();
     // event Lens_RuleCombinator_Initialized(CombinationMode combinationMode, address accessControl, bytes addRulesData);
@@ -58,7 +58,7 @@ abstract contract RulesCombinator is IRules {
         } else if (operation == Operation.CHANGE_ACCESS_CONTROL) {
             _changeAccessControl(operationData);
         } else {
-            require(_canConfigure(msg.sender), 'RulesCombinator: Access denied');
+            require(_canConfigure(msg.sender), 'RuleCombinator: Access denied');
             if (operation == Operation.CHANGE_COMBINATION_MODE) {
                 _combinationMode = abi.decode(operationData, (CombinationMode));
             } else {
@@ -70,7 +70,7 @@ abstract contract RulesCombinator is IRules {
                 } else if (operation == Operation.UPDATE_RULES) {
                     _updateRules(rules);
                 } else {
-                    revert('RulesCombinator: Invalid operation');
+                    revert('RuleCombinator: Invalid operation');
                 }
             }
         }
@@ -95,7 +95,7 @@ abstract contract RulesCombinator is IRules {
 
     function _initialize(bytes memory operationData) internal virtual {
         if (_isInitialized()) {
-            revert('RulesCombinator: Already initialized');
+            revert('RuleCombinator: Already initialized');
         }
         (CombinationMode combinationMode, address accessControl, bytes memory addRulesData) = abi.decode(
             operationData,
@@ -114,7 +114,7 @@ abstract contract RulesCombinator is IRules {
     }
 
     function _changeAccessControl(bytes memory operationData) internal virtual {
-        require(_canSetAccessControl(msg.sender), 'RulesCombinator: Access denied');
+        require(_canSetAccessControl(msg.sender), 'RuleCombinator: Access denied');
         IAccessControl newAccessControl = IAccessControl(abi.decode(operationData, (address)));
         newAccessControl.hasAccess(address(0), address(0), 0); // We expect this to not panic.
         _accessControl = newAccessControl;
@@ -149,12 +149,12 @@ abstract contract RulesCombinator is IRules {
         // Check if the rule address already exists in the array
         for (uint256 i = 0; i < _rules.length; i++) {
             if (_rules[i] == rule.contractAddress) {
-                revert('RulesCombinator: Rule already exists');
+                revert('RuleCombinator: Rule already exists');
             }
         }
         _rules.push(rule.contractAddress);
-        (bool success, ) = rule.contractAddress.delegatecall(abi.encodeCall(IRules.configure, (rule.data)));
-        require(success, 'RulesCombinator: Rule configuration failed');
+        (bool success, ) = rule.contractAddress.delegatecall(abi.encodeCall(IRule.configure, (rule.data)));
+        require(success, 'RuleCombinator: Rule configuration failed');
     }
 
     function _removeRules(RuleConfiguration[] memory rules) internal virtual {
@@ -173,7 +173,7 @@ abstract contract RulesCombinator is IRules {
                 return;
             }
         }
-        revert('RulesCombinator: Rule not found');
+        revert('RuleCombinator: Rule not found');
     }
 
     function _updateRules(RuleConfiguration[] memory rules) internal virtual {
@@ -188,12 +188,12 @@ abstract contract RulesCombinator is IRules {
         // TODO: We can overoptimize this later...
         for (uint256 i = 0; i < _rules.length; i++) {
             if (_rules[i] == rule.contractAddress) {
-                (bool success, ) = rule.contractAddress.delegatecall(abi.encodeCall(IRules.configure, (rule.data)));
-                require(success, 'RulesCombinator: Rule configuration failed');
+                (bool success, ) = rule.contractAddress.delegatecall(abi.encodeCall(IRule.configure, (rule.data)));
+                require(success, 'RuleCombinator: Rule configuration failed');
                 return;
             }
         }
-        revert('RulesCombinator: Rule not found');
+        revert('RuleCombinator: Rule not found');
     }
 
     function _processRules(bytes[] memory datas) internal virtual {
@@ -207,7 +207,7 @@ abstract contract RulesCombinator is IRules {
     function _processRules_AND(bytes[] memory datas) internal virtual {
         for (uint256 i = 0; i < _rules.length; i++) {
             (bool success, ) = _rules[i].delegatecall(datas[i]);
-            require(success, 'RulesCombinator: Some rule failed while using AND combination');
+            require(success, 'RuleCombinator: Some rule failed while using AND combination');
         }
         return; // If it didn't revert above - all passed
     }
@@ -219,6 +219,6 @@ abstract contract RulesCombinator is IRules {
                 return; // If any of the rules passed, we can return
             }
         }
-        revert('RulesCombinator: All rules failed while using OR combination');
+        revert('RuleCombinator: All rules failed while using OR combination');
     }
 }
