@@ -21,7 +21,7 @@ library FeedCore {
     // Storage
     struct Storage {
         address accessControl;
-        string feedMetadataURI;
+        string metadataURI;
         address feedRules;
         uint256 postCount;
         mapping(uint256 postId => PostStorage post) posts;

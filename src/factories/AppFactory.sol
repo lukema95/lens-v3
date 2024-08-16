@@ -2,26 +2,23 @@
 pragma solidity ^0.8.0;
 
 import {IAccessControl} from './../primitives/access-control/IAccessControl.sol';
-import {Username} from './../primitives/username/Username.sol';
-import {IUsernameRule} from './../primitives/username/IUsernameRule.sol';
+import {InitialProperties, App} from './../primitives/app/App.sol';
 import {OwnerOnlyAccessControl} from 'src/primitives/access-control/OwnerOnlyAccessControl.sol';
-import {UsernameRuleCombinator} from 'src/primitives/username/UsernameRuleCombinator.sol';
 
-contract UsernameFactory {
+contract AppFactory {
     IAccessControl internal _accessControl; // TODO: Replace these storages with Core.$storage() pattern
     IAccessControl internal immutable _factoryOwnedAccessControl;
-    // address internal _usernameImplementation; // We do not need this unless we Clone and we want to change the impl
+    // address internal _appImplementation; // We do not need this unless we Clone and we want to change the impl
 
-    event UsernamePrimitiveCreated(
-        address indexed usernameInstance,
+    event AppPrimitiveCreated(
+        address indexed appInstance,
         string namespace,
         IAccessControl accessControl,
-        IUsernameRule rules,
         bytes rulesInitializationData
     );
 
     uint256 constant CHANGE_ACCESS_CONTROL_RID = uint256(keccak256('CHANGE_ACCESS_CONTROL'));
-    uint256 constant DEPLOY_USERNAME_RID = uint256(keccak256('DEPLOY_USERNAME'));
+    uint256 constant DEPLOY_APP_RID = uint256(keccak256('DEPLOY_APP'));
 
     function setAccessControl(IAccessControl accessControl) external {
         require(
@@ -42,7 +39,7 @@ contract UsernameFactory {
 
     /*
         TODO:
-        - Add Implementation address for the usernamePrimitive (changable with AccessControl)
+        - Add Implementation address for the appPrimitive (changable with AccessControl)
         - Add Upgradeable pattern (best - Upgradeable Beacon Proxy, but we can have several)
           Support different upgradability flavours:
           * Immutable
@@ -52,51 +49,28 @@ contract UsernameFactory {
           * ??? with Beacon
         - Add _accessControl (IAccessControl) to the constructor (and use in all of the above)
 
-        - [Later] Add Payment to deploying UsernamePrimitive (controllable with AccessControl, skippable with AccessControl)
+        - [Later] Add Payment to deploying AppPrimitive (controllable with AccessControl, skippable with AccessControl)
+    */
+    /*
+    TODO:
+    - We need a msg.sender (aka deployer) in the event in the constructor - so we know if it's a factory or not
+    - We need an actual deployer (msg.sender of the factory call) as the guy who is deploying through the factory (and pass it probably)
+    - We need the referrals Josh mentioned in the Factory, so we know who referred the deployer
     */
     function deploy__Immutable_NoRules(
-        string memory namespace,
-        IAccessControl accessControl
-    ) external returns (address) {
-        require(
-            IAccessControl(_accessControl).hasAccess({
-                account: msg.sender,
-                resourceLocation: address(this),
-                resourceId: DEPLOY_USERNAME_RID
-            })
-        ); // msg.sender must have permissions to deploy
-        address usernameInstance = address(new Username(namespace, accessControl));
-        return usernameInstance;
-    }
-
-    function deploy__Immutable_WithRules(
-        string memory namespace,
         IAccessControl accessControl,
-        bytes calldata rulesInitializationData
+        string calldata metadataURI,
+        address treasury,
+        InitialProperties calldata initialProperties
     ) external returns (address) {
         require(
             IAccessControl(_accessControl).hasAccess({
                 account: msg.sender,
                 resourceLocation: address(this),
-                resourceId: DEPLOY_USERNAME_RID
+                resourceId: DEPLOY_APP_RID
             })
         ); // msg.sender must have permissions to deploy
-        Username usernameInstance = new Username(namespace, _factoryOwnedAccessControl);
-
-        IUsernameRule rulesInstance = new UsernameRuleCombinator();
-        rulesInstance.configure(rulesInitializationData);
-
-        usernameInstance.setUsernameRules(rulesInstance);
-
-        usernameInstance.setAccessControl(accessControl);
-
-        emit UsernamePrimitiveCreated(
-            address(usernameInstance),
-            namespace,
-            accessControl,
-            rulesInstance,
-            rulesInitializationData
-        );
-        return address(usernameInstance);
+        address appInstance = address(new App(accessControl, metadataURI, treasury, initialProperties));
+        return appInstance;
     }
 }

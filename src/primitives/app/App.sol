@@ -18,6 +18,16 @@ interface IApp {
     event Lens_App_DefaultCommunitySet(address community);
 }
 
+struct InitialProperties {
+    address _graph;
+    address[] _feeds;
+    address _username;
+    address[] _communities;
+    address _defaultFeed;
+    address _defaultCommunity;
+    address[] _signers;
+}
+
 contract App is IApp {
     IAccessControl _accessControl; // Owner, admins, moderators, permissions.
     string _metadataURI; // Name, description, logo, other attribiutes like category/topic, etc.
@@ -34,6 +44,27 @@ contract App is IApp {
     address _defaultCommunity;
 
     address[] _signers; // Signers that belong to this App.
+
+    // TODO: Make the storage follow our Core.$storage pattern.
+
+    constructor(
+        IAccessControl accessControl,
+        string memory metadataURI,
+        address treasury,
+        InitialProperties memory props
+    ) {
+        _accessControl = accessControl;
+        _metadataURI = metadataURI;
+        _treasury = treasury;
+
+        setGraph(props._graph);
+        setFeeds(props._feeds);
+        setUsername(props._username);
+        setCommunity(props._communities);
+        setDefaultFeed(props._defaultFeed);
+        setDefaultCommunity(props._defaultCommunity);
+        setSigners(props._signers);
+    }
 
     // TODO: Add ACCESS CONTROL to all the functions below!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -85,6 +116,9 @@ contract App is IApp {
         emit Lens_App_FeedRemoved(feed);
     }
 
+    // TODO:
+    // In this implementation we assume you can only have one username.
+
     function setUsername(address username) public {
         if (_usernames.length == 0) {
             _usernames.push(username);
@@ -129,6 +163,10 @@ contract App is IApp {
         emit Lens_App_CommunityRemoved(community);
     }
 
+    function setSigners(address[] memory signers) public {
+        _signers = signers;
+    }
+
     //////////////////////////////////////////////////////////////////////////
     // Getters
     //////////////////////////////////////////////////////////////////////////
@@ -163,5 +201,9 @@ contract App is IApp {
 
     function getDefaultCommunity() public view returns (address) {
         return _defaultCommunity;
+    }
+
+    function getSigners() public view returns (address[] memory) {
+        return _signers;
     }
 }

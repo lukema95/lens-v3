@@ -38,7 +38,7 @@ contract Username is IUsername {
         Core.$storage().accessControl = address(accessControl);
     }
 
-    function setUsernameRules(address usernameRules) external {
+    function setUsernameRules(IUsernameRule usernameRules) external {
         require(
             IAccessControl(Core.$storage().accessControl).hasAccess({
                 account: msg.sender,
@@ -46,8 +46,8 @@ contract Username is IUsername {
                 resourceId: SET_RULES_RID
             })
         ); // msg.sender must have permissions to set rules
-        Core.$storage().usernameRules = usernameRules;
-        emit Lens_Username_RulesSet(usernameRules);
+        Core.$storage().usernameRules = address(usernameRules);
+        emit Lens_Username_RulesSet(address(usernameRules));
     }
 
     // Permissionless functions

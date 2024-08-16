@@ -12,6 +12,12 @@ contract Feed is IFeed {
     uint256 constant SET_RULES_RID = uint256(keccak256('SET_RULES'));
     uint256 constant SET_METADATA_RID = uint256(keccak256('SET_METADATA'));
     uint256 constant DELETE_POST_RID = uint256(keccak256('DELETE_POST'));
+    uint256 constant CHANGE_ACCESS_CONTROL_RID = uint256(keccak256('CHANGE_ACCESS_CONTROL'));
+
+    constructor(string memory metadataURI, IAccessControl accessControl) {
+        Core.$storage().metadataURI = metadataURI;
+        Core.$storage().accessControl = address(accessControl);
+    }
 
     // Access Controlled functions
 
@@ -25,6 +31,19 @@ contract Feed is IFeed {
         );
         Core.$storage().feedRules = address(feedRules);
         emit Lens_Feed_RulesSet(address(feedRules));
+    }
+
+    // TODO: This is a 1-step operation, while some of our AC owner transfers are a 2-step, or even 3-step operations.
+    function setAccessControl(IAccessControl accessControl) external {
+        require(
+            IAccessControl(Core.$storage().accessControl).hasAccess({
+                account: msg.sender,
+                resourceLocation: address(this),
+                resourceId: CHANGE_ACCESS_CONTROL_RID
+            })
+        ); // msg.sender must have permissions to change access control
+        accessControl.hasAccess(address(0), address(0), 0); // We expect this to not panic.
+        Core.$storage().accessControl = address(accessControl);
     }
 
     // Public user functions
@@ -192,7 +211,7 @@ contract Feed is IFeed {
     }
 
     function getFeedMetadataURI() external view override returns (string memory) {
-        return Core.$storage().feedMetadataURI;
+        return Core.$storage().metadataURI;
     }
 
     function getAccessControl() external view override returns (IAccessControl) {

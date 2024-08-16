@@ -19,7 +19,7 @@ contract Community is ICommunity {
 
     // Access Controlled functions
 
-    function setCommunityRules(address communityRules) external override {
+    function setCommunityRules(ICommunityRule communityRules) external override {
         require(
             IAccessControl(Core.$storage().accessControl).hasAccess({
                 account: msg.sender,
@@ -27,8 +27,8 @@ contract Community is ICommunity {
                 resourceId: SET_RULES_RID
             })
         );
-        Core.$storage().communityRules = communityRules;
-        emit Lens_Community_RulesSet(communityRules);
+        Core.$storage().communityRules = address(communityRules);
+        emit Lens_Community_RulesSet(address(communityRules));
     }
 
     function setMetadataURI(string calldata metadataURI) external override {

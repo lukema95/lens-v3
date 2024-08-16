@@ -2,17 +2,17 @@
 pragma solidity ^0.8.0;
 
 import {IAccessControl} from './../primitives/access-control/IAccessControl.sol';
-import {Community} from 'src/primitives/community/Community.sol';
+import {Feed} from 'src/primitives/feed/Feed.sol';
 import {OwnerOnlyAccessControl} from 'src/primitives/access-control/OwnerOnlyAccessControl.sol';
-import {CommunityRuleCombinator} from 'src/primitives/community/CommunityRuleCombinator.sol';
-import {ICommunityRule} from 'src/primitives/community/ICommunityRule.sol';
+import {FeedRuleCombinator} from 'src/primitives/feed/FeedRuleCombinator.sol';
+import {IFeedRule} from 'src/primitives/feed/IFeedRule.sol';
 
-contract CommunityFactory {
+contract FeedFactory {
     IAccessControl internal _accessControl;
     IAccessControl internal immutable _factoryOwnedAccessControl;
 
     uint256 constant CHANGE_ACCESS_CONTROL_RID = uint256(keccak256('CHANGE_ACCESS_CONTROL'));
-    uint256 constant DEPLOY_COMMUNITY_RID = uint256(keccak256('DEPLOY_COMMUNITY'));
+    uint256 constant DEPLOY_FEED_RID = uint256(keccak256('DEPLOY_FEED'));
 
     function setAccessControl(IAccessControl accessControl) external {
         require(
@@ -39,11 +39,11 @@ contract CommunityFactory {
             IAccessControl(_accessControl).hasAccess({
                 account: msg.sender,
                 resourceLocation: address(this),
-                resourceId: DEPLOY_COMMUNITY_RID
+                resourceId: DEPLOY_FEED_RID
             })
-        ); // msg.sender must have permissions to deploy CommunityPrimitive
-        address communityInstance = address(new Community(metadataURI, accessControl));
-        return communityInstance;
+        ); // msg.sender must have permissions to deploy FeedPrimitive
+        address feedInstance = address(new Feed(metadataURI, accessControl));
+        return feedInstance;
     }
 
     function deploy__Immutable_WithRules(
@@ -55,18 +55,18 @@ contract CommunityFactory {
             IAccessControl(_accessControl).hasAccess({
                 account: msg.sender,
                 resourceLocation: address(this),
-                resourceId: DEPLOY_COMMUNITY_RID
+                resourceId: DEPLOY_FEED_RID
             })
         ); // msg.sender must have permissions to deploy
-        Community communityInstance = new Community(metadataURI, _factoryOwnedAccessControl);
+        Feed feedInstance = new Feed(metadataURI, _factoryOwnedAccessControl);
 
-        ICommunityRule rulesInstance = new CommunityRuleCombinator();
+        IFeedRule rulesInstance = new FeedRuleCombinator();
         rulesInstance.configure(rulesInitializationData);
 
-        communityInstance.setCommunityRules(rulesInstance);
+        feedInstance.setFeedRules(rulesInstance);
 
-        communityInstance.setAccessControl(accessControl);
+        feedInstance.setAccessControl(accessControl);
 
-        return address(communityInstance);
+        return address(feedInstance);
     }
 }
