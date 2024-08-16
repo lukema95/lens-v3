@@ -3,9 +3,9 @@ pragma solidity ^0.8.0;
 
 import {IAccessControl} from './../primitives/access-control/IAccessControl.sol';
 import {Username} from './../primitives/username/Username.sol';
-import {IUsernameRules} from './../primitives/username/IUsernameRules.sol';
+import {IUsernameRule} from './../primitives/username/IUsernameRule.sol';
 import {OwnerOnlyAccessControl} from 'src/primitives/access-control/OwnerOnlyAccessControl.sol';
-import {UsernameRulesCombinator} from 'src/primitives/username/UsernameRulesCombinator.sol';
+import {UsernameRuleCombinator} from 'src/primitives/username/UsernameRuleCombinator.sol';
 
 contract UsernameFactory {
     IAccessControl internal _accessControl; // TODO: Replace these storages with Core.$storage() pattern
@@ -16,7 +16,7 @@ contract UsernameFactory {
         address indexed usernameInstance,
         string namespace,
         IAccessControl accessControl,
-        IUsernameRules rules,
+        IUsernameRule rules,
         bytes rulesInitializationData
     );
 
@@ -54,7 +54,7 @@ contract UsernameFactory {
 
         - [Later] Add Payment to deploying UsernamePrimitive (controllable with AccessControl, skippable with AccessControl)
     */
-    function deployUsernamePrimitive__Immutable_NoRules(
+    function deploy__Immutable_NoRules(
         string memory namespace,
         IAccessControl accessControl
     ) external returns (address) {
@@ -64,12 +64,12 @@ contract UsernameFactory {
                 resourceLocation: address(this),
                 resourceId: DEPLOY_USERNAME_RID
             })
-        ); // msg.sender must have permissions to deploy UsernamePrimitive
+        ); // msg.sender must have permissions to deploy
         address usernameInstance = address(new Username(namespace, accessControl));
         return usernameInstance;
     }
 
-    function deployUsernamePrimitive__Immutable_WithRules(
+    function deploy__Immutable_WithRules(
         string memory namespace,
         IAccessControl accessControl,
         bytes calldata rulesInitializationData
@@ -80,10 +80,10 @@ contract UsernameFactory {
                 resourceLocation: address(this),
                 resourceId: DEPLOY_USERNAME_RID
             })
-        ); // msg.sender must have permissions to deploy UsernamePrimitive
+        ); // msg.sender must have permissions to deploy
         Username usernameInstance = new Username(namespace, _factoryOwnedAccessControl);
 
-        IUsernameRules rulesInstance = new UsernameRulesCombinator();
+        IUsernameRule rulesInstance = new UsernameRuleCombinator();
         rulesInstance.configure(rulesInitializationData);
 
         usernameInstance.setUsernameRules(address(rulesInstance));
