@@ -8,6 +8,14 @@ import {CommunityRuleCombinator} from "./../primitives/community/CommunityRuleCo
 import {ICommunityRule} from "./../primitives/community/ICommunityRule.sol";
 
 contract CommunityFactory {
+    event Lens_CommunityFactory_NewCommunityInstance(
+        address indexed communityInstance,
+        string metadataURI,
+        IAccessControl accessControl,
+        ICommunityRule rules,
+        bytes rulesInitializationData
+    );
+
     IAccessControl internal _accessControl;
     IAccessControl internal immutable _factoryOwnedAccessControl;
 
@@ -49,6 +57,13 @@ contract CommunityFactory {
         address communityInstance = address(
             new Community(metadataURI, accessControl)
         );
+        emit Lens_CommunityFactory_NewCommunityInstance({
+            communityInstance: communityInstance,
+            metadataURI: metadataURI,
+            accessControl: accessControl,
+            rules: ICommunityRule(address(0)),
+            rulesInitializationData: ""
+        });
         return communityInstance;
     }
 
@@ -68,14 +83,17 @@ contract CommunityFactory {
             metadataURI,
             _factoryOwnedAccessControl
         );
-
         ICommunityRule rulesInstance = new CommunityRuleCombinator();
         rulesInstance.configure(rulesInitializationData);
-
         communityInstance.setCommunityRules(rulesInstance);
-
         communityInstance.setAccessControl(accessControl);
-
+        emit Lens_CommunityFactory_NewCommunityInstance({
+            communityInstance: address(communityInstance),
+            metadataURI: metadataURI,
+            accessControl: accessControl,
+            rules: rulesInstance,
+            rulesInitializationData: rulesInitializationData
+        });
         return address(communityInstance);
     }
 }

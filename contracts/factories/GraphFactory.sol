@@ -8,6 +8,14 @@ import {GraphRuleCombinator} from "./../primitives/graph/GraphRuleCombinator.sol
 import {IGraphRule} from "./../primitives/graph/IGraphRule.sol";
 
 contract GraphFactory {
+    event Lens_GraphFactory_NewGraphInstance(
+        address indexed graphInstance,
+        string metadataURI,
+        IAccessControl accessControl,
+        IGraphRule rules,
+        bytes rulesInitializationData
+    );
+
     IAccessControl internal _accessControl;
     IAccessControl internal immutable _factoryOwnedAccessControl;
 
@@ -46,6 +54,13 @@ contract GraphFactory {
             })
         ); // msg.sender must have permissions to deploy GraphPrimitive
         address graphInstance = address(new Graph(metadataURI, accessControl));
+        emit Lens_GraphFactory_NewGraphInstance({
+            graphInstance: graphInstance,
+            metadataURI: metadataURI,
+            accessControl: accessControl,
+            rules: IGraphRule(address(0)),
+            rulesInitializationData: ""
+        });
         return graphInstance;
     }
 
@@ -65,14 +80,17 @@ contract GraphFactory {
             metadataURI,
             _factoryOwnedAccessControl
         );
-
         IGraphRule rulesInstance = new GraphRuleCombinator();
         rulesInstance.configure(rulesInitializationData);
-
         graphInstance.setGraphRules(rulesInstance);
-
         graphInstance.setAccessControl(accessControl);
-
+        emit Lens_GraphFactory_NewGraphInstance({
+            graphInstance: address(graphInstance),
+            metadataURI: metadataURI,
+            accessControl: accessControl,
+            rules: rulesInstance,
+            rulesInitializationData: rulesInitializationData
+        });
         return address(graphInstance);
     }
 }

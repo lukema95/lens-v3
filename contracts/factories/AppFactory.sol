@@ -6,16 +6,16 @@ import {InitialProperties, App} from "./../primitives/app/App.sol";
 import {OwnerOnlyAccessControl} from "./../primitives/access-control/OwnerOnlyAccessControl.sol";
 
 contract AppFactory {
-    IAccessControl internal _accessControl; // TODO: Replace these storages with Core.$storage() pattern
-    IAccessControl internal immutable _factoryOwnedAccessControl;
-    // address internal _appImplementation; // We do not need this unless we Clone and we want to change the impl
-
-    event AppPrimitiveCreated(
+    event Lens_AppFactory_NewAppInstance(
         address indexed appInstance,
         string namespace,
         IAccessControl accessControl,
         bytes rulesInitializationData
     );
+
+    IAccessControl internal _accessControl; // TODO: Replace these storages with Core.$storage() pattern
+    IAccessControl internal immutable _factoryOwnedAccessControl;
+    // address internal _appImplementation; // We do not need this unless we Clone and we want to change the impl
 
     uint256 constant CHANGE_ACCESS_CONTROL_RID =
         uint256(keccak256("CHANGE_ACCESS_CONTROL"));
@@ -76,6 +76,12 @@ contract AppFactory {
         address appInstance = address(
             new App(accessControl, metadataURI, treasury, initialProperties)
         );
+        emit Lens_AppFactory_NewAppInstance({
+            appInstance: appInstance,
+            namespace: metadataURI,
+            accessControl: accessControl,
+            rulesInitializationData: ""
+        });
         return appInstance;
     }
 }

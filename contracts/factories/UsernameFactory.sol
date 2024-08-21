@@ -8,17 +8,17 @@ import {OwnerOnlyAccessControl} from "./../primitives/access-control/OwnerOnlyAc
 import {UsernameRuleCombinator} from "./../primitives/username/UsernameRuleCombinator.sol";
 
 contract UsernameFactory {
-    IAccessControl internal _accessControl; // TODO: Replace these storages with Core.$storage() pattern
-    IAccessControl internal immutable _factoryOwnedAccessControl;
-    // address internal _usernameImplementation; // We do not need this unless we Clone and we want to change the impl
-
-    event UsernamePrimitiveCreated(
+    event Lens_UsernameFactory_NewUsernameInstance(
         address indexed usernameInstance,
-        string namespace,
+        string indexed namespace,
         IAccessControl accessControl,
         IUsernameRule rules,
         bytes rulesInitializationData
     );
+
+    IAccessControl internal _accessControl; // TODO: Replace these storages with Core.$storage() pattern
+    IAccessControl internal immutable _factoryOwnedAccessControl;
+    // address internal _usernameImplementation; // We do not need this unless we Clone and we want to change the impl
 
     uint256 constant CHANGE_ACCESS_CONTROL_RID =
         uint256(keccak256("CHANGE_ACCESS_CONTROL"));
@@ -72,6 +72,13 @@ contract UsernameFactory {
         address usernameInstance = address(
             new Username(namespace, accessControl)
         );
+        emit Lens_UsernameFactory_NewUsernameInstance({
+            usernameInstance: usernameInstance,
+            namespace: namespace,
+            accessControl: accessControl,
+            rules: IUsernameRule(address(0)),
+            rulesInitializationData: ""
+        });
         return usernameInstance;
     }
 
@@ -91,21 +98,17 @@ contract UsernameFactory {
             namespace,
             _factoryOwnedAccessControl
         );
-
         IUsernameRule rulesInstance = new UsernameRuleCombinator();
         rulesInstance.configure(rulesInitializationData);
-
         usernameInstance.setUsernameRules(rulesInstance);
-
         usernameInstance.setAccessControl(accessControl);
-
-        emit UsernamePrimitiveCreated(
-            address(usernameInstance),
-            namespace,
-            accessControl,
-            rulesInstance,
-            rulesInitializationData
-        );
+        emit Lens_UsernameFactory_NewUsernameInstance({
+            usernameInstance: address(usernameInstance),
+            namespace: namespace,
+            accessControl: accessControl,
+            rules: rulesInstance,
+            rulesInitializationData: rulesInitializationData
+        });
         return address(usernameInstance);
     }
 }

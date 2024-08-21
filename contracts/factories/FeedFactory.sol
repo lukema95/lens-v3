@@ -8,6 +8,14 @@ import {FeedRuleCombinator} from "./../primitives/feed/FeedRuleCombinator.sol";
 import {IFeedRule} from "./../primitives/feed/IFeedRule.sol";
 
 contract FeedFactory {
+    event Lens_FeedFactory_NewFeedInstance(
+        address indexed feedInstance,
+        string metadataURI,
+        IAccessControl accessControl,
+        IFeedRule rules,
+        bytes rulesInitializationData
+    );
+
     IAccessControl internal _accessControl;
     IAccessControl internal immutable _factoryOwnedAccessControl;
 
@@ -46,6 +54,13 @@ contract FeedFactory {
             })
         ); // msg.sender must have permissions to deploy FeedPrimitive
         address feedInstance = address(new Feed(metadataURI, accessControl));
+        emit Lens_FeedFactory_NewFeedInstance({
+            feedInstance: feedInstance,
+            metadataURI: metadataURI,
+            accessControl: accessControl,
+            rules: IFeedRule(address(0)),
+            rulesInitializationData: ""
+        });
         return feedInstance;
     }
 
@@ -62,14 +77,17 @@ contract FeedFactory {
             })
         ); // msg.sender must have permissions to deploy
         Feed feedInstance = new Feed(metadataURI, _factoryOwnedAccessControl);
-
         IFeedRule rulesInstance = new FeedRuleCombinator();
         rulesInstance.configure(rulesInitializationData);
-
         feedInstance.setFeedRules(rulesInstance);
-
         feedInstance.setAccessControl(accessControl);
-
+        emit Lens_FeedFactory_NewFeedInstance({
+            feedInstance: address(feedInstance),
+            metadataURI: metadataURI,
+            accessControl: accessControl,
+            rules: rulesInstance,
+            rulesInitializationData: rulesInitializationData
+        });
         return address(feedInstance);
     }
 }
