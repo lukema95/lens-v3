@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IPostRule} from './IPostRule.sol';
-import {IFeedRule} from './IFeedRule.sol';
-import {IAccessControl} from '../access-control/IAccessControl.sol';
+import {IPostRule} from "./IPostRule.sol";
+import {IFeedRule} from "./IFeedRule.sol";
+import {IAccessControl} from "../access-control/IAccessControl.sol";
 
 /*
     TODO: Natspec
@@ -26,12 +26,10 @@ struct DataElement {
 struct PostParams {
     address author; // Multiple authors can be added in extraData
     address source; // Client source, if any
-    string contentURI; // We have these separate, because: "You might want to store content on IPFS..."
-    string metadataURI; // "...but metadata on a S3 server"
+    string metadataURI;
     uint256[] quotedPostIds;
     uint256[] parentPostIds;
     IPostRule postRules;
-    uint80 timestamp;
     DataElement[] extraData;
 }
 
@@ -39,18 +37,21 @@ struct PostParams {
 struct Post {
     address author;
     address source;
-    string contentURI;
     string metadataURI;
     uint256[] quotedPostIds;
     uint256[] parentPostIds;
     IPostRule postRules;
-    uint80 timestamp; // Passed-in by the author or client
-    uint80 submissionTimestamp; // Automatically fetched from the block once submitted
-    uint80 lastUpdatedTimestamp; // Automatically fetched from the block once updated
+    uint80 creationTimestamp;
+    uint80 lastUpdatedTimestamp;
 }
 
 interface IFeed {
-    event Lens_Feed_PostCreated(uint256 indexed postId, PostParams postParams, bytes feedRulesData, uint256 postTypeId);
+    event Lens_Feed_PostCreated(
+        uint256 indexed postId,
+        PostParams postParams,
+        bytes feedRulesData,
+        uint256 postTypeId
+    );
 
     event Lens_Feed_PostEdited(
         uint256 indexed postId,
@@ -64,7 +65,10 @@ interface IFeed {
 
     event Lens_Feed_RulesSet(address feedRules);
 
-    function createPost(PostParams calldata postParams, bytes calldata data) external returns (uint256);
+    function createPost(
+        PostParams calldata postParams,
+        bytes calldata data
+    ) external returns (uint256);
 
     function editPost(
         uint256 postId,

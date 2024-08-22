@@ -6,14 +6,12 @@ import {PostParams} from "./IFeed.sol";
 struct PostStorage {
     address author;
     address source;
-    string contentURI;
     string metadataURI;
     uint256[] quotedPostIds;
     uint256[] parentPostIds;
     address postRules;
-    uint80 timestamp; // Passed-in by the author or client
-    uint80 submissionTimestamp; // Automatically fetched from the block once submitted
-    uint80 lastUpdatedTimestamp; // Automatically fetched from the block once updated
+    uint80 creationTimestamp;
+    uint80 lastUpdatedTimestamp;
     mapping(bytes32 => bytes) extraData;
 }
 
@@ -65,13 +63,11 @@ library FeedCore {
         PostStorage storage _newPost = $storage().posts[postId];
         _newPost.author = postParams.author;
         _newPost.source = postParams.source;
-        _newPost.contentURI = postParams.contentURI;
         _newPost.metadataURI = postParams.metadataURI;
         _newPost.quotedPostIds = postParams.quotedPostIds;
         _newPost.parentPostIds = postParams.parentPostIds;
         _newPost.postRules = address(postParams.postRules); // TODO: Probably change to type address in PostParams struct
-        _newPost.timestamp = postParams.timestamp;
-        _newPost.submissionTimestamp = uint80(block.timestamp);
+        _newPost.creationTimestamp = uint80(block.timestamp);
         _newPost.lastUpdatedTimestamp = uint80(block.timestamp);
         for (uint256 i = 0; i < postParams.extraData.length; i++) {
             _newPost.extraData[postParams.extraData[i].key] = postParams
@@ -88,7 +84,6 @@ library FeedCore {
         PostStorage storage _post = $storage().posts[postId];
         _post.author = postParams.author;
         _post.source = postParams.source; // TODO: Can you edit the source? you might be editing from a diff source than the original source...
-        _post.contentURI = postParams.contentURI;
         _post.metadataURI = postParams.metadataURI;
         _post.quotedPostIds = postParams.quotedPostIds;
         _post.parentPostIds = postParams.parentPostIds;
@@ -100,7 +95,6 @@ library FeedCore {
             // TODO: Maybe the immutability should be at the post-level, not rule-level...
             _post.postRules = address(postParams.postRules); // TODO: Probably change to type address in PostParams struct
         }
-        _post.timestamp = postParams.timestamp;
         _post.lastUpdatedTimestamp = uint80(block.timestamp);
         for (uint256 i = 0; i < postParams.extraData.length; i++) {
             _post.extraData[postParams.extraData[i].key] = postParams

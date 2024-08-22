@@ -54,9 +54,6 @@ contract Feed is IFeed {
         bytes calldata feedRulesData
     ) external override returns (uint256) {
         require(msg.sender == postParams.author);
-        // Provided timestamp can belong to the past, so people could migrate their posts from other platforms
-        // maintaining the original timestamps of them. However, the provided timestamp cannot be in the future.
-        require(postParams.timestamp <= block.timestamp);
         uint256 postId = Core._createPost(postParams);
         if (address(Core.$storage().feedRules) != address(0)) {
             IFeedRule(Core.$storage().feedRules).processCreatePost(
@@ -82,10 +79,6 @@ contract Feed is IFeed {
         bytes calldata postRulesChangeFeedRulesData
     ) external override {
         require(msg.sender == Core.$storage().posts[postId].author);
-        // TODO: Think if we need this restriction:
-        // require(postParams.timestamp <= Core.$storage().posts[postId].submissionTimestamp);
-        // Or we should have this one at least:
-        require(newPostParams.timestamp <= block.timestamp);
         if (address(Core.$storage().feedRules) != address(0)) {
             IFeedRule(Core.$storage().feedRules).processEditPost(
                 msg.sender,
@@ -158,9 +151,6 @@ contract Feed is IFeed {
         PostParams memory post
     ) internal pure returns (uint8) {
         // Probably better with an enum: { NONE, ONE, MANY }
-        Cardinality contentURICardinality = bytes(post.contentURI).length > 0
-            ? Cardinality.ONE
-            : Cardinality.NONE;
         Cardinality metadataURICardinality = bytes(post.metadataURI).length > 0
             ? Cardinality.ONE
             : Cardinality.NONE;
@@ -180,12 +170,12 @@ contract Feed is IFeed {
             : Cardinality.NONE;
 
         /*
-        We use 6 bits to encode the post type:
-        00 00  0  0
-         ^  ^  ^  ^
-         ^  ^  ^  contentURICardinality
+        We use 5 bits to encode the post type:
+        00 00  0
          ^  ^  ^
-         ^  ^  metadataURICardinality
+         ^  ^  ^ 
+         ^  ^  ^
+         ^  ^  contentURICardinality
          ^  ^
          ^  quotedPostCardinality
          ^
@@ -193,10 +183,9 @@ contract Feed is IFeed {
 
         It will have some gaps, but it's easy to encode/decode by shifting bits.
         */
-        uint8 postType = uint8(contentURICardinality) |
-            (uint8(metadataURICardinality) << 1) |
-            (uint8(quotedPostCardinality) << 2) |
-            (uint8(parentPostCardinality) << 4);
+        uint8 postType = uint8(metadataURICardinality) |
+            (uint8(quotedPostCardinality) << 1) |
+            (uint8(parentPostCardinality) << 3);
 
         return postType;
     }
@@ -210,16 +199,14 @@ contract Feed is IFeed {
             Post({
                 author: Core.$storage().posts[postId].author,
                 source: Core.$storage().posts[postId].source,
-                contentURI: Core.$storage().posts[postId].contentURI,
                 metadataURI: Core.$storage().posts[postId].metadataURI,
                 quotedPostIds: Core.$storage().posts[postId].quotedPostIds,
                 parentPostIds: Core.$storage().posts[postId].parentPostIds,
                 postRules: IPostRule(Core.$storage().posts[postId].postRules),
-                timestamp: Core.$storage().posts[postId].timestamp,
-                submissionTimestamp: Core
+                creationTimestamp: Core
                     .$storage()
                     .posts[postId]
-                    .submissionTimestamp,
+                    .creationTimestamp,
                 lastUpdatedTimestamp: Core
                     .$storage()
                     .posts[postId]
