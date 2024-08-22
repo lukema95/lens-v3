@@ -16,6 +16,8 @@ interface IApp {
     event Lens_App_CommunityRemoved(address community);
     event Lens_App_CommunitiesSet(address[] communities);
     event Lens_App_DefaultCommunitySet(address community);
+    event Lens_App_PaymasterAdded(address paymaster);
+    event Lens_App_DefaultPaymasterSet(address paymaster);
 }
 
 struct InitialProperties {
@@ -26,6 +28,7 @@ struct InitialProperties {
     address _defaultFeed;
     address _defaultCommunity;
     address[] _signers;
+    address _paymaster;
 }
 
 contract App is IApp {
@@ -42,8 +45,11 @@ contract App is IApp {
     address _defaultFeed;
     address _defaultUsername;
     address _defaultCommunity;
+    address _defaultPaymaster;
 
     address[] _signers; // Signers that belong to this App.
+
+    address[] _paymasters;
 
     // TODO: Make the storage follow our Core.$storage pattern.
 
@@ -64,6 +70,7 @@ contract App is IApp {
         setDefaultFeed(props._defaultFeed);
         setDefaultCommunity(props._defaultCommunity);
         setSigners(props._signers);
+        setPaymaster(props._paymaster);
     }
 
     // TODO: Add ACCESS CONTROL to all the functions below!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -165,6 +172,18 @@ contract App is IApp {
 
     function setSigners(address[] memory signers) public {
         _signers = signers;
+    }
+
+    function setPaymaster(address paymaster) public {
+        if (_paymasters.length == 0) {
+            _paymasters.push(paymaster);
+            _defaultPaymaster = paymaster;
+        } else {
+            _paymasters[0] = paymaster;
+            _defaultPaymaster = paymaster;
+        }
+        emit Lens_App_PaymasterAdded(paymaster);
+        emit Lens_App_DefaultPaymasterSet(paymaster);
     }
 
     //////////////////////////////////////////////////////////////////////////
