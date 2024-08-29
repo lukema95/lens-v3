@@ -10,6 +10,8 @@ struct Follow {
 }
 
 interface IGraph {
+    event Lens_Graph_MetadataUriSet(string metadataURI);
+
     event Lens_Graph_RulesSet(address graphRules);
 
     event Lens_Graph_FollowRulesSet(

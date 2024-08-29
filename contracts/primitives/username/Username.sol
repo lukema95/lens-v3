@@ -14,8 +14,8 @@ contract Username is IUsername {
 
     // Storage fields and structs
     struct LengthRestriction {
-        uint128 min;
-        uint128 max;
+        uint8 min;
+        uint8 max;
     }
 
     constructor(string memory namespace, IAccessControl accessControl) {
@@ -109,6 +109,7 @@ contract Username is IUsername {
             );
         }
         if (lengthRestriction.max != 0) {
+            // TODO: If no restriction, should be max(uint8), not unlimited! - API will be like that
             require(
                 usernameLength <= lengthRestriction.max,
                 "Username: too long"

@@ -1,25 +1,29 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {ICommunity} from './ICommunity.sol';
-import {ICommunityRule} from './ICommunityRule.sol';
-import {CommunityCore as Core} from './CommunityCore.sol';
-import {IAccessControl} from './../access-control/IAccessControl.sol';
+import {ICommunity} from "./ICommunity.sol";
+import {ICommunityRule} from "./ICommunityRule.sol";
+import {CommunityCore as Core} from "./CommunityCore.sol";
+import {IAccessControl} from "./../access-control/IAccessControl.sol";
 
 contract Community is ICommunity {
     // Resource IDs involved in the contract
-    uint256 constant SET_RULES_RID = uint256(keccak256('SET_RULES'));
-    uint256 constant SET_METADATA_RID = uint256(keccak256('SET_METADATA'));
-    uint256 constant CHANGE_ACCESS_CONTROL_RID = uint256(keccak256('CHANGE_ACCESS_CONTROL'));
+    uint256 constant SET_RULES_RID = uint256(keccak256("SET_RULES"));
+    uint256 constant SET_METADATA_RID = uint256(keccak256("SET_METADATA"));
+    uint256 constant CHANGE_ACCESS_CONTROL_RID =
+        uint256(keccak256("CHANGE_ACCESS_CONTROL"));
 
     constructor(string memory metadataURI, IAccessControl accessControl) {
         Core.$storage().metadataURI = metadataURI;
         Core.$storage().accessControl = address(accessControl);
+        emit Lens_Community_MetadataUriSet(metadataURI);
     }
 
     // Access Controlled functions
 
-    function setCommunityRules(ICommunityRule communityRules) external override {
+    function setCommunityRules(
+        ICommunityRule communityRules
+    ) external override {
         require(
             IAccessControl(Core.$storage().accessControl).hasAccess({
                 account: msg.sender,
@@ -58,7 +62,10 @@ contract Community is ICommunity {
 
     // Public functions
 
-    function joinCommunity(address account, bytes calldata data) external override {
+    function joinCommunity(
+        address account,
+        bytes calldata data
+    ) external override {
         require(msg.sender == account);
         ICommunityRule rules = ICommunityRule(Core.$storage().communityRules);
         if (address(rules) != address(0)) {
@@ -68,7 +75,10 @@ contract Community is ICommunity {
         emit Lens_Community_MemberJoined(account, membershipId, data);
     }
 
-    function leaveCommunity(address account, bytes calldata data) external override {
+    function leaveCommunity(
+        address account,
+        bytes calldata data
+    ) external override {
         require(msg.sender == account);
         ICommunityRule rules = ICommunityRule(Core.$storage().communityRules);
         if (address(rules) != address(0)) {
@@ -80,9 +90,15 @@ contract Community is ICommunity {
 
     // TODO: Why don't we have addMember? Because we don't want to kidnap someone into the community?
 
-    function removeMember(address account, bytes calldata data) external override {
+    function removeMember(
+        address account,
+        bytes calldata data
+    ) external override {
         ICommunityRule rules = ICommunityRule(Core.$storage().communityRules);
-        require(address(rules) != address(0), 'Community: rules are required to remove members');
+        require(
+            address(rules) != address(0),
+            "Community: rules are required to remove members"
+        );
         rules.processRemoval(msg.sender, account, data);
         uint256 membershipId = Core._revokeMembership(account);
         emit Lens_Community_MemberRemoved(account, membershipId, data);
@@ -98,11 +114,15 @@ contract Community is ICommunity {
         return Core.$storage().numberOfMembers;
     }
 
-    function getMembershipTimestamp(address account) external view override returns (uint256) {
+    function getMembershipTimestamp(
+        address account
+    ) external view override returns (uint256) {
         return Core.$storage().memberships[account].timestamp;
     }
 
-    function getMembershipId(address account) external view override returns (uint256) {
+    function getMembershipId(
+        address account
+    ) external view override returns (uint256) {
         return Core.$storage().memberships[account].id;
     }
 

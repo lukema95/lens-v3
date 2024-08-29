@@ -18,6 +18,7 @@ contract Feed is IFeed {
     constructor(string memory metadataURI, IAccessControl accessControl) {
         Core.$storage().metadataURI = metadataURI;
         Core.$storage().accessControl = address(accessControl);
+        emit Lens_Feed_MetadataUriSet(metadataURI);
     }
 
     // Access Controlled functions

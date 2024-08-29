@@ -17,6 +17,7 @@ contract Graph is IGraph {
     constructor(string memory metadataURI, IAccessControl accessControl) {
         Core.$storage().metadataURI = metadataURI;
         Core.$storage().accessControl = address(accessControl);
+        emit Lens_Graph_MetadataUriSet(metadataURI);
     }
 
     // Access Controlled functions

@@ -46,6 +46,8 @@ struct Post {
 }
 
 interface IFeed {
+    event Lens_Feed_MetadataUriSet(string metadataURI);
+
     event Lens_Feed_PostCreated(
         uint256 indexed postId,
         PostParams postParams,
