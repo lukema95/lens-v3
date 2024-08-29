@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.17;
 
-import {Ownership} from './../../diamond/Ownership.sol';
-import {IRoleBasedAccessControl} from './IRoleBasedAccessControl.sol';
+import {Ownership} from "./../../diamond/Ownership.sol";
+import {IRoleBasedAccessControl} from "./IRoleBasedAccessControl.sol";
 
 contract AddressBasedAccessControl is Ownership, IRoleBasedAccessControl {
-    mapping(address account => mapping(uint256 resourceId => AccessPermission permission)) internal _globalAccess;
-    mapping(address account => mapping(address resourceLocation => mapping(uint256 resourceId => AccessPermission permission)))
+    mapping(address => mapping(uint256 => AccessPermission))
+        internal _globalAccess;
+    mapping(address => mapping(address => mapping(uint256 => AccessPermission)))
         internal _scopedAccess;
 
     constructor(address owner) Ownership(owner) {}
@@ -17,23 +18,36 @@ contract AddressBasedAccessControl is Ownership, IRoleBasedAccessControl {
         uint256 resourceId
     ) external view override returns (bool) {
         // `_getScopedAccess` always returns AccessPermission.GRANTED for `_owner`.
-        AccessPermission scopedAccess = _getScopedAccess(account, resourceLocation, resourceId);
+        AccessPermission scopedAccess = _getScopedAccess(
+            account,
+            resourceLocation,
+            resourceId
+        );
         if (scopedAccess == AccessPermission.GRANTED) {
             return true;
         } else if (scopedAccess == AccessPermission.DENIED) {
             return false;
         } else {
             // scopedAccess == AccessPermission.UNDEFINED, so it depends exclusively on the global access.
-            return _getGlobalAccess(account, resourceId) == AccessPermission.GRANTED;
+            return
+                _getGlobalAccess(account, resourceId) ==
+                AccessPermission.GRANTED;
         }
     }
 
-    function setRole(address account, uint256 roleId, bytes calldata /* data */) external pure override {
+    function setRole(
+        address account,
+        uint256 roleId,
+        bytes calldata /* data */
+    ) external pure override {
         // Roles are already pre-assigned. Reverts on every attempt except when it matches the already assigned role.
         require(roleId == _addressToRoleId(account));
     }
 
-    function hasRole(address account, uint256 roleId) external pure override returns (bool) {
+    function hasRole(
+        address account,
+        uint256 roleId
+    ) external pure override returns (bool) {
         return roleId == _addressToRoleId(account);
     }
 
@@ -49,7 +63,7 @@ contract AddressBasedAccessControl is Ownership, IRoleBasedAccessControl {
         AccessPermission accessPermission,
         bytes calldata /* data */
     ) external override onlyOwner {
-        require(_isValidRoleId(roleId), 'Invalid roleId');
+        require(_isValidRoleId(roleId), "Invalid roleId");
         _globalAccess[_roleIdToAddress(roleId)][resourceId] = accessPermission;
     }
 
@@ -62,8 +76,10 @@ contract AddressBasedAccessControl is Ownership, IRoleBasedAccessControl {
         AccessPermission accessPermission,
         bytes calldata /* data */
     ) external override onlyOwner {
-        require(_isValidRoleId(roleId), 'Invalid roleId');
-        _scopedAccess[_roleIdToAddress(roleId)][resourceLocation][resourceId] = accessPermission;
+        require(_isValidRoleId(roleId), "Invalid roleId");
+        _scopedAccess[_roleIdToAddress(roleId)][resourceLocation][
+            resourceId
+        ] = accessPermission;
     }
 
     function getGlobalAccess(
@@ -91,7 +107,12 @@ contract AddressBasedAccessControl is Ownership, IRoleBasedAccessControl {
         if (!_isValidRoleId(roleId)) {
             return AccessPermission.UNDEFINED;
         }
-        return _getScopedAccess(_roleIdToAddress(roleId), resourceLocation, resourceId);
+        return
+            _getScopedAccess(
+                _roleIdToAddress(roleId),
+                resourceLocation,
+                resourceId
+            );
     }
 
     function getScopedAccess(
@@ -102,7 +123,10 @@ contract AddressBasedAccessControl is Ownership, IRoleBasedAccessControl {
         return _getScopedAccess(account, resourceLocation, resourceId);
     }
 
-    function _getGlobalAccess(address account, uint256 resourceId) internal view returns (AccessPermission) {
+    function _getGlobalAccess(
+        address account,
+        uint256 resourceId
+    ) internal view returns (AccessPermission) {
         if (_owner == account) {
             return AccessPermission.GRANTED;
         } else {
@@ -127,7 +151,7 @@ contract AddressBasedAccessControl is Ownership, IRoleBasedAccessControl {
     }
 
     function _roleIdToAddress(uint256 roleId) internal pure returns (address) {
-        require(_isValidRoleId(roleId), 'Invalid roleId');
+        require(_isValidRoleId(roleId), "Invalid roleId");
         return address(uint160(roleId));
     }
 

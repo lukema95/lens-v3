@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.0;
 
-import {IOwnership} from './Ownership.sol';
+import {IOwnership} from "./Ownership.sol";
 
 contract LensDiamond {
     IOwnership immutable _ownership; // TODO: Can this be considered 100% safe? Or can somehow immutable constant be manipulated with some malicious facet? I guess it is 100% safe...

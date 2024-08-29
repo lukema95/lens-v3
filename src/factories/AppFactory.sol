@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IAccessControl} from './../primitives/access-control/IAccessControl.sol';
-import {InitialProperties, App} from './../primitives/app/App.sol';
-import {OwnerOnlyAccessControl} from 'src/primitives/access-control/OwnerOnlyAccessControl.sol';
+import {IAccessControl} from "./../primitives/access-control/IAccessControl.sol";
+import {InitialProperties, App} from "./../primitives/app/App.sol";
+import {OwnerOnlyAccessControl} from "./../primitives/access-control/OwnerOnlyAccessControl.sol";
 
 contract AppFactory {
     IAccessControl internal _accessControl; // TODO: Replace these storages with Core.$storage() pattern
@@ -17,8 +17,9 @@ contract AppFactory {
         bytes rulesInitializationData
     );
 
-    uint256 constant CHANGE_ACCESS_CONTROL_RID = uint256(keccak256('CHANGE_ACCESS_CONTROL'));
-    uint256 constant DEPLOY_APP_RID = uint256(keccak256('DEPLOY_APP'));
+    uint256 constant CHANGE_ACCESS_CONTROL_RID =
+        uint256(keccak256("CHANGE_ACCESS_CONTROL"));
+    uint256 constant DEPLOY_APP_RID = uint256(keccak256("DEPLOY_APP"));
 
     function setAccessControl(IAccessControl accessControl) external {
         require(
@@ -34,7 +35,9 @@ contract AppFactory {
 
     constructor(IAccessControl accessControl) {
         _accessControl = accessControl;
-        _factoryOwnedAccessControl = new OwnerOnlyAccessControl({owner: address(this)});
+        _factoryOwnedAccessControl = new OwnerOnlyAccessControl({
+            owner: address(this)
+        });
     }
 
     /*
@@ -70,7 +73,9 @@ contract AppFactory {
                 resourceId: DEPLOY_APP_RID
             })
         ); // msg.sender must have permissions to deploy
-        address appInstance = address(new App(accessControl, metadataURI, treasury, initialProperties));
+        address appInstance = address(
+            new App(accessControl, metadataURI, treasury, initialProperties)
+        );
         return appInstance;
     }
 }

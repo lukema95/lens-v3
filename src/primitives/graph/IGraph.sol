@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.0;
 
-import {IFollowRule} from './IFollowRule.sol';
-import {IGraphRule} from './IGraphRule.sol';
+import {IFollowRule} from "./IFollowRule.sol";
+import {IGraphRule} from "./IGraphRule.sol";
 
 struct Follow {
     uint256 id;
@@ -12,7 +12,11 @@ struct Follow {
 interface IGraph {
     event Lens_Graph_RulesSet(address graphRules);
 
-    event Lens_Graph_FollowRulesSet(address account, address followRules, bytes graphRulesData);
+    event Lens_Graph_FollowRulesSet(
+        address account,
+        address followRules,
+        bytes graphRulesData
+    );
 
     event Lens_Graph_Followed(
         address followerAccount,
@@ -31,7 +35,11 @@ interface IGraph {
 
     function setGraphRules(IGraphRule graphRules) external;
 
-    function setFollowRules(address account, IFollowRule followRules, bytes calldata graphRulesData) external;
+    function setFollowRules(
+        address account,
+        IFollowRule followRules,
+        bytes calldata graphRulesData
+    ) external;
 
     function follow(
         address followerAccount,
@@ -49,15 +57,26 @@ interface IGraph {
 
     // Getters
 
-    function isFollowing(address followerAccount, address targetAccount) external view returns (bool);
+    function isFollowing(
+        address followerAccount,
+        address targetAccount
+    ) external view returns (bool);
 
-    function getFollowerById(address account, uint256 followId) external view returns (address);
+    function getFollowerById(
+        address account,
+        uint256 followId
+    ) external view returns (address);
 
-    function getFollow(address followerAccount, address followedAccount) external view returns (Follow memory);
+    function getFollow(
+        address followerAccount,
+        address followedAccount
+    ) external view returns (Follow memory);
 
     function getFollowersCount(address account) external view returns (uint256);
 
-    function getFollowRules(address account) external view returns (IFollowRule);
+    function getFollowRules(
+        address account
+    ) external view returns (IFollowRule);
 
     function getGraphRules() external view returns (IGraphRule);
 }

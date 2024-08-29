@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IAccessControl} from 'src/primitives/access-control/IAccessControl.sol';
+import {IAccessControl} from "./../access-control/IAccessControl.sol";
 
 interface IApp {
     event Lens_App_GraphAdded(address graph);

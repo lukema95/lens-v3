@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IAccessControl} from './../primitives/access-control/IAccessControl.sol';
-import {Username} from './../primitives/username/Username.sol';
-import {IUsernameRule} from './../primitives/username/IUsernameRule.sol';
-import {OwnerOnlyAccessControl} from 'src/primitives/access-control/OwnerOnlyAccessControl.sol';
-import {UsernameRuleCombinator} from 'src/primitives/username/UsernameRuleCombinator.sol';
+import {IAccessControl} from "./../primitives/access-control/IAccessControl.sol";
+import {Username} from "./../primitives/username/Username.sol";
+import {IUsernameRule} from "./../primitives/username/IUsernameRule.sol";
+import {OwnerOnlyAccessControl} from "./../primitives/access-control/OwnerOnlyAccessControl.sol";
+import {UsernameRuleCombinator} from "./../primitives/username/UsernameRuleCombinator.sol";
 
 contract UsernameFactory {
     IAccessControl internal _accessControl; // TODO: Replace these storages with Core.$storage() pattern
@@ -20,8 +20,10 @@ contract UsernameFactory {
         bytes rulesInitializationData
     );
 
-    uint256 constant CHANGE_ACCESS_CONTROL_RID = uint256(keccak256('CHANGE_ACCESS_CONTROL'));
-    uint256 constant DEPLOY_USERNAME_RID = uint256(keccak256('DEPLOY_USERNAME'));
+    uint256 constant CHANGE_ACCESS_CONTROL_RID =
+        uint256(keccak256("CHANGE_ACCESS_CONTROL"));
+    uint256 constant DEPLOY_USERNAME_RID =
+        uint256(keccak256("DEPLOY_USERNAME"));
 
     function setAccessControl(IAccessControl accessControl) external {
         require(
@@ -37,7 +39,9 @@ contract UsernameFactory {
 
     constructor(IAccessControl accessControl) {
         _accessControl = accessControl;
-        _factoryOwnedAccessControl = new OwnerOnlyAccessControl({owner: address(this)});
+        _factoryOwnedAccessControl = new OwnerOnlyAccessControl({
+            owner: address(this)
+        });
     }
 
     /*
@@ -65,7 +69,9 @@ contract UsernameFactory {
                 resourceId: DEPLOY_USERNAME_RID
             })
         ); // msg.sender must have permissions to deploy
-        address usernameInstance = address(new Username(namespace, accessControl));
+        address usernameInstance = address(
+            new Username(namespace, accessControl)
+        );
         return usernameInstance;
     }
 
@@ -81,7 +87,10 @@ contract UsernameFactory {
                 resourceId: DEPLOY_USERNAME_RID
             })
         ); // msg.sender must have permissions to deploy
-        Username usernameInstance = new Username(namespace, _factoryOwnedAccessControl);
+        Username usernameInstance = new Username(
+            namespace,
+            _factoryOwnedAccessControl
+        );
 
         IUsernameRule rulesInstance = new UsernameRuleCombinator();
         rulesInstance.configure(rulesInitializationData);

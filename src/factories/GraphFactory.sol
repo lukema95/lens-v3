@@ -1,18 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IAccessControl} from './../primitives/access-control/IAccessControl.sol';
-import {Graph} from 'src/primitives/graph/Graph.sol';
-import {OwnerOnlyAccessControl} from 'src/primitives/access-control/OwnerOnlyAccessControl.sol';
-import {GraphRuleCombinator} from 'src/primitives/graph/GraphRuleCombinator.sol';
-import {IGraphRule} from 'src/primitives/graph/IGraphRule.sol';
+import {IAccessControl} from "./../primitives/access-control/IAccessControl.sol";
+import {Graph} from "./../primitives/graph/Graph.sol";
+import {OwnerOnlyAccessControl} from "./../primitives/access-control/OwnerOnlyAccessControl.sol";
+import {GraphRuleCombinator} from "./../primitives/graph/GraphRuleCombinator.sol";
+import {IGraphRule} from "./../primitives/graph/IGraphRule.sol";
 
 contract GraphFactory {
     IAccessControl internal _accessControl;
     IAccessControl internal immutable _factoryOwnedAccessControl;
 
-    uint256 constant CHANGE_ACCESS_CONTROL_RID = uint256(keccak256('CHANGE_ACCESS_CONTROL'));
-    uint256 constant DEPLOY_GRAPH_RID = uint256(keccak256('DEPLOY_GRAPH'));
+    uint256 constant CHANGE_ACCESS_CONTROL_RID =
+        uint256(keccak256("CHANGE_ACCESS_CONTROL"));
+    uint256 constant DEPLOY_GRAPH_RID = uint256(keccak256("DEPLOY_GRAPH"));
 
     function setAccessControl(IAccessControl accessControl) external {
         require(
@@ -28,7 +29,9 @@ contract GraphFactory {
 
     constructor(IAccessControl accessControl) {
         _accessControl = accessControl;
-        _factoryOwnedAccessControl = new OwnerOnlyAccessControl({owner: address(this)});
+        _factoryOwnedAccessControl = new OwnerOnlyAccessControl({
+            owner: address(this)
+        });
     }
 
     function deploy__Immutable_NoRules(
@@ -58,7 +61,10 @@ contract GraphFactory {
                 resourceId: DEPLOY_GRAPH_RID
             })
         ); // msg.sender must have permissions to deploy
-        Graph graphInstance = new Graph(metadataURI, _factoryOwnedAccessControl);
+        Graph graphInstance = new Graph(
+            metadataURI,
+            _factoryOwnedAccessControl
+        );
 
         IGraphRule rulesInstance = new GraphRuleCombinator();
         rulesInstance.configure(rulesInitializationData);

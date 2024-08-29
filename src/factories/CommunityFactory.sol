@@ -1,18 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IAccessControl} from './../primitives/access-control/IAccessControl.sol';
-import {Community} from 'src/primitives/community/Community.sol';
-import {OwnerOnlyAccessControl} from 'src/primitives/access-control/OwnerOnlyAccessControl.sol';
-import {CommunityRuleCombinator} from 'src/primitives/community/CommunityRuleCombinator.sol';
-import {ICommunityRule} from 'src/primitives/community/ICommunityRule.sol';
+import {IAccessControl} from "./../primitives/access-control/IAccessControl.sol";
+import {Community} from "./../primitives/community/Community.sol";
+import {OwnerOnlyAccessControl} from "./../primitives/access-control/OwnerOnlyAccessControl.sol";
+import {CommunityRuleCombinator} from "./../primitives/community/CommunityRuleCombinator.sol";
+import {ICommunityRule} from "./../primitives/community/ICommunityRule.sol";
 
 contract CommunityFactory {
     IAccessControl internal _accessControl;
     IAccessControl internal immutable _factoryOwnedAccessControl;
 
-    uint256 constant CHANGE_ACCESS_CONTROL_RID = uint256(keccak256('CHANGE_ACCESS_CONTROL'));
-    uint256 constant DEPLOY_COMMUNITY_RID = uint256(keccak256('DEPLOY_COMMUNITY'));
+    uint256 constant CHANGE_ACCESS_CONTROL_RID =
+        uint256(keccak256("CHANGE_ACCESS_CONTROL"));
+    uint256 constant DEPLOY_COMMUNITY_RID =
+        uint256(keccak256("DEPLOY_COMMUNITY"));
 
     function setAccessControl(IAccessControl accessControl) external {
         require(
@@ -28,7 +30,9 @@ contract CommunityFactory {
 
     constructor(IAccessControl accessControl) {
         _accessControl = accessControl;
-        _factoryOwnedAccessControl = new OwnerOnlyAccessControl({owner: address(this)});
+        _factoryOwnedAccessControl = new OwnerOnlyAccessControl({
+            owner: address(this)
+        });
     }
 
     function deploy__Immutable_NoRules(
@@ -42,7 +46,9 @@ contract CommunityFactory {
                 resourceId: DEPLOY_COMMUNITY_RID
             })
         ); // msg.sender must have permissions to deploy CommunityPrimitive
-        address communityInstance = address(new Community(metadataURI, accessControl));
+        address communityInstance = address(
+            new Community(metadataURI, accessControl)
+        );
         return communityInstance;
     }
 
@@ -58,7 +64,10 @@ contract CommunityFactory {
                 resourceId: DEPLOY_COMMUNITY_RID
             })
         ); // msg.sender must have permissions to deploy
-        Community communityInstance = new Community(metadataURI, _factoryOwnedAccessControl);
+        Community communityInstance = new Community(
+            metadataURI,
+            _factoryOwnedAccessControl
+        );
 
         ICommunityRule rulesInstance = new CommunityRuleCombinator();
         rulesInstance.configure(rulesInitializationData);

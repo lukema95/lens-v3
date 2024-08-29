@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {RuleCombinator} from 'src/primitives/rules/RuleCombinator.sol';
-import {IGraphRule} from './IGraphRule.sol';
-import {IFollowRule} from 'src/primitives/graph/IFollowRule.sol';
+import {RuleCombinator} from "./../rules/RuleCombinator.sol";
+import {IGraphRule} from "./IGraphRule.sol";
+import {IFollowRule} from "./../graph/IFollowRule.sol";
 
 contract GraphRuleCombinator is RuleCombinator, IGraphRule {
     function processFollow(
@@ -54,7 +54,11 @@ contract GraphRuleCombinator is RuleCombinator, IGraphRule {
         bytes[] memory ruleSpecificDatas = abi.decode(data, (bytes[]));
         bytes[] memory datas = new bytes[](_rules.length);
         for (uint256 i = 0; i < _rules.length; i++) {
-            datas[i] = abi.encodeWithSelector(IGraphRule.processBlock.selector, account, ruleSpecificDatas[i]);
+            datas[i] = abi.encodeWithSelector(
+                IGraphRule.processBlock.selector,
+                account,
+                ruleSpecificDatas[i]
+            );
         }
         _processRules(datas);
     }
@@ -63,12 +67,20 @@ contract GraphRuleCombinator is RuleCombinator, IGraphRule {
         bytes[] memory ruleSpecificDatas = abi.decode(data, (bytes[]));
         bytes[] memory datas = new bytes[](_rules.length);
         for (uint256 i = 0; i < _rules.length; i++) {
-            datas[i] = abi.encodeWithSelector(IGraphRule.processUnblock.selector, account, ruleSpecificDatas[i]);
+            datas[i] = abi.encodeWithSelector(
+                IGraphRule.processUnblock.selector,
+                account,
+                ruleSpecificDatas[i]
+            );
         }
         _processRules(datas);
     }
 
-    function processFollowRulesChange(address account, IFollowRule followRules, bytes calldata data) external {
+    function processFollowRulesChange(
+        address account,
+        IFollowRule followRules,
+        bytes calldata data
+    ) external {
         bytes[] memory ruleSpecificDatas = abi.decode(data, (bytes[]));
         bytes[] memory datas = new bytes[](_rules.length);
         for (uint256 i = 0; i < _rules.length; i++) {

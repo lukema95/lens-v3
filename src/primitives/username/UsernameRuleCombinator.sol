@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {RuleCombinator} from 'src/primitives/rules/RuleCombinator.sol';
-import {IUsernameRule} from './IUsernameRule.sol';
+import {RuleCombinator} from "./../rules/RuleCombinator.sol";
+import {IUsernameRule} from "./IUsernameRule.sol";
 
 contract UsernameRuleCombinator is RuleCombinator, IUsernameRule {
     function processRegistering(

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.17;
 
 library CommunityCore {
     struct Membership {
@@ -15,11 +15,12 @@ library CommunityCore {
         string metadataURI;
         uint256 lastMemberIdAssigned;
         uint256 numberOfMembers;
-        mapping(address account => Membership membership) memberships;
+        mapping(address => Membership) memberships;
     }
 
     // keccak256('lens.community.core.storage')
-    bytes32 constant CORE_STORAGE_SLOT = 0xe3d84445237a06d082986111e0d101bb8001f44a5807dc25d1929b8fc52c1c69;
+    bytes32 constant CORE_STORAGE_SLOT =
+        0xe3d84445237a06d082986111e0d101bb8001f44a5807dc25d1929b8fc52c1c69;
 
     function $storage() internal pure returns (Storage storage _storage) {
         assembly {
@@ -43,7 +44,10 @@ library CommunityCore {
         uint256 membershipId = ++$storage().lastMemberIdAssigned;
         $storage().numberOfMembers++;
         require($storage().memberships[account].id == 0); // Must not be a member yet
-        $storage().memberships[account] = Membership(membershipId, block.timestamp);
+        $storage().memberships[account] = Membership(
+            membershipId,
+            block.timestamp
+        );
         return membershipId;
     }
 

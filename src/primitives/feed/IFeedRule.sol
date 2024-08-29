@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IPostRule} from './IPostRule.sol';
-import {PostParams} from './IFeed.sol';
-import {IRule} from 'src/primitives/rules/IRule.sol';
+import {IPostRule} from "./IPostRule.sol";
+import {PostParams} from "./IFeed.sol";
+import {IRule} from "./../rules/IRule.sol";
 
 interface IFeedRule is IRule {
     function processCreatePost(
@@ -20,7 +20,11 @@ interface IFeedRule is IRule {
         bytes calldata data
     ) external;
 
-    function processDeletePost(address originalMsgSender, uint256 postId, bytes calldata data) external;
+    function processDeletePost(
+        address originalMsgSender,
+        uint256 postId,
+        bytes calldata data
+    ) external;
 
     function processPostRulesChange(
         address originalMsgSender,

@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IRule} from './IRule.sol';
-import {IAccessControl} from 'src/primitives/access-control/IAccessControl.sol';
+import {IRule} from "./IRule.sol";
+import {IAccessControl} from "./../access-control/IAccessControl.sol";
 
 abstract contract RuleCombinator is IRule {
     // Custom RuleCombinator's operation events
     // TODO: Decide betweet plain initilize event + inner operation events, or single initialize event with params
     event Lens_RuleCombinator_Initialized();
     // event Lens_RuleCombinator_Initialized(CombinationMode combinationMode, address accessControl, bytes addRulesData);
-    event Lens_RuleCombinator_CombinationModeChanged(CombinationMode combinationMode);
+    event Lens_RuleCombinator_CombinationModeChanged(
+        CombinationMode combinationMode
+    );
     event Lens_RuleCombinator_AccessControlChanged(address accessControl);
     event Lens_RuleCombinator_RulesAdded(RuleConfiguration[] addedRules);
     event Lens_RuleCombinator_RulesRemoved(RuleConfiguration[] removedRules);
@@ -22,8 +24,9 @@ abstract contract RuleCombinator is IRule {
         IMPLEMENTATION = address(this);
     }
 
-    uint256 constant CHANGE_RULE_ACCESS_CONTROL_RID = uint256(keccak256('CHANGE_RULE_ACCESS_CONTROL'));
-    uint256 constant CONFIGURE_RULE_RID = uint256(keccak256('CONFIGURE_RULE'));
+    uint256 constant CHANGE_RULE_ACCESS_CONTROL_RID =
+        uint256(keccak256("CHANGE_RULE_ACCESS_CONTROL"));
+    uint256 constant CONFIGURE_RULE_RID = uint256(keccak256("CONFIGURE_RULE"));
 
     enum CombinationMode {
         AND,
@@ -51,18 +54,24 @@ abstract contract RuleCombinator is IRule {
 
     function configure(bytes calldata data) external virtual override {
         require(address(this) != IMPLEMENTATION); // Cannot initialize implementation contract
-        (Operation operation, bytes memory operationData) = abi.decode(data, (Operation, bytes));
+        (Operation operation, bytes memory operationData) = abi.decode(
+            data,
+            (Operation, bytes)
+        );
         if (operation == Operation.INITIALIZE) {
             // Initialization: First time being configured. No permissions required in this case.
             _initialize(operationData);
         } else if (operation == Operation.CHANGE_ACCESS_CONTROL) {
             _changeAccessControl(operationData);
         } else {
-            require(_canConfigure(msg.sender), 'RuleCombinator: Access denied');
+            require(_canConfigure(msg.sender), "RuleCombinator: Access denied");
             if (operation == Operation.CHANGE_COMBINATION_MODE) {
                 _combinationMode = abi.decode(operationData, (CombinationMode));
             } else {
-                RuleConfiguration[] memory rules = abi.decode(operationData, (RuleConfiguration[]));
+                RuleConfiguration[] memory rules = abi.decode(
+                    operationData,
+                    (RuleConfiguration[])
+                );
                 if (operation == Operation.ADD_RULES) {
                     _addRules(rules);
                 } else if (operation == Operation.REMOVE_RULES) {
@@ -70,7 +79,7 @@ abstract contract RuleCombinator is IRule {
                 } else if (operation == Operation.UPDATE_RULES) {
                     _updateRules(rules);
                 } else {
-                    revert('RuleCombinator: Invalid operation');
+                    revert("RuleCombinator: Invalid operation");
                 }
             }
         }
@@ -95,12 +104,13 @@ abstract contract RuleCombinator is IRule {
 
     function _initialize(bytes memory operationData) internal virtual {
         if (_isInitialized()) {
-            revert('RuleCombinator: Already initialized');
+            revert("RuleCombinator: Already initialized");
         }
-        (CombinationMode combinationMode, address accessControl, bytes memory addRulesData) = abi.decode(
-            operationData,
-            (CombinationMode, address, bytes)
-        );
+        (
+            CombinationMode combinationMode,
+            address accessControl,
+            bytes memory addRulesData
+        ) = abi.decode(operationData, (CombinationMode, address, bytes));
         // TODO: We check all with 0, but we could standrize a Resource ID that is used for this address test/check only
         IAccessControl(accessControl).hasAccess(address(0), address(0), 0); // We expect this to not panic.
         _accessControl = IAccessControl(accessControl);
@@ -114,8 +124,13 @@ abstract contract RuleCombinator is IRule {
     }
 
     function _changeAccessControl(bytes memory operationData) internal virtual {
-        require(_canSetAccessControl(msg.sender), 'RuleCombinator: Access denied');
-        IAccessControl newAccessControl = IAccessControl(abi.decode(operationData, (address)));
+        require(
+            _canSetAccessControl(msg.sender),
+            "RuleCombinator: Access denied"
+        );
+        IAccessControl newAccessControl = IAccessControl(
+            abi.decode(operationData, (address))
+        );
         newAccessControl.hasAccess(address(0), address(0), 0); // We expect this to not panic.
         _accessControl = newAccessControl;
     }
@@ -129,7 +144,9 @@ abstract contract RuleCombinator is IRule {
             });
     }
 
-    function _canSetAccessControl(address msgSender) internal virtual returns (bool) {
+    function _canSetAccessControl(
+        address msgSender
+    ) internal virtual returns (bool) {
         return
             _accessControl.hasAccess({
                 account: msgSender,
@@ -149,12 +166,14 @@ abstract contract RuleCombinator is IRule {
         // Check if the rule address already exists in the array
         for (uint256 i = 0; i < _rules.length; i++) {
             if (_rules[i] == rule.contractAddress) {
-                revert('RuleCombinator: Rule already exists');
+                revert("RuleCombinator: Rule already exists");
             }
         }
         _rules.push(rule.contractAddress);
-        (bool success, ) = rule.contractAddress.delegatecall(abi.encodeCall(IRule.configure, (rule.data)));
-        require(success, 'RuleCombinator: Rule configuration failed');
+        (bool success, ) = rule.contractAddress.delegatecall(
+            abi.encodeCall(IRule.configure, (rule.data))
+        );
+        require(success, "RuleCombinator: Rule configuration failed");
     }
 
     function _removeRules(RuleConfiguration[] memory rules) internal virtual {
@@ -173,7 +192,7 @@ abstract contract RuleCombinator is IRule {
                 return;
             }
         }
-        revert('RuleCombinator: Rule not found');
+        revert("RuleCombinator: Rule not found");
     }
 
     function _updateRules(RuleConfiguration[] memory rules) internal virtual {
@@ -188,12 +207,14 @@ abstract contract RuleCombinator is IRule {
         // TODO: We can overoptimize this later...
         for (uint256 i = 0; i < _rules.length; i++) {
             if (_rules[i] == rule.contractAddress) {
-                (bool success, ) = rule.contractAddress.delegatecall(abi.encodeCall(IRule.configure, (rule.data)));
-                require(success, 'RuleCombinator: Rule configuration failed');
+                (bool success, ) = rule.contractAddress.delegatecall(
+                    abi.encodeCall(IRule.configure, (rule.data))
+                );
+                require(success, "RuleCombinator: Rule configuration failed");
                 return;
             }
         }
-        revert('RuleCombinator: Rule not found');
+        revert("RuleCombinator: Rule not found");
     }
 
     function _processRules(bytes[] memory datas) internal virtual {
@@ -207,7 +228,10 @@ abstract contract RuleCombinator is IRule {
     function _processRules_AND(bytes[] memory datas) internal virtual {
         for (uint256 i = 0; i < _rules.length; i++) {
             (bool success, ) = _rules[i].delegatecall(datas[i]);
-            require(success, 'RuleCombinator: Some rule failed while using AND combination');
+            require(
+                success,
+                "RuleCombinator: Some rule failed while using AND combination"
+            );
         }
         return; // If it didn't revert above - all passed
     }
@@ -219,6 +243,6 @@ abstract contract RuleCombinator is IRule {
                 return; // If any of the rules passed, we can return
             }
         }
-        revert('RuleCombinator: All rules failed while using OR combination');
+        revert("RuleCombinator: All rules failed while using OR combination");
     }
 }

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.17;
 
-import {IRoleBasedAccessControl} from './IRoleBasedAccessControl.sol';
-import {Ownership} from './../../diamond/Ownership.sol';
+import {IRoleBasedAccessControl} from "./IRoleBasedAccessControl.sol";
+import {Ownership} from "./../../diamond/Ownership.sol";
 
 contract HierarchyRolesAccessControl is Ownership, IRoleBasedAccessControl {
     enum Role {
@@ -34,14 +34,17 @@ contract HierarchyRolesAccessControl is Ownership, IRoleBasedAccessControl {
      * OWNER: All ADMIN stuff. Can change ADMINs. Can change OWNER (transfer ownership).
      */
 
-    mapping(address account => Role roleId) internal _roles;
-    mapping(Role roleId => mapping(uint256 resourceId => AccessPermission permission)) internal _globalAccess;
-    mapping(Role roleId => mapping(address resourceLocation => mapping(uint256 resourceId => AccessPermission permission)))
+    mapping(address => Role) internal _roles;
+    mapping(Role => mapping(uint256 => AccessPermission))
+        internal _globalAccess;
+    mapping(Role => mapping(address => mapping(uint256 => AccessPermission)))
         internal _scopedAccess;
 
     constructor(address owner) Ownership(owner) {}
 
-    function _confirmOwnershipTransfer(address newOwner) internal virtual override returns (address) {
+    function _confirmOwnershipTransfer(
+        address newOwner
+    ) internal virtual override returns (address) {
         address oldOwner = super._confirmOwnershipTransfer(newOwner);
         _roles[oldOwner] = Role.NONE;
         _roles[newOwner] = Role.OWNER;
@@ -60,7 +63,9 @@ contract HierarchyRolesAccessControl is Ownership, IRoleBasedAccessControl {
         } else if (roleId == Role.NONE) {
             return false;
         } else {
-            AccessPermission permission = _scopedAccess[roleId][resourceLocation][resourceId];
+            AccessPermission permission = _scopedAccess[roleId][
+                resourceLocation
+            ][resourceId];
             if (permission == AccessPermission.UNDEFINED) {
                 permission = _globalAccess[roleId][resourceId];
             }
@@ -69,11 +74,20 @@ contract HierarchyRolesAccessControl is Ownership, IRoleBasedAccessControl {
         }
     }
 
-    function setRole(address account, uint256 roleId, bytes calldata data) external override {}
+    function setRole(
+        address account,
+        uint256 roleId,
+        bytes calldata data
+    ) external override {}
 
-    function hasRole(address account, uint256 roleId) external view override returns (bool) {}
+    function hasRole(
+        address account,
+        uint256 roleId
+    ) external view override returns (bool) {}
 
-    function getRole(address account) external view override returns (uint256) {}
+    function getRole(
+        address account
+    ) external view override returns (uint256) {}
 
     function setGlobalAccess(
         uint256 roleId,
@@ -90,9 +104,15 @@ contract HierarchyRolesAccessControl is Ownership, IRoleBasedAccessControl {
         bytes calldata data
     ) external override {}
 
-    function getGlobalAccess(uint256 roleId, uint256 resourceId) external view override returns (AccessPermission) {}
+    function getGlobalAccess(
+        uint256 roleId,
+        uint256 resourceId
+    ) external view override returns (AccessPermission) {}
 
-    function getGlobalAccess(address account, uint256 resourceId) external view override returns (AccessPermission) {}
+    function getGlobalAccess(
+        address account,
+        uint256 resourceId
+    ) external view override returns (AccessPermission) {}
 
     function getScopedAccess(
         uint256 roleId,

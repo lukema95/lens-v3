@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IRule} from 'src/primitives/rules/IRule.sol';
+import {IRule} from "./../rules/IRule.sol";
 
 interface IUsernameRule is IRule {
     function processRegistering(

@@ -1,18 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IAccessControl} from './../primitives/access-control/IAccessControl.sol';
-import {Feed} from 'src/primitives/feed/Feed.sol';
-import {OwnerOnlyAccessControl} from 'src/primitives/access-control/OwnerOnlyAccessControl.sol';
-import {FeedRuleCombinator} from 'src/primitives/feed/FeedRuleCombinator.sol';
-import {IFeedRule} from 'src/primitives/feed/IFeedRule.sol';
+import {IAccessControl} from "./../primitives/access-control/IAccessControl.sol";
+import {Feed} from "./../primitives/feed/Feed.sol";
+import {OwnerOnlyAccessControl} from "./../primitives/access-control/OwnerOnlyAccessControl.sol";
+import {FeedRuleCombinator} from "./../primitives/feed/FeedRuleCombinator.sol";
+import {IFeedRule} from "./../primitives/feed/IFeedRule.sol";
 
 contract FeedFactory {
     IAccessControl internal _accessControl;
     IAccessControl internal immutable _factoryOwnedAccessControl;
 
-    uint256 constant CHANGE_ACCESS_CONTROL_RID = uint256(keccak256('CHANGE_ACCESS_CONTROL'));
-    uint256 constant DEPLOY_FEED_RID = uint256(keccak256('DEPLOY_FEED'));
+    uint256 constant CHANGE_ACCESS_CONTROL_RID =
+        uint256(keccak256("CHANGE_ACCESS_CONTROL"));
+    uint256 constant DEPLOY_FEED_RID = uint256(keccak256("DEPLOY_FEED"));
 
     function setAccessControl(IAccessControl accessControl) external {
         require(
@@ -28,7 +29,9 @@ contract FeedFactory {
 
     constructor(IAccessControl accessControl) {
         _accessControl = accessControl;
-        _factoryOwnedAccessControl = new OwnerOnlyAccessControl({owner: address(this)});
+        _factoryOwnedAccessControl = new OwnerOnlyAccessControl({
+            owner: address(this)
+        });
     }
 
     function deploy__Immutable_NoRules(

@@ -1,18 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IFeed, Post, PostParams} from './IFeed.sol';
-import {IFeedRule} from './IFeedRule.sol';
-import {FeedCore as Core} from './FeedCore.sol';
-import {IPostRule} from 'src/primitives/feed/IPostRule.sol';
-import {IAccessControl} from 'src/primitives/access-control/IAccessControl.sol';
+import {IFeed, Post, PostParams} from "./IFeed.sol";
+import {IFeedRule} from "./IFeedRule.sol";
+import {FeedCore as Core} from "./FeedCore.sol";
+import {IPostRule} from "./../feed/IPostRule.sol";
+import {IAccessControl} from "./../access-control/IAccessControl.sol";
 
 contract Feed is IFeed {
     // Resource IDs involved in the contract
-    uint256 constant SET_RULES_RID = uint256(keccak256('SET_RULES'));
-    uint256 constant SET_METADATA_RID = uint256(keccak256('SET_METADATA'));
-    uint256 constant DELETE_POST_RID = uint256(keccak256('DELETE_POST'));
-    uint256 constant CHANGE_ACCESS_CONTROL_RID = uint256(keccak256('CHANGE_ACCESS_CONTROL'));
+    uint256 constant SET_RULES_RID = uint256(keccak256("SET_RULES"));
+    uint256 constant SET_METADATA_RID = uint256(keccak256("SET_METADATA"));
+    uint256 constant DELETE_POST_RID = uint256(keccak256("DELETE_POST"));
+    uint256 constant CHANGE_ACCESS_CONTROL_RID =
+        uint256(keccak256("CHANGE_ACCESS_CONTROL"));
 
     constructor(string memory metadataURI, IAccessControl accessControl) {
         Core.$storage().metadataURI = metadataURI;
@@ -58,9 +59,19 @@ contract Feed is IFeed {
         require(postParams.timestamp <= block.timestamp);
         uint256 postId = Core._createPost(postParams);
         if (address(Core.$storage().feedRules) != address(0)) {
-            IFeedRule(Core.$storage().feedRules).processCreatePost(msg.sender, postId, postParams, feedRulesData);
+            IFeedRule(Core.$storage().feedRules).processCreatePost(
+                msg.sender,
+                postId,
+                postParams,
+                feedRulesData
+            );
         }
-        emit Lens_Feed_PostCreated(postId, postParams, feedRulesData, _getPostTypeId(postParams));
+        emit Lens_Feed_PostCreated(
+            postId,
+            postParams,
+            feedRulesData,
+            _getPostTypeId(postParams)
+        );
         return postId;
     }
 
@@ -83,7 +94,10 @@ contract Feed is IFeed {
                 editPostFeedRulesData
             );
         }
-        if (address(newPostParams.postRules) != Core.$storage().posts[postId].postRules) {
+        if (
+            address(newPostParams.postRules) !=
+            Core.$storage().posts[postId].postRules
+        ) {
             IFeedRule(Core.$storage().feedRules).processPostRulesChange(
                 msg.sender,
                 postId,
@@ -115,7 +129,11 @@ contract Feed is IFeed {
             require(_canDeletePost(msg.sender));
         }
         if (address(Core.$storage().feedRules) != address(0)) {
-            IFeedRule(Core.$storage().feedRules).processDeletePost(msg.sender, postId, feedRulesData);
+            IFeedRule(Core.$storage().feedRules).processDeletePost(
+                msg.sender,
+                postId,
+                feedRulesData
+            );
         }
         Core._deletePost(postId, extraDataKeysToDelete);
         emit Lens_Feed_PostDeleted(postId, feedRulesData);
@@ -136,15 +154,29 @@ contract Feed is IFeed {
         MANY
     }
 
-    function _getPostTypeId(PostParams memory post) internal pure returns (uint8) {
+    function _getPostTypeId(
+        PostParams memory post
+    ) internal pure returns (uint8) {
         // Probably better with an enum: { NONE, ONE, MANY }
-        Cardinality contentURICardinality = bytes(post.contentURI).length > 0 ? Cardinality.ONE : Cardinality.NONE;
-        Cardinality metadataURICardinality = bytes(post.metadataURI).length > 0 ? Cardinality.ONE : Cardinality.NONE;
+        Cardinality contentURICardinality = bytes(post.contentURI).length > 0
+            ? Cardinality.ONE
+            : Cardinality.NONE;
+        Cardinality metadataURICardinality = bytes(post.metadataURI).length > 0
+            ? Cardinality.ONE
+            : Cardinality.NONE;
         Cardinality quotedPostCardinality = post.quotedPostIds.length > 0
-            ? (post.quotedPostIds.length > 1 ? Cardinality.MANY : Cardinality.ONE)
+            ? (
+                post.quotedPostIds.length > 1
+                    ? Cardinality.MANY
+                    : Cardinality.ONE
+            )
             : Cardinality.NONE;
         Cardinality parentPostCardinality = post.parentPostIds.length > 0
-            ? (post.parentPostIds.length > 1 ? Cardinality.MANY : Cardinality.ONE)
+            ? (
+                post.parentPostIds.length > 1
+                    ? Cardinality.MANY
+                    : Cardinality.ONE
+            )
             : Cardinality.NONE;
 
         /*
@@ -155,7 +187,7 @@ contract Feed is IFeed {
          ^  ^  ^
          ^  ^  metadataURICardinality
          ^  ^
-         ^  quotedPostCardinality 
+         ^  quotedPostCardinality
          ^
          parentPostCardinality
 
@@ -171,7 +203,9 @@ contract Feed is IFeed {
 
     // Getters
 
-    function getPost(uint256 postId) external view override returns (Post memory) {
+    function getPost(
+        uint256 postId
+    ) external view override returns (Post memory) {
         return
             Post({
                 author: Core.$storage().posts[postId].author,
@@ -182,8 +216,14 @@ contract Feed is IFeed {
                 parentPostIds: Core.$storage().posts[postId].parentPostIds,
                 postRules: IPostRule(Core.$storage().posts[postId].postRules),
                 timestamp: Core.$storage().posts[postId].timestamp,
-                submissionTimestamp: Core.$storage().posts[postId].submissionTimestamp,
-                lastUpdatedTimestamp: Core.$storage().posts[postId].lastUpdatedTimestamp
+                submissionTimestamp: Core
+                    .$storage()
+                    .posts[postId]
+                    .submissionTimestamp,
+                lastUpdatedTimestamp: Core
+                    .$storage()
+                    .posts[postId]
+                    .lastUpdatedTimestamp
             });
     }
 
@@ -194,7 +234,9 @@ contract Feed is IFeed {
         return _getPostTypeId(post);
     }
 
-    function getPostAuthor(uint256 postId) external view override returns (address) {
+    function getPostAuthor(
+        uint256 postId
+    ) external view override returns (address) {
         return Core.$storage().posts[postId].author;
     }
 
@@ -202,7 +244,9 @@ contract Feed is IFeed {
         return IFeedRule(Core.$storage().feedRules);
     }
 
-    function getPostRules(uint256 postId) external view override returns (IPostRule) {
+    function getPostRules(
+        uint256 postId
+    ) external view override returns (IPostRule) {
         return IPostRule(Core.$storage().posts[postId].postRules);
     }
 
@@ -210,11 +254,21 @@ contract Feed is IFeed {
         return Core.$storage().postCount;
     }
 
-    function getFeedMetadataURI() external view override returns (string memory) {
+    function getFeedMetadataURI()
+        external
+        view
+        override
+        returns (string memory)
+    {
         return Core.$storage().metadataURI;
     }
 
-    function getAccessControl() external view override returns (IAccessControl) {
+    function getAccessControl()
+        external
+        view
+        override
+        returns (IAccessControl)
+    {
         return IAccessControl(Core.$storage().accessControl);
     }
 }

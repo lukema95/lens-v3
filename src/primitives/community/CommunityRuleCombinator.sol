@@ -1,11 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {RuleCombinator} from 'src/primitives/rules/RuleCombinator.sol';
-import {ICommunityRule} from './ICommunityRule.sol';
+import {RuleCombinator} from "./../rules/RuleCombinator.sol";
+import {ICommunityRule} from "./ICommunityRule.sol";
 
 contract CommunityRuleCombinator is RuleCombinator, ICommunityRule {
-    function processJoining(address originalMsgSender, address account, bytes calldata data) external {
+    function processJoining(
+        address originalMsgSender,
+        address account,
+        bytes calldata data
+    ) external {
         bytes[] memory ruleSpecificDatas = abi.decode(data, (bytes[]));
         bytes[] memory datas = new bytes[](_rules.length);
         for (uint256 i = 0; i < _rules.length; i++) {
@@ -19,7 +23,11 @@ contract CommunityRuleCombinator is RuleCombinator, ICommunityRule {
         _processRules(datas);
     }
 
-    function processRemoval(address originalMsgSender, address account, bytes calldata data) external {
+    function processRemoval(
+        address originalMsgSender,
+        address account,
+        bytes calldata data
+    ) external {
         bytes[] memory ruleSpecificDatas = abi.decode(data, (bytes[]));
         bytes[] memory datas = new bytes[](_rules.length);
         for (uint256 i = 0; i < _rules.length; i++) {
@@ -33,7 +41,11 @@ contract CommunityRuleCombinator is RuleCombinator, ICommunityRule {
         _processRules(datas);
     }
 
-    function processLeaving(address originalMsgSender, address account, bytes calldata data) external {
+    function processLeaving(
+        address originalMsgSender,
+        address account,
+        bytes calldata data
+    ) external {
         bytes[] memory ruleSpecificDatas = abi.decode(data, (bytes[]));
         bytes[] memory datas = new bytes[](_rules.length);
         for (uint256 i = 0; i < _rules.length; i++) {

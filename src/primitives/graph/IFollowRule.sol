@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.0;
 
-import {IRule} from 'src/primitives/rules/IRule.sol';
+import {IRule} from "./../rules/IRule.sol";
 
 interface IFollowRule is IRule {
     /**
@@ -10,7 +10,12 @@ interface IFollowRule is IRule {
      * @param accountToFollow The account to be followed.
      * @param data Data that the rule might require to evalute the follow.
      */
-    function processFollow(address msgSender, address accountToFollow, uint256 followId, bytes calldata data) external;
+    function processFollow(
+        address msgSender,
+        address accountToFollow,
+        uint256 followId,
+        bytes calldata data
+    ) external;
 
     // We don't have processUnfollow() function because it can prevent from unfollowing or have other weird consequences
 
