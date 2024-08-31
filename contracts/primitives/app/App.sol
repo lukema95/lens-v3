@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IAccessControl} from "./../access-control/IAccessControl.sol";
+import {IAccessControl} from './../access-control/IAccessControl.sol';
 
 interface IApp {
     event Lens_App_GraphAdded(address graph);
@@ -53,6 +53,8 @@ contract App is IApp {
     address[] _paymasters;
 
     // TODO: Make the storage follow our Core.$storage pattern.
+
+    // TODO: Make functions restricted by access control
 
     constructor(
         IAccessControl accessControl,

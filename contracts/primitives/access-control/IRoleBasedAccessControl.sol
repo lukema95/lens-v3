@@ -5,6 +5,20 @@ import {IAccessControl} from './IAccessControl.sol';
 
 // TODO: Should we add `bytes data` param to the `hasAccess`? For more complex logic like providing admin signatures.
 interface IRoleBasedAccessControl is IAccessControl {
+    event Lens_AccessControl_RoleSet(address indexed account, uint256 indexed roleId);
+    event Lens_AccessControl_GlobalAccessSet(
+        uint256 indexed roleId,
+        uint256 indexed resourceId,
+        AccessPermission indexed accessPermission
+    );
+    // TODO: accessPermission param should also be indexed, maybe (resourceLocation, resourceId) should be a tuple type
+    event Lens_AccessControl_ScopedAccessSet(
+        uint256 indexed roleId,
+        address indexed resourceLocation,
+        uint256 indexed resourceId,
+        AccessPermission accessPermission
+    );
+
     enum AccessPermission {
         UNDEFINED,
         GRANTED,
