@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IAccessControl} from './../../access-control/IAccessControl.sol';
-import {IUsernameRule} from './../IUsernameRule.sol';
+import {IAccessControl} from "./../../access-control/IAccessControl.sol";
+import {IUsernameRule} from "./../IUsernameRule.sol";
 
 contract UsernameCharsetRule is IUsernameRule {
-    uint256 constant SKIP_CHARSET_RID = uint256(keccak256('SKIP_CHARSET'));
-    uint256 constant CHANGE_RULE_ACCESS_CONTROL_RID = uint256(keccak256('CHANGE_RULE_ACCESS_CONTROL'));
-    uint256 constant CONFIGURE_RULE_RID = uint256(keccak256('CONFIGURE_RULE'));
+    uint256 constant SKIP_CHARSET_RID = uint256(keccak256("SKIP_CHARSET"));
+    uint256 constant CHANGE_RULE_ACCESS_CONTROL_RID = uint256(keccak256("CHANGE_RULE_ACCESS_CONTROL"));
+    uint256 constant CONFIGURE_RULE_RID = uint256(keccak256("CONFIGURE_RULE"));
 
     struct CharsetRestrictions {
         bool allowNumeric;
@@ -42,7 +42,7 @@ contract UsernameCharsetRule is IUsernameRule {
     // We need this function in case this is used through a proxy (e.g. UUPS, Transparent or Beacon proxy).
     function initiliaze(IAccessControl accessControl) external {
         // TODO: This should be read from the "lens.username.accessControl" slot
-        require(address(_accessControl) == address(0), 'UsernameCharsetRule: Already initialized');
+        require(address(_accessControl) == address(0), "UsernameCharsetRule: Already initialized");
         _accessControl = accessControl;
     }
 
@@ -51,10 +51,8 @@ contract UsernameCharsetRule is IUsernameRule {
     // TODO: If we initialize the rule with some Primitive that only can call it - then we need to deploy a rule for every primitive? I thought these were singletons.
     function configure(bytes calldata data) external override {
         require(!_stateless); // Cannot configure implementation contract (no direct calls allowed, only delegateCall allowed)
-        (CharsetRestrictions memory newCharsetRestrictions, address accessControl) = abi.decode(
-            data,
-            (CharsetRestrictions, address)
-        );
+        (CharsetRestrictions memory newCharsetRestrictions, address accessControl) =
+            abi.decode(data, (CharsetRestrictions, address));
 
         if (_differsFromCurrentRestrictions(newCharsetRestrictions)) {
             require(
@@ -83,12 +81,11 @@ contract UsernameCharsetRule is IUsernameRule {
         return keccak256(abi.encode(_charsetRestrictions)) != keccak256(abi.encode(newRestrictions));
     }
 
-    function processRegistering(
-        address originalMsgSender,
-        address,
-        string memory username,
-        bytes calldata
-    ) external view override {
+    function processRegistering(address originalMsgSender, address, string memory username, bytes calldata)
+        external
+        view
+        override
+    {
         if (
             _accessControl.hasAccess({
                 account: originalMsgSender,
@@ -101,7 +98,7 @@ contract UsernameCharsetRule is IUsernameRule {
         // Cannot start with a character in the cannotStartWith charset
         require(
             !_isInCharset(bytes(username)[0], _charsetRestrictions.cannotStartWith),
-            'UsernameCharsetRule: Username cannot start with specified character'
+            "UsernameCharsetRule: Username cannot start with specified character"
         );
         // Check if the username contains only allowed characters
         for (uint256 i = 0; i < bytes(username).length; i++) {
@@ -109,30 +106,30 @@ contract UsernameCharsetRule is IUsernameRule {
             // Check disallowed chars first
             require(
                 !_isInCharset(char, _charsetRestrictions.customDisallowedCharset),
-                'UsernameCharsetRule: Username contains disallowed character'
+                "UsernameCharsetRule: Username contains disallowed character"
             );
 
             // Check allowed charsets next
             if (_isNumeric(char)) {
-                require(_charsetRestrictions.allowNumeric, 'UsernameCharsetRule: Username cannot contain numbers');
+                require(_charsetRestrictions.allowNumeric, "UsernameCharsetRule: Username cannot contain numbers");
             } else if (_isLatinLowercase(char)) {
                 require(
                     _charsetRestrictions.allowLatinLowercase,
-                    'UsernameCharsetRule: Username cannot contain lowercase latin characters'
+                    "UsernameCharsetRule: Username cannot contain lowercase latin characters"
                 );
             } else if (_isLatinUppercase(char)) {
                 require(
                     _charsetRestrictions.allowLatinUppercase,
-                    'UsernameCharsetRule: Username cannot contain uppercase latin characters'
+                    "UsernameCharsetRule: Username cannot contain uppercase latin characters"
                 );
             } else if (bytes(_charsetRestrictions.customAllowedCharset).length > 0) {
                 require(
                     _isInCharset(char, _charsetRestrictions.customAllowedCharset),
-                    'UsernameCharsetRule: Username contains disallowed character'
+                    "UsernameCharsetRule: Username contains disallowed character"
                 );
             } else {
                 // If not in any of the above charsets, reject
-                revert('UsernameCharsetRule: Username contains disallowed character');
+                revert("UsernameCharsetRule: Username contains disallowed character");
             }
         }
     }
@@ -145,21 +142,21 @@ contract UsernameCharsetRule is IUsernameRule {
     /// @param char The character to check.
     /// @return True if the character is alphanumeric, false otherwise.
     function _isNumeric(bytes1 char) internal pure returns (bool) {
-        return (char >= '0' && char <= '9');
+        return (char >= "0" && char <= "9");
     }
 
     /// @dev We only accept lowercase characters to avoid confusion.
     /// @param char The character to check.
     /// @return True if the character is alphanumeric, false otherwise.
     function _isLatinLowercase(bytes1 char) internal pure returns (bool) {
-        return (char >= 'a' && char <= 'z');
+        return (char >= "a" && char <= "z");
     }
 
     /// @dev We only accept lowercase characters to avoid confusion.
     /// @param char The character to check.
     /// @return True if the character is alphanumeric, false otherwise.
     function _isLatinUppercase(bytes1 char) internal pure returns (bool) {
-        return (char >= 'A' && char <= 'Z');
+        return (char >= "A" && char <= "Z");
     }
 
     function _isInCharset(bytes1 char, string memory charset) internal pure returns (bool) {

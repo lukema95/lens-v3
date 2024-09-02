@@ -5,55 +5,34 @@ import {RuleCombinator} from "./../rules/RuleCombinator.sol";
 import {ICommunityRule} from "./ICommunityRule.sol";
 
 contract CommunityRuleCombinator is RuleCombinator, ICommunityRule {
-    function processJoining(
-        address originalMsgSender,
-        address account,
-        bytes calldata data
-    ) external {
+    function processJoining(address originalMsgSender, address account, bytes calldata data) external {
         bytes[] memory ruleSpecificDatas = abi.decode(data, (bytes[]));
         bytes[] memory datas = new bytes[](_rules.length);
         for (uint256 i = 0; i < _rules.length; i++) {
             datas[i] = abi.encodeWithSelector(
-                ICommunityRule.processJoining.selector,
-                originalMsgSender,
-                account,
-                ruleSpecificDatas[i]
+                ICommunityRule.processJoining.selector, originalMsgSender, account, ruleSpecificDatas[i]
             );
         }
         _processRules(datas);
     }
 
-    function processRemoval(
-        address originalMsgSender,
-        address account,
-        bytes calldata data
-    ) external {
+    function processRemoval(address originalMsgSender, address account, bytes calldata data) external {
         bytes[] memory ruleSpecificDatas = abi.decode(data, (bytes[]));
         bytes[] memory datas = new bytes[](_rules.length);
         for (uint256 i = 0; i < _rules.length; i++) {
             datas[i] = abi.encodeWithSelector(
-                ICommunityRule.processRemoval.selector,
-                originalMsgSender,
-                account,
-                ruleSpecificDatas[i]
+                ICommunityRule.processRemoval.selector, originalMsgSender, account, ruleSpecificDatas[i]
             );
         }
         _processRules(datas);
     }
 
-    function processLeaving(
-        address originalMsgSender,
-        address account,
-        bytes calldata data
-    ) external {
+    function processLeaving(address originalMsgSender, address account, bytes calldata data) external {
         bytes[] memory ruleSpecificDatas = abi.decode(data, (bytes[]));
         bytes[] memory datas = new bytes[](_rules.length);
         for (uint256 i = 0; i < _rules.length; i++) {
             datas[i] = abi.encodeWithSelector(
-                ICommunityRule.processLeaving.selector,
-                originalMsgSender,
-                account,
-                ruleSpecificDatas[i]
+                ICommunityRule.processLeaving.selector, originalMsgSender, account, ruleSpecificDatas[i]
             );
         }
         _processRules(datas);

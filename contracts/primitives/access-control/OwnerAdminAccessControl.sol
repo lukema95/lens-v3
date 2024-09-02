@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IRoleBasedAccessControl} from './IRoleBasedAccessControl.sol';
-import {Ownership} from './../../diamond/Ownership.sol';
+import {IRoleBasedAccessControl} from "./IRoleBasedAccessControl.sol";
+import {Ownership} from "./../../diamond/Ownership.sol";
 
 /**
  * This Access Control:
@@ -25,6 +25,7 @@ contract OwnerAdminAccessControl is Ownership, IRoleBasedAccessControl {
         NONE, /////// 0 - Nothing.
         ADMIN, ////// 1 - Everything but adding or revoking roles.
         OWNER /////// 2 - Everything.
+
     }
 
     mapping(address => bool) internal _isAdmin;
@@ -34,15 +35,16 @@ contract OwnerAdminAccessControl is Ownership, IRoleBasedAccessControl {
         emit Lens_AccessControl_RoleSet(owner, uint256(Role.OWNER));
     }
 
-    function hasAccess(
-        address account,
-        address /* resourceLocation */,
-        uint256 /* resourceId */
-    ) external view override returns (bool) {
+    function hasAccess(address account, address, /* resourceLocation */ uint256 /* resourceId */ )
+        external
+        view
+        override
+        returns (bool)
+    {
         return _isAdmin[account] || account == _owner;
     }
 
-    function setRole(address account, uint256 roleId, bytes calldata /* data */) external override onlyOwner {
+    function setRole(address account, uint256 roleId, bytes calldata /* data */ ) external override onlyOwner {
         require(account != _owner);
         require(roleId == uint256(Role.ADMIN) || roleId == uint256(Role.NONE));
         _isAdmin[account] = roleId == uint256(Role.ADMIN);
@@ -70,51 +72,57 @@ contract OwnerAdminAccessControl is Ownership, IRoleBasedAccessControl {
     }
 
     function setGlobalAccess(
-        uint256 /* roleId */,
-        uint256 /* resourceId */,
-        AccessPermission /* accessPermission */,
+        uint256, /* roleId */
+        uint256, /* resourceId */
+        AccessPermission, /* accessPermission */
         bytes calldata /* data */
     ) external pure override {
         revert(); // Access is pre-defined for this implementation.
     }
 
     function setScopedAccess(
-        uint256 /* roleId */,
-        address /* resourceLocation */,
-        uint256 /* resourceId */,
-        AccessPermission /* accessPermission */,
+        uint256, /* roleId */
+        address, /* resourceLocation */
+        uint256, /* resourceId */
+        AccessPermission, /* accessPermission */
         bytes calldata /* data */
     ) external pure override {
         revert(); // Access is pre-defined for this implementation.
     }
 
-    function getGlobalAccess(
-        uint256 roleId,
-        uint256 /* resourceId */
-    ) external pure override returns (AccessPermission) {
+    function getGlobalAccess(uint256 roleId, uint256 /* resourceId */ )
+        external
+        pure
+        override
+        returns (AccessPermission)
+    {
         return _getAccessByRoleId(roleId);
     }
 
-    function getGlobalAccess(
-        address account,
-        uint256 /* resourceId */
-    ) external view override returns (AccessPermission) {
+    function getGlobalAccess(address account, uint256 /* resourceId */ )
+        external
+        view
+        override
+        returns (AccessPermission)
+    {
         return _getAccessByAccount(account);
     }
 
-    function getScopedAccess(
-        uint256 roleId,
-        address /* resourceLocation */,
-        uint256 /* resourceId */
-    ) external pure override returns (AccessPermission) {
+    function getScopedAccess(uint256 roleId, address, /* resourceLocation */ uint256 /* resourceId */ )
+        external
+        pure
+        override
+        returns (AccessPermission)
+    {
         return _getAccessByRoleId(roleId);
     }
 
-    function getScopedAccess(
-        address account,
-        address /* resourceLocation */,
-        uint256 /* resourceId */
-    ) external view override returns (AccessPermission) {
+    function getScopedAccess(address account, address, /* resourceLocation */ uint256 /* resourceId */ )
+        external
+        view
+        override
+        returns (AccessPermission)
+    {
         return _getAccessByAccount(account);
     }
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IUsernameRule} from './IUsernameRule.sol';
+import {IUsernameRule} from "./IUsernameRule.sol";
 
 interface IUsername {
     // event Lens_Username_RulesSet(address usernameRules, bytes initializationData);

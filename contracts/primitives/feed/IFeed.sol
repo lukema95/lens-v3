@@ -48,12 +48,7 @@ struct Post {
 interface IFeed {
     event Lens_Feed_MetadataUriSet(string metadataURI);
 
-    event Lens_Feed_PostCreated(
-        uint256 indexed postId,
-        PostParams postParams,
-        bytes feedRulesData,
-        uint256 postTypeId
-    );
+    event Lens_Feed_PostCreated(uint256 indexed postId, PostParams postParams, bytes feedRulesData, uint256 postTypeId);
 
     event Lens_Feed_PostEdited(
         uint256 indexed postId,
@@ -67,10 +62,7 @@ interface IFeed {
 
     event Lens_Feed_RulesSet(address feedRules);
 
-    function createPost(
-        PostParams calldata postParams,
-        bytes calldata data
-    ) external returns (uint256);
+    function createPost(PostParams calldata postParams, bytes calldata data) external returns (uint256);
 
     function editPost(
         uint256 postId,
@@ -81,11 +73,8 @@ interface IFeed {
 
     // "Delete" - u know u cannot delete stuff from the internet, right? :]
     // But this will at least remove it from the current state, so contracts accesing it will know.
-    function deletePost(
-        uint256 postId,
-        bytes32[] calldata extraDataKeysToDelete,
-        bytes calldata feedRulesData
-    ) external;
+    function deletePost(uint256 postId, bytes32[] calldata extraDataKeysToDelete, bytes calldata feedRulesData)
+        external;
 
     function setFeedRules(IFeedRule feedRules) external;
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {ICommunityRule} from './ICommunityRule.sol';
+import {ICommunityRule} from "./ICommunityRule.sol";
 
 interface ICommunity {
     event Lens_Community_MetadataUriSet(string metadataURI);

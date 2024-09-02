@@ -19,8 +19,7 @@ contract FeedFactory {
     IAccessControl internal _accessControl;
     IAccessControl internal immutable _factoryOwnedAccessControl;
 
-    uint256 constant CHANGE_ACCESS_CONTROL_RID =
-        uint256(keccak256("CHANGE_ACCESS_CONTROL"));
+    uint256 constant CHANGE_ACCESS_CONTROL_RID = uint256(keccak256("CHANGE_ACCESS_CONTROL"));
     uint256 constant DEPLOY_FEED_RID = uint256(keccak256("DEPLOY_FEED"));
 
     function setAccessControl(IAccessControl accessControl) external {
@@ -37,15 +36,13 @@ contract FeedFactory {
 
     constructor(IAccessControl accessControl) {
         _accessControl = accessControl;
-        _factoryOwnedAccessControl = new OwnerOnlyAccessControl({
-            owner: address(this)
-        });
+        _factoryOwnedAccessControl = new OwnerOnlyAccessControl({owner: address(this)});
     }
 
-    function deploy__Immutable_NoRules(
-        string memory metadataURI,
-        IAccessControl accessControl
-    ) external returns (address) {
+    function deploy__Immutable_NoRules(string memory metadataURI, IAccessControl accessControl)
+        external
+        returns (address)
+    {
         require(
             IAccessControl(_accessControl).hasAccess({
                 account: msg.sender,

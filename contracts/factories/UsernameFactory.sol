@@ -20,10 +20,8 @@ contract UsernameFactory {
     IAccessControl internal immutable _factoryOwnedAccessControl;
     // address internal _usernameImplementation; // We do not need this unless we Clone and we want to change the impl
 
-    uint256 constant CHANGE_ACCESS_CONTROL_RID =
-        uint256(keccak256("CHANGE_ACCESS_CONTROL"));
-    uint256 constant DEPLOY_USERNAME_RID =
-        uint256(keccak256("DEPLOY_USERNAME"));
+    uint256 constant CHANGE_ACCESS_CONTROL_RID = uint256(keccak256("CHANGE_ACCESS_CONTROL"));
+    uint256 constant DEPLOY_USERNAME_RID = uint256(keccak256("DEPLOY_USERNAME"));
 
     function setAccessControl(IAccessControl accessControl) external {
         require(
@@ -39,9 +37,7 @@ contract UsernameFactory {
 
     constructor(IAccessControl accessControl) {
         _accessControl = accessControl;
-        _factoryOwnedAccessControl = new OwnerOnlyAccessControl({
-            owner: address(this)
-        });
+        _factoryOwnedAccessControl = new OwnerOnlyAccessControl({owner: address(this)});
     }
 
     /*
@@ -58,10 +54,10 @@ contract UsernameFactory {
 
         - [Later] Add Payment to deploying UsernamePrimitive (controllable with AccessControl, skippable with AccessControl)
     */
-    function deploy__Immutable_NoRules(
-        string memory namespace,
-        IAccessControl accessControl
-    ) external returns (address) {
+    function deploy__Immutable_NoRules(string memory namespace, IAccessControl accessControl)
+        external
+        returns (address)
+    {
         require(
             IAccessControl(_accessControl).hasAccess({
                 account: msg.sender,
@@ -69,9 +65,7 @@ contract UsernameFactory {
                 resourceId: DEPLOY_USERNAME_RID
             })
         ); // msg.sender must have permissions to deploy
-        address usernameInstance = address(
-            new Username(namespace, accessControl)
-        );
+        address usernameInstance = address(new Username(namespace, accessControl));
         emit Lens_UsernameFactory_NewUsernameInstance({
             usernameInstance: usernameInstance,
             namespace: namespace,
@@ -94,10 +88,7 @@ contract UsernameFactory {
                 resourceId: DEPLOY_USERNAME_RID
             })
         ); // msg.sender must have permissions to deploy
-        Username usernameInstance = new Username(
-            namespace,
-            _factoryOwnedAccessControl
-        );
+        Username usernameInstance = new Username(namespace, _factoryOwnedAccessControl);
         IUsernameRule rulesInstance = new UsernameRuleCombinator();
         rulesInstance.configure(rulesInitializationData);
         usernameInstance.setUsernameRules(rulesInstance);

@@ -10,12 +10,8 @@ interface IFollowRule is IRule {
      * @param accountToFollow The account to be followed.
      * @param data Data that the rule might require to evalute the follow.
      */
-    function processFollow(
-        address msgSender,
-        address accountToFollow,
-        uint256 followId,
-        bytes calldata data
-    ) external;
+    function processFollow(address msgSender, address accountToFollow, uint256 followId, bytes calldata data)
+        external;
 
     // We don't have processUnfollow() function because it can prevent from unfollowing or have other weird consequences
 

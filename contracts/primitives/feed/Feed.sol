@@ -12,8 +12,7 @@ contract Feed is IFeed {
     uint256 constant SET_RULES_RID = uint256(keccak256("SET_RULES"));
     uint256 constant SET_METADATA_RID = uint256(keccak256("SET_METADATA"));
     uint256 constant DELETE_POST_RID = uint256(keccak256("DELETE_POST"));
-    uint256 constant CHANGE_ACCESS_CONTROL_RID =
-        uint256(keccak256("CHANGE_ACCESS_CONTROL"));
+    uint256 constant CHANGE_ACCESS_CONTROL_RID = uint256(keccak256("CHANGE_ACCESS_CONTROL"));
 
     constructor(string memory metadataURI, IAccessControl accessControl) {
         Core.$storage().metadataURI = metadataURI;
@@ -50,26 +49,17 @@ contract Feed is IFeed {
 
     // Public user functions
 
-    function createPost(
-        PostParams calldata postParams,
-        bytes calldata feedRulesData
-    ) external override returns (uint256) {
+    function createPost(PostParams calldata postParams, bytes calldata feedRulesData)
+        external
+        override
+        returns (uint256)
+    {
         require(msg.sender == postParams.author);
         uint256 postId = Core._createPost(postParams);
         if (address(Core.$storage().feedRules) != address(0)) {
-            IFeedRule(Core.$storage().feedRules).processCreatePost(
-                msg.sender,
-                postId,
-                postParams,
-                feedRulesData
-            );
+            IFeedRule(Core.$storage().feedRules).processCreatePost(msg.sender, postId, postParams, feedRulesData);
         }
-        emit Lens_Feed_PostCreated(
-            postId,
-            postParams,
-            feedRulesData,
-            _getPostTypeId(postParams)
-        );
+        emit Lens_Feed_PostCreated(postId, postParams, feedRulesData, _getPostTypeId(postParams));
         return postId;
     }
 
@@ -82,30 +72,17 @@ contract Feed is IFeed {
         require(msg.sender == Core.$storage().posts[postId].author);
         if (address(Core.$storage().feedRules) != address(0)) {
             IFeedRule(Core.$storage().feedRules).processEditPost(
-                msg.sender,
-                postId,
-                newPostParams,
-                editPostFeedRulesData
+                msg.sender, postId, newPostParams, editPostFeedRulesData
             );
         }
-        if (
-            address(newPostParams.postRules) !=
-            Core.$storage().posts[postId].postRules
-        ) {
+        if (address(newPostParams.postRules) != Core.$storage().posts[postId].postRules) {
             IFeedRule(Core.$storage().feedRules).processPostRulesChange(
-                msg.sender,
-                postId,
-                newPostParams.postRules,
-                postRulesChangeFeedRulesData
+                msg.sender, postId, newPostParams.postRules, postRulesChangeFeedRulesData
             );
         }
         Core._editPost(postId, newPostParams);
         emit Lens_Feed_PostEdited(
-            postId,
-            newPostParams,
-            editPostFeedRulesData,
-            postRulesChangeFeedRulesData,
-            _getPostTypeId(newPostParams)
+            postId, newPostParams, editPostFeedRulesData, postRulesChangeFeedRulesData, _getPostTypeId(newPostParams)
         );
     }
 
@@ -114,32 +91,26 @@ contract Feed is IFeed {
 
     */
 
-    function deletePost(
-        uint256 postId,
-        bytes32[] calldata extraDataKeysToDelete,
-        bytes calldata feedRulesData
-    ) external override {
+    function deletePost(uint256 postId, bytes32[] calldata extraDataKeysToDelete, bytes calldata feedRulesData)
+        external
+        override
+    {
         if (msg.sender != Core.$storage().posts[postId].author) {
             require(_canDeletePost(msg.sender));
         }
         if (address(Core.$storage().feedRules) != address(0)) {
-            IFeedRule(Core.$storage().feedRules).processDeletePost(
-                msg.sender,
-                postId,
-                feedRulesData
-            );
+            IFeedRule(Core.$storage().feedRules).processDeletePost(msg.sender, postId, feedRulesData);
         }
         Core._deletePost(postId, extraDataKeysToDelete);
         emit Lens_Feed_PostDeleted(postId, feedRulesData);
     }
 
     function _canDeletePost(address account) internal virtual returns (bool) {
-        return
-            IAccessControl(Core.$storage().accessControl).hasAccess({
-                account: account,
-                resourceLocation: address(this),
-                resourceId: DELETE_POST_RID
-            });
+        return IAccessControl(Core.$storage().accessControl).hasAccess({
+            account: account,
+            resourceLocation: address(this),
+            resourceId: DELETE_POST_RID
+        });
     }
 
     enum Cardinality {
@@ -148,26 +119,14 @@ contract Feed is IFeed {
         MANY
     }
 
-    function _getPostTypeId(
-        PostParams memory post
-    ) internal pure returns (uint8) {
+    function _getPostTypeId(PostParams memory post) internal pure returns (uint8) {
         // Probably better with an enum: { NONE, ONE, MANY }
-        Cardinality metadataURICardinality = bytes(post.metadataURI).length > 0
-            ? Cardinality.ONE
-            : Cardinality.NONE;
+        Cardinality metadataURICardinality = bytes(post.metadataURI).length > 0 ? Cardinality.ONE : Cardinality.NONE;
         Cardinality quotedPostCardinality = post.quotedPostIds.length > 0
-            ? (
-                post.quotedPostIds.length > 1
-                    ? Cardinality.MANY
-                    : Cardinality.ONE
-            )
+            ? (post.quotedPostIds.length > 1 ? Cardinality.MANY : Cardinality.ONE)
             : Cardinality.NONE;
         Cardinality parentPostCardinality = post.parentPostIds.length > 0
-            ? (
-                post.parentPostIds.length > 1
-                    ? Cardinality.MANY
-                    : Cardinality.ONE
-            )
+            ? (post.parentPostIds.length > 1 ? Cardinality.MANY : Cardinality.ONE)
             : Cardinality.NONE;
 
         /*
@@ -184,35 +143,25 @@ contract Feed is IFeed {
 
         It will have some gaps, but it's easy to encode/decode by shifting bits.
         */
-        uint8 postType = uint8(metadataURICardinality) |
-            (uint8(quotedPostCardinality) << 1) |
-            (uint8(parentPostCardinality) << 3);
+        uint8 postType =
+            uint8(metadataURICardinality) | (uint8(quotedPostCardinality) << 1) | (uint8(parentPostCardinality) << 3);
 
         return postType;
     }
 
     // Getters
 
-    function getPost(
-        uint256 postId
-    ) external view override returns (Post memory) {
-        return
-            Post({
-                author: Core.$storage().posts[postId].author,
-                source: Core.$storage().posts[postId].source,
-                metadataURI: Core.$storage().posts[postId].metadataURI,
-                quotedPostIds: Core.$storage().posts[postId].quotedPostIds,
-                parentPostIds: Core.$storage().posts[postId].parentPostIds,
-                postRules: IPostRule(Core.$storage().posts[postId].postRules),
-                creationTimestamp: Core
-                    .$storage()
-                    .posts[postId]
-                    .creationTimestamp,
-                lastUpdatedTimestamp: Core
-                    .$storage()
-                    .posts[postId]
-                    .lastUpdatedTimestamp
-            });
+    function getPost(uint256 postId) external view override returns (Post memory) {
+        return Post({
+            author: Core.$storage().posts[postId].author,
+            source: Core.$storage().posts[postId].source,
+            metadataURI: Core.$storage().posts[postId].metadataURI,
+            quotedPostIds: Core.$storage().posts[postId].quotedPostIds,
+            parentPostIds: Core.$storage().posts[postId].parentPostIds,
+            postRules: IPostRule(Core.$storage().posts[postId].postRules),
+            creationTimestamp: Core.$storage().posts[postId].creationTimestamp,
+            lastUpdatedTimestamp: Core.$storage().posts[postId].lastUpdatedTimestamp
+        });
     }
 
     function getPostTypeId(uint256 postId) external view returns (uint8) {
@@ -222,9 +171,7 @@ contract Feed is IFeed {
         return _getPostTypeId(post);
     }
 
-    function getPostAuthor(
-        uint256 postId
-    ) external view override returns (address) {
+    function getPostAuthor(uint256 postId) external view override returns (address) {
         return Core.$storage().posts[postId].author;
     }
 
@@ -232,9 +179,7 @@ contract Feed is IFeed {
         return IFeedRule(Core.$storage().feedRules);
     }
 
-    function getPostRules(
-        uint256 postId
-    ) external view override returns (IPostRule) {
+    function getPostRules(uint256 postId) external view override returns (IPostRule) {
         return IPostRule(Core.$storage().posts[postId].postRules);
     }
 
@@ -242,21 +187,11 @@ contract Feed is IFeed {
         return Core.$storage().postCount;
     }
 
-    function getFeedMetadataURI()
-        external
-        view
-        override
-        returns (string memory)
-    {
+    function getFeedMetadataURI() external view override returns (string memory) {
         return Core.$storage().metadataURI;
     }
 
-    function getAccessControl()
-        external
-        view
-        override
-        returns (IAccessControl)
-    {
+    function getAccessControl() external view override returns (IAccessControl) {
         return IAccessControl(Core.$storage().accessControl);
     }
 }

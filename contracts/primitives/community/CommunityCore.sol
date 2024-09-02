@@ -19,8 +19,7 @@ library CommunityCore {
     }
 
     // keccak256('lens.community.core.storage')
-    bytes32 constant CORE_STORAGE_SLOT =
-        0xe3d84445237a06d082986111e0d101bb8001f44a5807dc25d1929b8fc52c1c69;
+    bytes32 constant CORE_STORAGE_SLOT = 0xe3d84445237a06d082986111e0d101bb8001f44a5807dc25d1929b8fc52c1c69;
 
     function $storage() internal pure returns (Storage storage _storage) {
         assembly {
@@ -44,10 +43,7 @@ library CommunityCore {
         uint256 membershipId = ++$storage().lastMemberIdAssigned;
         $storage().numberOfMembers++;
         require($storage().memberships[account].id == 0); // Must not be a member yet
-        $storage().memberships[account] = Membership(
-            membershipId,
-            block.timestamp
-        );
+        $storage().memberships[account] = Membership(membershipId, block.timestamp);
         return membershipId;
     }
 

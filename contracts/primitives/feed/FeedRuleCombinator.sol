@@ -17,11 +17,7 @@ contract FeedRuleCombinator is RuleCombinator, IFeedRule {
         bytes[] memory datas = new bytes[](_rules.length);
         for (uint256 i = 0; i < _rules.length; i++) {
             datas[i] = abi.encodeWithSelector(
-                IFeedRule.processCreatePost.selector,
-                originalMsgSender,
-                postId,
-                postParams,
-                ruleSpecificDatas[i]
+                IFeedRule.processCreatePost.selector, originalMsgSender, postId, postParams, ruleSpecificDatas[i]
             );
         }
         _processRules(datas);
@@ -37,29 +33,18 @@ contract FeedRuleCombinator is RuleCombinator, IFeedRule {
         bytes[] memory datas = new bytes[](_rules.length);
         for (uint256 i = 0; i < _rules.length; i++) {
             datas[i] = abi.encodeWithSelector(
-                IFeedRule.processEditPost.selector,
-                originalMsgSender,
-                postId,
-                newPostParams,
-                ruleSpecificDatas[i]
+                IFeedRule.processEditPost.selector, originalMsgSender, postId, newPostParams, ruleSpecificDatas[i]
             );
         }
         _processRules(datas);
     }
 
-    function processDeletePost(
-        address originalMsgSender,
-        uint256 postId,
-        bytes calldata data
-    ) external {
+    function processDeletePost(address originalMsgSender, uint256 postId, bytes calldata data) external {
         bytes[] memory ruleSpecificDatas = abi.decode(data, (bytes[]));
         bytes[] memory datas = new bytes[](_rules.length);
         for (uint256 i = 0; i < _rules.length; i++) {
             datas[i] = abi.encodeWithSelector(
-                IFeedRule.processDeletePost.selector,
-                originalMsgSender,
-                postId,
-                ruleSpecificDatas[i]
+                IFeedRule.processDeletePost.selector, originalMsgSender, postId, ruleSpecificDatas[i]
             );
         }
         _processRules(datas);
@@ -75,11 +60,7 @@ contract FeedRuleCombinator is RuleCombinator, IFeedRule {
         bytes[] memory datas = new bytes[](_rules.length);
         for (uint256 i = 0; i < _rules.length; i++) {
             datas[i] = abi.encodeWithSelector(
-                IFeedRule.processPostRulesChange.selector,
-                originalMsgSender,
-                postId,
-                newPostRules,
-                ruleSpecificDatas[i]
+                IFeedRule.processPostRulesChange.selector, originalMsgSender, postId, newPostRules, ruleSpecificDatas[i]
             );
         }
         _processRules(datas);

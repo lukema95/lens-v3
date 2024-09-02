@@ -26,8 +26,7 @@ library FeedCore {
     }
 
     // keccak256('lens.feed.core.storage')
-    bytes32 constant CORE_STORAGE_SLOT =
-        0x53e5f3a14c02f725b39e2bf6437f59559b62f544e37322ca762304defb765d0e;
+    bytes32 constant CORE_STORAGE_SLOT = 0x53e5f3a14c02f725b39e2bf6437f59559b62f544e37322ca762304defb765d0e;
 
     function $storage() internal pure returns (Storage storage _storage) {
         assembly {
@@ -37,9 +36,7 @@ library FeedCore {
 
     // External functions - Use these functions to be called through DELEGATECALL
 
-    function createPost(
-        PostParams calldata postParams
-    ) external returns (uint256) {
+    function createPost(PostParams calldata postParams) external returns (uint256) {
         return _createPost(postParams);
     }
 
@@ -47,18 +44,13 @@ library FeedCore {
         _editPost(postId, postParams);
     }
 
-    function deletePost(
-        uint256 postId,
-        bytes32[] calldata extraDataKeysToDelete
-    ) external {
+    function deletePost(uint256 postId, bytes32[] calldata extraDataKeysToDelete) external {
         _deletePost(postId, extraDataKeysToDelete);
     }
 
     // Internal functions - Use these functions to be called as an inlined library
 
-    function _createPost(
-        PostParams calldata postParams
-    ) internal returns (uint256) {
+    function _createPost(PostParams calldata postParams) internal returns (uint256) {
         uint256 postId = ++$storage().postCount;
         PostStorage storage _newPost = $storage().posts[postId];
         _newPost.author = postParams.author;
@@ -70,17 +62,12 @@ library FeedCore {
         _newPost.creationTimestamp = uint80(block.timestamp);
         _newPost.lastUpdatedTimestamp = uint80(block.timestamp);
         for (uint256 i = 0; i < postParams.extraData.length; i++) {
-            _newPost.extraData[postParams.extraData[i].key] = postParams
-                .extraData[i]
-                .value;
+            _newPost.extraData[postParams.extraData[i].key] = postParams.extraData[i].value;
         }
         return postId;
     }
 
-    function _editPost(
-        uint256 postId,
-        PostParams calldata postParams
-    ) internal {
+    function _editPost(uint256 postId, PostParams calldata postParams) internal {
         PostStorage storage _post = $storage().posts[postId];
         _post.author = postParams.author;
         _post.source = postParams.source; // TODO: Can you edit the source? you might be editing from a diff source than the original source...
@@ -97,16 +84,11 @@ library FeedCore {
         }
         _post.lastUpdatedTimestamp = uint80(block.timestamp);
         for (uint256 i = 0; i < postParams.extraData.length; i++) {
-            _post.extraData[postParams.extraData[i].key] = postParams
-                .extraData[i]
-                .value;
+            _post.extraData[postParams.extraData[i].key] = postParams.extraData[i].value;
         }
     }
 
-    function _deletePost(
-        uint256 postId,
-        bytes32[] calldata extraDataKeysToDelete
-    ) internal {
+    function _deletePost(uint256 postId, bytes32[] calldata extraDataKeysToDelete) internal {
         for (uint256 i = 0; i < extraDataKeysToDelete.length; i++) {
             delete $storage().posts[postId].extraData[extraDataKeysToDelete[i]];
         }

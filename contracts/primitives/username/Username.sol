@@ -9,8 +9,7 @@ import {IAccessControl} from "./../access-control/IAccessControl.sol";
 contract Username is IUsername {
     // Resource IDs involved in the contract
     uint256 constant SET_RULES_RID = uint256(keccak256("SET_RULES"));
-    uint256 constant CHANGE_ACCESS_CONTROL_RID =
-        uint256(keccak256("CHANGE_ACCESS_CONTROL"));
+    uint256 constant CHANGE_ACCESS_CONTROL_RID = uint256(keccak256("CHANGE_ACCESS_CONTROL"));
 
     // Storage fields and structs
     struct LengthRestriction {
@@ -53,18 +52,9 @@ contract Username is IUsername {
 
     // Permissionless functions
 
-    function registerUsername(
-        address account,
-        string memory username,
-        bytes calldata data
-    ) external {
+    function registerUsername(address account, string memory username, bytes calldata data) external {
         require(msg.sender == account); // msg.sender must be the account
-        IUsernameRule(Core.$storage().usernameRules).processRegistering(
-            msg.sender,
-            account,
-            username,
-            data
-        );
+        IUsernameRule(Core.$storage().usernameRules).processRegistering(msg.sender, account, username, data);
         _validateUsernameLength(username);
         Core._registerUsername(account, username);
         emit Lens_Username_Registered(username, account, data);
@@ -80,18 +70,10 @@ contract Username is IUsername {
     //     emit Lens_Username_Registered(username, account, data);
     // }
 
-    function unregisterUsername(
-        string memory username,
-        bytes calldata data
-    ) external {
+    function unregisterUsername(string memory username, bytes calldata data) external {
         address account = Core.$storage().usernameToAccount[username];
         require(msg.sender == account); // msg.sender must be the account
-        IUsernameRule(Core.$storage().usernameRules).processUnregistering(
-            msg.sender,
-            account,
-            username,
-            data
-        );
+        IUsernameRule(Core.$storage().usernameRules).processUnregistering(msg.sender, account, username, data);
         Core._unregisterUsername(username);
         emit Lens_Username_Unregistered(username, account, data);
     }
@@ -103,17 +85,11 @@ contract Username is IUsername {
         LengthRestriction memory lengthRestriction = $lengthRestriction();
         uint256 usernameLength = bytes(username).length;
         if (lengthRestriction.min != 0) {
-            require(
-                usernameLength >= lengthRestriction.min,
-                "Username: too short"
-            );
+            require(usernameLength >= lengthRestriction.min, "Username: too short");
         }
         if (lengthRestriction.max != 0) {
             // TODO: If no restriction, should be max(uint8), not unlimited! - API will be like that
-            require(
-                usernameLength <= lengthRestriction.max,
-                "Username: too long"
-            );
+            require(usernameLength <= lengthRestriction.max, "Username: too long");
         }
     }
 
@@ -123,11 +99,7 @@ contract Username is IUsername {
     bytes32 constant LENGTH_RESTRICTION_STORAGE_SLOT =
         0x2d828a00137871809f1a4bee7ddd78f42d45a25fe20299ceaf25638343e83134;
 
-    function $lengthRestriction()
-        internal
-        pure
-        returns (LengthRestriction storage _lengthRestriction)
-    {
+    function $lengthRestriction() internal pure returns (LengthRestriction storage _lengthRestriction) {
         assembly {
             _lengthRestriction.slot := LENGTH_RESTRICTION_STORAGE_SLOT
         }

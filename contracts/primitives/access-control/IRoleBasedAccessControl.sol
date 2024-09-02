@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IAccessControl} from './IAccessControl.sol';
+import {IAccessControl} from "./IAccessControl.sol";
 
 // TODO: Should we add `bytes data` param to the `hasAccess`? For more complex logic like providing admin signatures.
 interface IRoleBasedAccessControl is IAccessControl {
     event Lens_AccessControl_RoleSet(address indexed account, uint256 indexed roleId);
     event Lens_AccessControl_GlobalAccessSet(
-        uint256 indexed roleId,
-        uint256 indexed resourceId,
-        AccessPermission indexed accessPermission
+        uint256 indexed roleId, uint256 indexed resourceId, AccessPermission indexed accessPermission
     );
     // TODO: accessPermission param should also be indexed, maybe (resourceLocation, resourceId) should be a tuple type
     event Lens_AccessControl_ScopedAccessSet(
@@ -33,12 +31,8 @@ interface IRoleBasedAccessControl is IAccessControl {
     function getRole(address account) external view returns (uint256);
 
     // Resource access permissions functions - Global
-    function setGlobalAccess(
-        uint256 roleId,
-        uint256 resourceId,
-        AccessPermission accessPermission,
-        bytes calldata data
-    ) external;
+    function setGlobalAccess(uint256 roleId, uint256 resourceId, AccessPermission accessPermission, bytes calldata data)
+        external;
 
     // Resource access permissions functions - Scoped (location is address based)
     function setScopedAccess(
@@ -54,15 +48,13 @@ interface IRoleBasedAccessControl is IAccessControl {
 
     function getGlobalAccess(address account, uint256 resourceId) external view returns (AccessPermission);
 
-    function getScopedAccess(
-        uint256 roleId,
-        address resourceLocation,
-        uint256 resourceId
-    ) external view returns (AccessPermission);
+    function getScopedAccess(uint256 roleId, address resourceLocation, uint256 resourceId)
+        external
+        view
+        returns (AccessPermission);
 
-    function getScopedAccess(
-        address account,
-        address resourceLocation,
-        uint256 resourceId
-    ) external view returns (AccessPermission);
+    function getScopedAccess(address account, address resourceLocation, uint256 resourceId)
+        external
+        view
+        returns (AccessPermission);
 }

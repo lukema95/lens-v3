@@ -7,18 +7,14 @@ import {OwnerOnlyAccessControl} from "./../primitives/access-control/OwnerOnlyAc
 
 contract AppFactory {
     event Lens_AppFactory_NewAppInstance(
-        address indexed appInstance,
-        string namespace,
-        IAccessControl accessControl,
-        bytes rulesInitializationData
+        address indexed appInstance, string namespace, IAccessControl accessControl, bytes rulesInitializationData
     );
 
     IAccessControl internal _accessControl; // TODO: Replace these storages with Core.$storage() pattern
     IAccessControl internal immutable _factoryOwnedAccessControl;
     // address internal _appImplementation; // We do not need this unless we Clone and we want to change the impl
 
-    uint256 constant CHANGE_ACCESS_CONTROL_RID =
-        uint256(keccak256("CHANGE_ACCESS_CONTROL"));
+    uint256 constant CHANGE_ACCESS_CONTROL_RID = uint256(keccak256("CHANGE_ACCESS_CONTROL"));
     uint256 constant DEPLOY_APP_RID = uint256(keccak256("DEPLOY_APP"));
 
     function setAccessControl(IAccessControl accessControl) external {
@@ -35,9 +31,7 @@ contract AppFactory {
 
     constructor(IAccessControl accessControl) {
         _accessControl = accessControl;
-        _factoryOwnedAccessControl = new OwnerOnlyAccessControl({
-            owner: address(this)
-        });
+        _factoryOwnedAccessControl = new OwnerOnlyAccessControl({owner: address(this)});
     }
 
     /*
@@ -73,9 +67,7 @@ contract AppFactory {
                 resourceId: DEPLOY_APP_RID
             })
         ); // msg.sender must have permissions to deploy
-        address appInstance = address(
-            new App(accessControl, metadataURI, treasury, initialProperties)
-        );
+        address appInstance = address(new App(accessControl, metadataURI, treasury, initialProperties));
         emit Lens_AppFactory_NewAppInstance({
             appInstance: appInstance,
             namespace: metadataURI,

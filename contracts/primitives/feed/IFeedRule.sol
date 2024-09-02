@@ -20,11 +20,7 @@ interface IFeedRule is IRule {
         bytes calldata data
     ) external;
 
-    function processDeletePost(
-        address originalMsgSender,
-        uint256 postId,
-        bytes calldata data
-    ) external;
+    function processDeletePost(address originalMsgSender, uint256 postId, bytes calldata data) external;
 
     function processPostRulesChange(
         address originalMsgSender,

@@ -30,9 +30,5 @@ interface IGraphRule is IRule {
 
     function processUnblock(address account, bytes calldata data) external;
 
-    function processFollowRulesChange(
-        address account,
-        IFollowRule followRules,
-        bytes calldata data
-    ) external;
+    function processFollowRulesChange(address account, IFollowRule followRules, bytes calldata data) external;
 }

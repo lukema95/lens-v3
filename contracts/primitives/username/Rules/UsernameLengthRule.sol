@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IAccessControl} from './../../access-control/IAccessControl.sol';
-import {IUsernameRule} from './../IUsernameRule.sol';
+import {IAccessControl} from "./../../access-control/IAccessControl.sol";
+import {IUsernameRule} from "./../IUsernameRule.sol";
 
 contract UsernameLengthRule is IUsernameRule {
     uint256 _minLength; // "lens.username.rules.UsernameLengthRule.minLength"
@@ -10,8 +10,8 @@ contract UsernameLengthRule is IUsernameRule {
 
     IAccessControl internal _accessControl; // "lens.username.accessControl"
 
-    uint256 constant SKIP_MIN_LENGTH_RID = uint256(keccak256('SKIP_MIN_LENGTH'));
-    uint256 constant SKIP_MAX_LENGTH_RID = uint256(keccak256('SKIP_MAX_LENGTH'));
+    uint256 constant SKIP_MIN_LENGTH_RID = uint256(keccak256("SKIP_MIN_LENGTH"));
+    uint256 constant SKIP_MAX_LENGTH_RID = uint256(keccak256("SKIP_MAX_LENGTH"));
 
     address immutable IMPLEMENTATION;
 
@@ -30,12 +30,11 @@ contract UsernameLengthRule is IUsernameRule {
         _maxLength = maxLength; // maxLength = 0 means unlimited length
     }
 
-    function processRegistering(
-        address originalMsgSender,
-        address,
-        string memory username,
-        bytes calldata
-    ) external view override {
+    function processRegistering(address originalMsgSender, address, string memory username, bytes calldata)
+        external
+        view
+        override
+    {
         uint256 usernameLength = bytes(username).length;
         if (usernameLength < _minLength) {
             require(
@@ -44,7 +43,7 @@ contract UsernameLengthRule is IUsernameRule {
                     resourceLocation: address(this),
                     resourceId: SKIP_MIN_LENGTH_RID
                 }),
-                'UsernameLengthRule: cannot skip min length restriction'
+                "UsernameLengthRule: cannot skip min length restriction"
             );
         }
         if (_maxLength != 0 && usernameLength > _maxLength) {
@@ -54,7 +53,7 @@ contract UsernameLengthRule is IUsernameRule {
                     resourceLocation: address(this),
                     resourceId: SKIP_MAX_LENGTH_RID
                 }),
-                'UsernameLengthRule: cannot skip max length restriction'
+                "UsernameLengthRule: cannot skip max length restriction"
             );
         }
     }

@@ -4,14 +4,8 @@ pragma solidity ^0.8.0;
 import {IOwnership} from "./IOwnership.sol";
 
 contract Ownership is IOwnership {
-    event OwnershipTransferInitiated(
-        address indexed currentOwner,
-        address indexed ownerCandidate
-    );
-    event OwnershipTransferred(
-        address indexed previousOwner,
-        address indexed newOwner
-    );
+    event OwnershipTransferInitiated(address indexed currentOwner, address indexed ownerCandidate);
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     bool private _transferConfirmedByOwnerCandidate;
     address internal _owner;
@@ -62,9 +56,7 @@ contract Ownership is IOwnership {
         }
     }
 
-    function _confirmOwnershipTransfer(
-        address newOwner
-    ) internal virtual returns (address) {
+    function _confirmOwnershipTransfer(address newOwner) internal virtual returns (address) {
         address oldOwner = _owner;
         _owner = newOwner;
         emit OwnershipTransferred(oldOwner, newOwner);

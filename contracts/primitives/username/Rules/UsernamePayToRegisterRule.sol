@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IAccessControl} from './../../access-control/IAccessControl.sol';
-import {IUsernameRule} from './../IUsernameRule.sol';
+import {IAccessControl} from "./../../access-control/IAccessControl.sol";
+import {IUsernameRule} from "./../IUsernameRule.sol";
 
 // TODO: Replace this with an actual import if needed
 interface IERC20 {
@@ -11,8 +11,8 @@ interface IERC20 {
 
 contract UsernamePayToRegisterRule is IUsernameRule {
     // Resource IDs involved in the contract
-    uint256 constant SKIP_PAYMENT_RID = uint256(keccak256('SKIP_PAYMENT'));
-    uint256 constant CONFIGURE_RULES_RID = uint256(keccak256('CONFIGURE_RULES'));
+    uint256 constant SKIP_PAYMENT_RID = uint256(keccak256("SKIP_PAYMENT"));
+    uint256 constant CONFIGURE_RULES_RID = uint256(keccak256("CONFIGURE_RULES"));
 
     // Storage fields and structs
     struct PaymentConfig {
@@ -40,7 +40,7 @@ contract UsernamePayToRegisterRule is IUsernameRule {
                 resourceLocation: address(this),
                 resourceId: CONFIGURE_RULES_RID
             }),
-            'UsernamePayToRegisterRule: account is not allowed to configure this rule'
+            "UsernamePayToRegisterRule: account is not allowed to configure this rule"
         );
         (address token, uint256 price) = abi.decode(data, (address, uint256));
         $paymentConfig().token = token;
@@ -58,12 +58,10 @@ contract UsernamePayToRegisterRule is IUsernameRule {
         // }
     }
 
-    function processRegistering(
-        address originalMsgSender,
-        address account,
-        string memory,
-        bytes calldata
-    ) external override {
+    function processRegistering(address originalMsgSender, address account, string memory, bytes calldata)
+        external
+        override
+    {
         if (
             $accessControl().contractAddress.hasAccess({
                 account: originalMsgSender,
@@ -75,7 +73,7 @@ contract UsernamePayToRegisterRule is IUsernameRule {
         }
         require(
             IERC20($paymentConfig().token).safeTransferFrom(account, address(this), $paymentConfig().amount),
-            'UsernamePayToRegisterRule: transfer failed'
+            "UsernamePayToRegisterRule: transfer failed"
         );
     }
 
