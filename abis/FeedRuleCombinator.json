@@ -35,30 +35,11 @@
     "anonymous": false,
     "inputs": [
       {
-        "components": [
-          {
-            "internalType": "address",
-            "name": "contractAddress",
-            "type": "address"
-          },
-          {
-            "internalType": "bytes",
-            "name": "data",
-            "type": "bytes"
-          }
-        ],
-        "indexed": false,
-        "internalType": "struct RuleCombinator.RuleConfiguration[]",
-        "name": "addedRules",
-        "type": "tuple[]"
-      }
-    ],
-    "name": "Lens_RuleCombinator_RulesAdded",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
+        "indexed": true,
+        "internalType": "address",
+        "name": "contractAddress",
+        "type": "address"
+      },
       {
         "components": [
           {
@@ -73,17 +54,54 @@
           }
         ],
         "indexed": false,
-        "internalType": "struct RuleCombinator.RuleConfiguration[]",
+        "internalType": "struct RuleCombinator.RuleConfiguration",
+        "name": "addedRule",
+        "type": "tuple"
+      }
+    ],
+    "name": "Lens_RuleCombinator_RuleAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "contractAddress",
+        "type": "address"
+      },
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "contractAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes",
+            "name": "data",
+            "type": "bytes"
+          }
+        ],
+        "indexed": false,
+        "internalType": "struct RuleCombinator.RuleConfiguration",
         "name": "removedRules",
-        "type": "tuple[]"
+        "type": "tuple"
       }
     ],
-    "name": "Lens_RuleCombinator_RulesRemoved",
+    "name": "Lens_RuleCombinator_RuleRemoved",
     "type": "event"
   },
   {
     "anonymous": false,
     "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "contractAddress",
+        "type": "address"
+      },
       {
         "components": [
           {
@@ -98,12 +116,12 @@
           }
         ],
         "indexed": false,
-        "internalType": "struct RuleCombinator.RuleConfiguration[]",
+        "internalType": "struct RuleCombinator.RuleConfiguration",
         "name": "updatedRules",
-        "type": "tuple[]"
+        "type": "tuple"
       }
     ],
-    "name": "Lens_RuleCombinator_RulesUpdated",
+    "name": "Lens_RuleCombinator_RuleUpdated",
     "type": "event"
   },
   {

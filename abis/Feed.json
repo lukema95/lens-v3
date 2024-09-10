@@ -33,6 +33,12 @@
     "inputs": [
       {
         "indexed": true,
+        "internalType": "address",
+        "name": "author",
+        "type": "address"
+      },
+      {
+        "indexed": true,
         "internalType": "uint256",
         "name": "postId",
         "type": "uint256"
@@ -113,6 +119,12 @@
     "inputs": [
       {
         "indexed": true,
+        "internalType": "address",
+        "name": "author",
+        "type": "address"
+      },
+      {
+        "indexed": true,
         "internalType": "uint256",
         "name": "postId",
         "type": "uint256"
@@ -130,6 +142,12 @@
   {
     "anonymous": false,
     "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "author",
+        "type": "address"
+      },
       {
         "indexed": true,
         "internalType": "uint256",
@@ -217,7 +235,7 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "feedRules",
         "type": "address"
