@@ -17,3 +17,10 @@ Technical Implementation of this:
 - BanRegistry: A contract that holds the bans and blocks.
   It can store all the data, basically a mapping or smth like that. (TODO: Explore how exactly)
 - BanRule: A common rule that any primitive can plug&play to support the bans & blocks.
+
+--
+Notes:
+
+- This Scoped approach with Apps/Primitives applying the BanRule IS NOT BINDING.
+  This means that if one User wants to ban another User everywhere, then the App should also support that.
+  If the app doesn't support it (or does not WANT to support it intentionally) - then banned User might still interact with the banning user.

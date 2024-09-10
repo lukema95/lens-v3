@@ -23,6 +23,8 @@ interface IRoleBasedAccessControl is IAccessControl {
         DENIED
     }
 
+    // TODO: What about multiple roles into a single account? Maybe we need grant and revoke role functions?
+
     // Role functions
     function setRole(address account, uint256 roleId, bytes calldata data) external;
 
