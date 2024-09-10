@@ -11,9 +11,9 @@ abstract contract RuleCombinator is IRule {
     // event Lens_RuleCombinator_Initialized(CombinationMode combinationMode, address accessControl, bytes addRulesData);
     event Lens_RuleCombinator_CombinationModeChanged(CombinationMode combinationMode);
     event Lens_RuleCombinator_AccessControlChanged(address accessControl);
-    event Lens_RuleCombinator_RulesAdded(RuleConfiguration[] addedRules);
-    event Lens_RuleCombinator_RulesRemoved(RuleConfiguration[] removedRules);
-    event Lens_RuleCombinator_RulesUpdated(RuleConfiguration[] updatedRules);
+    event Lens_RuleCombinator_RuleAdded(address indexed contractAddress, bytes data);
+    event Lens_RuleCombinator_RuleRemoved(address indexed contractAddress, bytes data);
+    event Lens_RuleCombinator_RuleUpdated(address indexed contractAddress, bytes data);
 
     IAccessControl internal _accessControl; // TODO: This should be located at some storage place so the inner rules can access it via delegatecall
     address immutable IMPLEMENTATION;
@@ -139,7 +139,6 @@ abstract contract RuleCombinator is IRule {
         for (uint256 i = 0; i < rules.length; i++) {
             _addRule(rules[i]);
         }
-        emit Lens_RuleCombinator_RulesAdded(rules);
     }
 
     function _addRule(RuleConfiguration memory rule) internal virtual {
@@ -152,13 +151,13 @@ abstract contract RuleCombinator is IRule {
         _rules.push(rule.contractAddress);
         (bool success,) = rule.contractAddress.delegatecall(abi.encodeCall(IRule.configure, (rule.data)));
         require(success, "RuleCombinator: Rule configuration failed");
+        emit Lens_RuleCombinator_RuleAdded(rule.contractAddress, rule.data);
     }
 
     function _removeRules(RuleConfiguration[] memory rules) internal virtual {
         for (uint256 i = 0; i < rules.length; i++) {
             _removeRule(rules[i]);
         }
-        emit Lens_RuleCombinator_RulesRemoved(rules);
     }
 
     function _removeRule(RuleConfiguration memory rule) internal virtual {
@@ -171,13 +170,13 @@ abstract contract RuleCombinator is IRule {
             }
         }
         revert("RuleCombinator: Rule not found");
+        emit Lens_RuleCombinator_RuleRemoved(rule.contractAddress, rule.data);
     }
 
     function _updateRules(RuleConfiguration[] memory rules) internal virtual {
         for (uint256 i = 0; i < rules.length; i++) {
             _updateRule(rules[i]);
         }
-        emit Lens_RuleCombinator_RulesUpdated(rules);
     }
 
     function _updateRule(RuleConfiguration memory rule) internal virtual {
@@ -191,6 +190,7 @@ abstract contract RuleCombinator is IRule {
             }
         }
         revert("RuleCombinator: Rule not found");
+        emit Lens_RuleCombinator_RuleUpdated(rule.contractAddress, rule.data);
     }
 
     function _processRules(bytes[] memory datas) internal virtual {

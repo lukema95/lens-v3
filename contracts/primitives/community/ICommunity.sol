@@ -6,13 +6,13 @@ import {ICommunityRule} from "./ICommunityRule.sol";
 interface ICommunity {
     event Lens_Community_MetadataUriSet(string metadataURI);
 
-    event Lens_Community_RulesSet(address communityRules);
+    event Lens_Community_RulesSet(address indexed communityRules);
 
-    event Lens_Community_MemberJoined(address account, uint256 memberId, bytes data);
+    event Lens_Community_MemberJoined(address indexed account, uint256 indexed memberId, bytes data);
 
-    event Lens_Community_MemberLeft(address account, uint256 memberId, bytes data);
+    event Lens_Community_MemberLeft(address indexed account, uint256 indexed memberId, bytes data);
 
-    event Lens_Community_MemberRemoved(address account, uint256 memberId, bytes data);
+    event Lens_Community_MemberRemoved(address indexed account, uint256 indexed memberId, bytes data);
 
     function setCommunityRules(ICommunityRule communityRules) external;
 

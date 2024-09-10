@@ -3,20 +3,7 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
-        "internalType": "address[]",
-        "name": "communities",
-        "type": "address[]"
-      }
-    ],
-    "name": "Lens_App_CommunitiesSet",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "community",
         "type": "address"
@@ -29,7 +16,7 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "community",
         "type": "address"
@@ -42,7 +29,20 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
+        "internalType": "address",
+        "name": "community",
+        "type": "address"
+      }
+    ],
+    "name": "Lens_App_CommunitySet",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
         "internalType": "address",
         "name": "community",
         "type": "address"
@@ -55,7 +55,7 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "feed",
         "type": "address"
@@ -68,7 +68,7 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "graph",
         "type": "address"
@@ -81,7 +81,7 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "paymaster",
         "type": "address"
@@ -94,7 +94,7 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "username",
         "type": "address"
@@ -107,7 +107,7 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "feed",
         "type": "address"
@@ -120,7 +120,7 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "feed",
         "type": "address"
@@ -133,20 +133,20 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
-        "internalType": "address[]",
-        "name": "feeds",
-        "type": "address[]"
+        "indexed": true,
+        "internalType": "address",
+        "name": "feed",
+        "type": "address"
       }
     ],
-    "name": "Lens_App_FeedsSet",
+    "name": "Lens_App_FeedSet",
     "type": "event"
   },
   {
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "graph",
         "type": "address"
@@ -172,7 +172,7 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "paymaster",
         "type": "address"
@@ -185,7 +185,7 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "username",
         "type": "address"
