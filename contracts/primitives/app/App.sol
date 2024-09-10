@@ -8,13 +8,13 @@ interface IApp {
     event Lens_App_DefaultGraphSet(address indexed graph);
     event Lens_App_FeedAdded(address indexed feed);
     event Lens_App_FeedRemoved(address indexed feed);
-    event Lens_App_FeedSet(address indexed feed);
+    event Lens_App_FeedsSet(address[] feeds);
     event Lens_App_DefaultFeedSet(address indexed feed);
     event Lens_App_UsernameAdded(address indexed username);
     event Lens_App_DefaultUsernameSet(address indexed username);
     event Lens_App_CommunityAdded(address indexed community);
     event Lens_App_CommunityRemoved(address indexed community);
-    event Lens_App_CommunitySet(address indexed community);
+    event Lens_App_CommunitiesSet(address[] communities);
     event Lens_App_DefaultCommunitySet(address indexed community);
     event Lens_App_PaymasterAdded(address indexed paymaster);
     event Lens_App_DefaultPaymasterSet(address indexed paymaster);
@@ -103,10 +103,12 @@ contract App is IApp {
         _feeds = feeds;
         if (_feeds.length == 0) {
             delete _defaultFeed;
+            emit Lens_App_DefaultFeedSet(address(0));
         } else {
             _defaultFeed = _feeds[0];
+            emit Lens_App_DefaultFeedSet(_feeds[0]);
         }
-        emit Lens_App_FeedSet(_defaultFeed);
+        emit Lens_App_FeedsSet(feeds);
     }
 
     function setDefaultFeed(address feed) public {
@@ -150,10 +152,12 @@ contract App is IApp {
         _communities = communities;
         if (_communities.length == 0) {
             delete _defaultCommunity;
+            emit Lens_App_DefaultCommunitySet(address(0));
         } else {
             _defaultCommunity = _communities[0];
+            emit Lens_App_DefaultCommunitySet(_communities[0]);
         }
-        emit Lens_App_CommunitySet(_defaultCommunity);
+        emit Lens_App_CommunitiesSet(communities);
     }
 
     function setDefaultCommunity(address community) public {
