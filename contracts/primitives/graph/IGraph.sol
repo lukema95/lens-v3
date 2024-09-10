@@ -12,16 +12,20 @@ struct Follow {
 interface IGraph {
     event Lens_Graph_MetadataUriSet(string metadataURI);
 
-    event Lens_Graph_RulesSet(address graphRules);
+    event Lens_Graph_RulesSet(address indexed graphRules);
 
-    event Lens_Graph_FollowRulesSet(address account, address followRules, bytes graphRulesData);
+    event Lens_Graph_FollowRulesSet(address indexed account, address indexed followRules, bytes graphRulesData);
 
     event Lens_Graph_Followed(
-        address followerAccount, address accountToFollow, uint256 followId, bytes graphRulesData, bytes followRulesData
+        address indexed followerAccount,
+        address indexed accountToFollow,
+        uint256 followId,
+        bytes graphRulesData,
+        bytes followRulesData
     );
 
     event Lens_Graph_Unfollowed(
-        address followerAccount, address accountToUnfollow, uint256 followId, bytes graphRulesData
+        address indexed followerAccount, address indexed accountToUnfollow, uint256 followId, bytes graphRulesData
     );
 
     function setGraphRules(IGraphRule graphRules) external;

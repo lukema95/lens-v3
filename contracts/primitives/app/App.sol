@@ -4,20 +4,20 @@ pragma solidity ^0.8.0;
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
 
 interface IApp {
-    event Lens_App_GraphAdded(address graph);
-    event Lens_App_DefaultGraphSet(address graph);
-    event Lens_App_FeedAdded(address feed);
-    event Lens_App_FeedRemoved(address feed);
-    event Lens_App_FeedsSet(address[] feeds);
-    event Lens_App_DefaultFeedSet(address feed);
-    event Lens_App_UsernameAdded(address username);
-    event Lens_App_DefaultUsernameSet(address username);
-    event Lens_App_CommunityAdded(address community);
-    event Lens_App_CommunityRemoved(address community);
-    event Lens_App_CommunitiesSet(address[] communities);
-    event Lens_App_DefaultCommunitySet(address community);
-    event Lens_App_PaymasterAdded(address paymaster);
-    event Lens_App_DefaultPaymasterSet(address paymaster);
+    event Lens_App_GraphAdded(address indexed graph);
+    event Lens_App_DefaultGraphSet(address indexed graph);
+    event Lens_App_FeedAdded(address indexed feed);
+    event Lens_App_FeedRemoved(address indexed feed);
+    event Lens_App_FeedSet(address indexed feed);
+    event Lens_App_DefaultFeedSet(address indexed feed);
+    event Lens_App_UsernameAdded(address indexed username);
+    event Lens_App_DefaultUsernameSet(address indexed username);
+    event Lens_App_CommunityAdded(address indexed community);
+    event Lens_App_CommunityRemoved(address indexed community);
+    event Lens_App_CommunitySet(address indexed community);
+    event Lens_App_DefaultCommunitySet(address indexed community);
+    event Lens_App_PaymasterAdded(address indexed paymaster);
+    event Lens_App_DefaultPaymasterSet(address indexed paymaster);
     event Lens_App_MetadataUriSet(string metadataURI);
 }
 
@@ -106,7 +106,7 @@ contract App is IApp {
         } else {
             _defaultFeed = _feeds[0];
         }
-        emit Lens_App_FeedsSet(feeds);
+        emit Lens_App_FeedSet(_defaultFeed);
     }
 
     function setDefaultFeed(address feed) public {
@@ -153,7 +153,7 @@ contract App is IApp {
         } else {
             _defaultCommunity = _communities[0];
         }
-        emit Lens_App_CommunitiesSet(communities);
+        emit Lens_App_CommunitySet(_defaultCommunity);
     }
 
     function setDefaultCommunity(address community) public {

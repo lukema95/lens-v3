@@ -48,9 +48,12 @@ struct Post {
 interface IFeed {
     event Lens_Feed_MetadataUriSet(string metadataURI);
 
-    event Lens_Feed_PostCreated(uint256 indexed postId, PostParams postParams, bytes feedRulesData, uint256 postTypeId);
+    event Lens_Feed_PostCreated(
+        address indexed author, uint256 indexed postId, PostParams postParams, bytes feedRulesData, uint256 postTypeId
+    );
 
     event Lens_Feed_PostEdited(
+        address indexed author,
         uint256 indexed postId,
         PostParams newPostParams,
         bytes feedRulesData,
@@ -58,9 +61,9 @@ interface IFeed {
         uint256 postTypeId
     );
 
-    event Lens_Feed_PostDeleted(uint256 indexed postId, bytes feedRulesData);
+    event Lens_Feed_PostDeleted(address indexed author, uint256 indexed postId, bytes feedRulesData);
 
-    event Lens_Feed_RulesSet(address feedRules);
+    event Lens_Feed_RulesSet(address indexed feedRules);
 
     function createPost(PostParams calldata postParams, bytes calldata data) external returns (uint256);
 

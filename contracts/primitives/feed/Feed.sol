@@ -59,7 +59,7 @@ contract Feed is IFeed {
         if (address(Core.$storage().feedRules) != address(0)) {
             IFeedRule(Core.$storage().feedRules).processCreatePost(msg.sender, postId, postParams, feedRulesData);
         }
-        emit Lens_Feed_PostCreated(postId, postParams, feedRulesData, _getPostTypeId(postParams));
+        emit Lens_Feed_PostCreated(postParams.author, postId, postParams, feedRulesData, _getPostTypeId(postParams));
         return postId;
     }
 
@@ -69,7 +69,8 @@ contract Feed is IFeed {
         bytes calldata editPostFeedRulesData,
         bytes calldata postRulesChangeFeedRulesData
     ) external override {
-        require(msg.sender == Core.$storage().posts[postId].author);
+        address author = Core.$storage().posts[postId].author;
+        require(msg.sender == author);
         if (address(Core.$storage().feedRules) != address(0)) {
             IFeedRule(Core.$storage().feedRules).processEditPost(
                 msg.sender, postId, newPostParams, editPostFeedRulesData
@@ -82,7 +83,12 @@ contract Feed is IFeed {
         }
         Core._editPost(postId, newPostParams);
         emit Lens_Feed_PostEdited(
-            postId, newPostParams, editPostFeedRulesData, postRulesChangeFeedRulesData, _getPostTypeId(newPostParams)
+            author,
+            postId,
+            newPostParams,
+            editPostFeedRulesData,
+            postRulesChangeFeedRulesData,
+            _getPostTypeId(newPostParams)
         );
     }
 
@@ -95,14 +101,15 @@ contract Feed is IFeed {
         external
         override
     {
-        if (msg.sender != Core.$storage().posts[postId].author) {
+        address author = Core.$storage().posts[postId].author;
+        if (msg.sender != author) {
             require(_canDeletePost(msg.sender));
         }
         if (address(Core.$storage().feedRules) != address(0)) {
             IFeedRule(Core.$storage().feedRules).processDeletePost(msg.sender, postId, feedRulesData);
         }
         Core._deletePost(postId, extraDataKeysToDelete);
-        emit Lens_Feed_PostDeleted(postId, feedRulesData);
+        emit Lens_Feed_PostDeleted(author, postId, feedRulesData);
     }
 
     function _canDeletePost(address account) internal virtual returns (bool) {

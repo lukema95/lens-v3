@@ -6,7 +6,7 @@ import {IUsernameRule} from "./IUsernameRule.sol";
 interface IUsername {
     // event Lens_Username_RulesSet(address usernameRules, bytes initializationData);
 
-    event Lens_Username_RulesSet(address usernameRules);
+    event Lens_Username_RulesSet(address indexed usernameRules);
 
     event Lens_Username_Registered(string username, address indexed account, bytes data);
 
