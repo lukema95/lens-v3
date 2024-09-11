@@ -3,6 +3,19 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "address[]",
+        "name": "communities",
+        "type": "address[]"
+      }
+    ],
+    "name": "Lens_App_CommunitiesSet",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "address",
         "name": "community",
@@ -23,19 +36,6 @@
       }
     ],
     "name": "Lens_App_CommunityRemoved",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "community",
-        "type": "address"
-      }
-    ],
-    "name": "Lens_App_CommunitySet",
     "type": "event"
   },
   {
@@ -133,13 +133,13 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "feed",
-        "type": "address"
+        "indexed": false,
+        "internalType": "address[]",
+        "name": "feeds",
+        "type": "address[]"
       }
     ],
-    "name": "Lens_App_FeedSet",
+    "name": "Lens_App_FeedsSet",
     "type": "event"
   },
   {
