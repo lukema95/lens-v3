@@ -5,6 +5,7 @@ import {PostParams} from "./IFeed.sol";
 
 struct PostStorage {
     address author;
+    uint256 localSequentialId;
     address source;
     string metadataURI;
     uint256[] quotedPostIds;
@@ -12,7 +13,6 @@ struct PostStorage {
     address postRules;
     uint80 creationTimestamp;
     uint80 lastUpdatedTimestamp;
-    uint256 universalId;
     mapping(bytes32 => bytes) extraData;
 }
 
@@ -37,7 +37,7 @@ library FeedCore {
 
     // External functions - Use these functions to be called through DELEGATECALL
 
-    function createPost(PostParams calldata postParams) external returns (uint256) {
+    function createPost(PostParams calldata postParams) external returns (uint256, uint256) {
         return _createPost(postParams);
     }
 
@@ -51,10 +51,16 @@ library FeedCore {
 
     // Internal functions - Use these functions to be called as an inlined library
 
-    function _createPost(PostParams calldata postParams) internal returns (uint256) {
-        uint256 postId = ++$storage().postCount;
+    function _generatePostId(uint256 localSequentialId) internal view returns (uint256) {
+        return uint256(keccak256(abi.encode("evm:", block.chainid, address(this), localSequentialId)));
+    }
+
+    function _createPost(PostParams calldata postParams) internal returns (uint256, uint256) {
+        uint256 localSequentialId = ++$storage().postCount;
+        uint256 postId = _generatePostId(localSequentialId);
         PostStorage storage _newPost = $storage().posts[postId];
         _newPost.author = postParams.author;
+        _newPost.localSequentialId = localSequentialId;
         _newPost.source = postParams.source;
         _newPost.metadataURI = postParams.metadataURI;
         _newPost.quotedPostIds = postParams.quotedPostIds;
@@ -62,16 +68,15 @@ library FeedCore {
         _newPost.postRules = address(postParams.postRules); // TODO: Probably change to type address in PostParams struct
         _newPost.creationTimestamp = uint80(block.timestamp);
         _newPost.lastUpdatedTimestamp = uint80(block.timestamp);
-        _newPost.universalId = uint256(keccak256(abi.encode("evm:", block.chainid, address(this), postId)));
         for (uint256 i = 0; i < postParams.extraData.length; i++) {
             _newPost.extraData[postParams.extraData[i].key] = postParams.extraData[i].value;
         }
-        return postId;
+        return (postId, localSequentialId);
     }
 
     function _editPost(uint256 postId, PostParams calldata postParams) internal {
         PostStorage storage _post = $storage().posts[postId];
-        _post.author = postParams.author; // TODO: Author can be changed?
+        _post.author = postParams.author; // TODO: Author can be changed? NO, we should remove that, or add a require
         _post.source = postParams.source; // TODO: Can you edit the source? you might be editing from a diff source than the original source...
         _post.metadataURI = postParams.metadataURI;
         _post.quotedPostIds = postParams.quotedPostIds;
@@ -90,12 +95,15 @@ library FeedCore {
         }
     }
 
-    function _deletePost(uint256 postId, bytes32[] calldata extraDataKeysToDelete) internal returns (uint256) {
-        uint256 universalId = $storage().posts[postId].universalId;
+    function _deletePost(uint256 postId, bytes32[] calldata extraDataKeysToDelete) internal {
         for (uint256 i = 0; i < extraDataKeysToDelete.length; i++) {
             delete $storage().posts[postId].extraData[extraDataKeysToDelete[i]];
         }
         delete $storage().posts[postId];
-        return universalId;
     }
+
+    // TODO: Debate this more. It should be a soft delete, you can reconstruct anyways from tx history.
+    // function _disablePost(uint256 postId) internal {
+    //      $storage().posts[postId].disabled = true;
+    // }
 }

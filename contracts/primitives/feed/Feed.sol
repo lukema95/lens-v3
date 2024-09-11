@@ -55,17 +55,12 @@ contract Feed is IFeed {
         returns (uint256)
     {
         require(msg.sender == postParams.author);
-        uint256 postId = Core._createPost(postParams);
+        (uint256 postId, uint256 localSequentialId) = Core._createPost(postParams);
         if (address(Core.$storage().feedRules) != address(0)) {
             IFeedRule(Core.$storage().feedRules).processCreatePost(msg.sender, postId, postParams, feedRulesData);
         }
         emit Lens_Feed_PostCreated(
-            postParams.author,
-            postId,
-            Core.$storage().posts[postId].universalId,
-            postParams,
-            feedRulesData,
-            _getPostTypeId(postParams)
+            postId, postParams.author, localSequentialId, postParams, feedRulesData, _getPostTypeId(postParams)
         );
         return postId;
     }
@@ -90,20 +85,14 @@ contract Feed is IFeed {
         }
         Core._editPost(postId, newPostParams);
         emit Lens_Feed_PostEdited(
-            author,
             postId,
-            Core.$storage().posts[postId].universalId,
+            author,
             newPostParams,
             editPostFeedRulesData,
             postRulesChangeFeedRulesData,
             _getPostTypeId(newPostParams)
         );
     }
-
-    // TODO: How we decided to do moderation (moderator is able to delete spam posts, skipping an author check):
-    /*
-
-    */
 
     function deletePost(uint256 postId, bytes32[] calldata extraDataKeysToDelete, bytes calldata feedRulesData)
         external
@@ -116,8 +105,8 @@ contract Feed is IFeed {
         if (address(Core.$storage().feedRules) != address(0)) {
             IFeedRule(Core.$storage().feedRules).processDeletePost(msg.sender, postId, feedRulesData);
         }
-        uint256 universalId = Core._deletePost(postId, extraDataKeysToDelete);
-        emit Lens_Feed_PostDeleted(author, postId, universalId, feedRulesData);
+        Core._deletePost(postId, extraDataKeysToDelete);
+        emit Lens_Feed_PostDeleted(postId, author, feedRulesData);
     }
 
     function _canDeletePost(address account) internal virtual returns (bool) {
@@ -148,7 +137,7 @@ contract Feed is IFeed {
         We use 5 bits to encode the post type:
         00 00  0
          ^  ^  ^
-         ^  ^  ^ 
+         ^  ^  ^
          ^  ^  ^
          ^  ^  contentURICardinality
          ^  ^
@@ -169,14 +158,14 @@ contract Feed is IFeed {
     function getPost(uint256 postId) external view override returns (Post memory) {
         return Post({
             author: Core.$storage().posts[postId].author,
+            localSequentialId: Core.$storage().posts[postId].localSequentialId,
             source: Core.$storage().posts[postId].source,
             metadataURI: Core.$storage().posts[postId].metadataURI,
             quotedPostIds: Core.$storage().posts[postId].quotedPostIds,
             parentPostIds: Core.$storage().posts[postId].parentPostIds,
             postRules: IPostRule(Core.$storage().posts[postId].postRules),
             creationTimestamp: Core.$storage().posts[postId].creationTimestamp,
-            lastUpdatedTimestamp: Core.$storage().posts[postId].lastUpdatedTimestamp,
-            universalId: Core.$storage().posts[postId].universalId
+            lastUpdatedTimestamp: Core.$storage().posts[postId].lastUpdatedTimestamp
         });
     }
 
