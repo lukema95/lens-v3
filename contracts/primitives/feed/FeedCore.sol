@@ -13,6 +13,7 @@ struct PostStorage {
     address postRules;
     uint80 creationTimestamp;
     uint80 lastUpdatedTimestamp;
+    uint256 universalId;
     mapping(bytes32 => bytes) extraData;
 }
 
@@ -68,6 +69,7 @@ library FeedCore {
         _newPost.postRules = address(postParams.postRules); // TODO: Probably change to type address in PostParams struct
         _newPost.creationTimestamp = uint80(block.timestamp);
         _newPost.lastUpdatedTimestamp = uint80(block.timestamp);
+        _newPost.universalId = uint256(keccak256(abi.encode("evm:", block.chainid, address(this), postId)));
         for (uint256 i = 0; i < postParams.extraData.length; i++) {
             _newPost.extraData[postParams.extraData[i].key] = postParams.extraData[i].value;
         }
@@ -95,10 +97,12 @@ library FeedCore {
         }
     }
 
-    function _deletePost(uint256 postId, bytes32[] calldata extraDataKeysToDelete) internal {
+    function _deletePost(uint256 postId, bytes32[] calldata extraDataKeysToDelete) internal returns (uint256) {
+        uint256 universalId = $storage().posts[postId].universalId;
         for (uint256 i = 0; i < extraDataKeysToDelete.length; i++) {
             delete $storage().posts[postId].extraData[extraDataKeysToDelete[i]];
         }
         delete $storage().posts[postId];
+        return universalId;
     }
 }

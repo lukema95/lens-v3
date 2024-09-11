@@ -120,6 +120,12 @@
         "type": "uint256"
       },
       {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "universalId",
+        "type": "uint256"
+      },
+      {
         "indexed": false,
         "internalType": "bytes",
         "name": "feedRulesData",
@@ -142,6 +148,12 @@
         "indexed": true,
         "internalType": "uint256",
         "name": "postId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "universalId",
         "type": "uint256"
       },
       {
@@ -502,6 +514,11 @@
             "internalType": "uint80",
             "name": "lastUpdatedTimestamp",
             "type": "uint80"
+          },
+          {
+            "internalType": "uint256",
+            "name": "universalId",
+            "type": "uint256"
           }
         ],
         "internalType": "struct Post",
