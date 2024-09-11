@@ -166,11 +166,11 @@ abstract contract RuleCombinator is IRule {
         for (uint256 i = 0; i < _rules.length; i++) {
             if (_rules[i] == rule.contractAddress) {
                 delete _rules[i];
+                emit Lens_RuleCombinator_RuleRemoved(rule.contractAddress, rule.data);
                 return;
             }
         }
         revert("RuleCombinator: Rule not found");
-        emit Lens_RuleCombinator_RuleRemoved(rule.contractAddress, rule.data);
     }
 
     function _updateRules(RuleConfiguration[] memory rules) internal virtual {
@@ -186,11 +186,11 @@ abstract contract RuleCombinator is IRule {
             if (_rules[i] == rule.contractAddress) {
                 (bool success,) = rule.contractAddress.delegatecall(abi.encodeCall(IRule.configure, (rule.data)));
                 require(success, "RuleCombinator: Rule configuration failed");
+                emit Lens_RuleCombinator_RuleUpdated(rule.contractAddress, rule.data);
                 return;
             }
         }
         revert("RuleCombinator: Rule not found");
-        emit Lens_RuleCombinator_RuleUpdated(rule.contractAddress, rule.data);
     }
 
     function _processRules(bytes[] memory datas) internal virtual {
