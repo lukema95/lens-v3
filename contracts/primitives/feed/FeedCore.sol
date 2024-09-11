@@ -4,6 +4,7 @@ pragma solidity ^0.8.17;
 import {PostParams} from "./IFeed.sol";
 
 struct PostStorage {
+    uint256 sequentialId;
     address author;
     address source;
     string metadataURI;
@@ -36,7 +37,7 @@ library FeedCore {
 
     // External functions - Use these functions to be called through DELEGATECALL
 
-    function createPost(PostParams calldata postParams) external returns (uint256) {
+    function createPost(PostParams calldata postParams) external returns (uint256, uint256) {
         return _createPost(postParams);
     }
 
@@ -50,9 +51,15 @@ library FeedCore {
 
     // Internal functions - Use these functions to be called as an inlined library
 
-    function _createPost(PostParams calldata postParams) internal returns (uint256) {
-        uint256 postId = ++$storage().postCount;
+    function generatePostId(uint256 sequentialId) internal view returns (uint256) {
+        return uint256(keccak256(abi.encode("evm:", block.chainid, address(this), sequentialId)));
+    }
+
+    function _createPost(PostParams calldata postParams) internal returns (uint256, uint256) {
+        uint256 sequentialId = ++$storage().postCount;
+        uint256 postId = generatePostId(sequentialId);
         PostStorage storage _newPost = $storage().posts[postId];
+        _newPost.sequentialId = sequentialId;
         _newPost.author = postParams.author;
         _newPost.source = postParams.source;
         _newPost.metadataURI = postParams.metadataURI;
@@ -64,12 +71,12 @@ library FeedCore {
         for (uint256 i = 0; i < postParams.extraData.length; i++) {
             _newPost.extraData[postParams.extraData[i].key] = postParams.extraData[i].value;
         }
-        return postId;
+        return (postId, sequentialId);
     }
 
     function _editPost(uint256 postId, PostParams calldata postParams) internal {
         PostStorage storage _post = $storage().posts[postId];
-        _post.author = postParams.author;
+        _post.author = postParams.author; // TODO: Author can be changed?
         _post.source = postParams.source; // TODO: Can you edit the source? you might be editing from a diff source than the original source...
         _post.metadataURI = postParams.metadataURI;
         _post.quotedPostIds = postParams.quotedPostIds;

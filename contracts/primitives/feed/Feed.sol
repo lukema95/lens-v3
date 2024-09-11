@@ -55,11 +55,13 @@ contract Feed is IFeed {
         returns (uint256)
     {
         require(msg.sender == postParams.author);
-        uint256 postId = Core._createPost(postParams);
+        (uint256 postId, uint256 sequentialId) = Core._createPost(postParams);
         if (address(Core.$storage().feedRules) != address(0)) {
             IFeedRule(Core.$storage().feedRules).processCreatePost(msg.sender, postId, postParams, feedRulesData);
         }
-        emit Lens_Feed_PostCreated(postParams.author, postId, postParams, feedRulesData, _getPostTypeId(postParams));
+        emit Lens_Feed_PostCreated(
+            postParams.author, postId, sequentialId, postParams, feedRulesData, _getPostTypeId(postParams)
+        );
         return postId;
     }
 
@@ -140,7 +142,7 @@ contract Feed is IFeed {
         We use 5 bits to encode the post type:
         00 00  0
          ^  ^  ^
-         ^  ^  ^ 
+         ^  ^  ^
          ^  ^  ^
          ^  ^  contentURICardinality
          ^  ^
@@ -160,6 +162,7 @@ contract Feed is IFeed {
 
     function getPost(uint256 postId) external view override returns (Post memory) {
         return Post({
+            sequentialId: Core.$storage().posts[postId].sequentialId,
             author: Core.$storage().posts[postId].author,
             source: Core.$storage().posts[postId].source,
             metadataURI: Core.$storage().posts[postId].metadataURI,

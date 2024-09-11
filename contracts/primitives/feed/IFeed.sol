@@ -7,7 +7,7 @@ import {IAccessControl} from "../access-control/IAccessControl.sol";
 
 /*
     TODO: Natspec
-    
+
     // extraData - arbitrary key-value storage
 
     >> 1. pass extraData(name, value)
@@ -35,6 +35,7 @@ struct PostParams {
 
 // This is a return type (for getters)
 struct Post {
+    uint256 sequentialId;
     address author;
     address source;
     string metadataURI;
@@ -49,7 +50,12 @@ interface IFeed {
     event Lens_Feed_MetadataUriSet(string metadataURI);
 
     event Lens_Feed_PostCreated(
-        address indexed author, uint256 indexed postId, PostParams postParams, bytes feedRulesData, uint256 postTypeId
+        address indexed author,
+        uint256 indexed postId,
+        uint256 indexed sequentialId,
+        PostParams postParams,
+        bytes feedRulesData,
+        uint256 postTypeId
     );
 
     event Lens_Feed_PostEdited(
