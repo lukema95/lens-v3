@@ -17,6 +17,12 @@
     "inputs": [
       {
         "indexed": true,
+        "internalType": "uint256",
+        "name": "postId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
         "internalType": "address",
         "name": "author",
         "type": "address"
@@ -24,13 +30,7 @@
       {
         "indexed": true,
         "internalType": "uint256",
-        "name": "postId",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "sequentialId",
+        "name": "localSequentialId",
         "type": "uint256"
       },
       {
@@ -109,21 +109,15 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "address",
-        "name": "author",
-        "type": "address"
-      },
-      {
-        "indexed": true,
         "internalType": "uint256",
         "name": "postId",
         "type": "uint256"
       },
       {
         "indexed": true,
-        "internalType": "uint256",
-        "name": "universalId",
-        "type": "uint256"
+        "internalType": "address",
+        "name": "author",
+        "type": "address"
       },
       {
         "indexed": false,
@@ -140,21 +134,15 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "address",
-        "name": "author",
-        "type": "address"
-      },
-      {
-        "indexed": true,
         "internalType": "uint256",
         "name": "postId",
         "type": "uint256"
       },
       {
         "indexed": true,
-        "internalType": "uint256",
-        "name": "universalId",
-        "type": "uint256"
+        "internalType": "address",
+        "name": "author",
+        "type": "address"
       },
       {
         "components": [
@@ -471,14 +459,14 @@
       {
         "components": [
           {
-            "internalType": "uint256",
-            "name": "sequentialId",
-            "type": "uint256"
-          },
-          {
             "internalType": "address",
             "name": "author",
             "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "localSequentialId",
+            "type": "uint256"
           },
           {
             "internalType": "address",
@@ -514,11 +502,6 @@
             "internalType": "uint80",
             "name": "lastUpdatedTimestamp",
             "type": "uint80"
-          },
-          {
-            "internalType": "uint256",
-            "name": "universalId",
-            "type": "uint256"
           }
         ],
         "internalType": "struct Post",
