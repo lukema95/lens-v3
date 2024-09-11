@@ -59,7 +59,14 @@ contract Feed is IFeed {
         if (address(Core.$storage().feedRules) != address(0)) {
             IFeedRule(Core.$storage().feedRules).processCreatePost(msg.sender, postId, postParams, feedRulesData);
         }
-        emit Lens_Feed_PostCreated(postParams.author, postId, postParams, feedRulesData, _getPostTypeId(postParams));
+        emit Lens_Feed_PostCreated(
+            postParams.author,
+            postId,
+            Core.$storage().posts[postId].universalId,
+            postParams,
+            feedRulesData,
+            _getPostTypeId(postParams)
+        );
         return postId;
     }
 
@@ -85,6 +92,7 @@ contract Feed is IFeed {
         emit Lens_Feed_PostEdited(
             author,
             postId,
+            Core.$storage().posts[postId].universalId,
             newPostParams,
             editPostFeedRulesData,
             postRulesChangeFeedRulesData,
@@ -108,8 +116,8 @@ contract Feed is IFeed {
         if (address(Core.$storage().feedRules) != address(0)) {
             IFeedRule(Core.$storage().feedRules).processDeletePost(msg.sender, postId, feedRulesData);
         }
-        Core._deletePost(postId, extraDataKeysToDelete);
-        emit Lens_Feed_PostDeleted(author, postId, feedRulesData);
+        uint256 universalId = Core._deletePost(postId, extraDataKeysToDelete);
+        emit Lens_Feed_PostDeleted(author, postId, universalId, feedRulesData);
     }
 
     function _canDeletePost(address account) internal virtual returns (bool) {
@@ -167,7 +175,8 @@ contract Feed is IFeed {
             parentPostIds: Core.$storage().posts[postId].parentPostIds,
             postRules: IPostRule(Core.$storage().posts[postId].postRules),
             creationTimestamp: Core.$storage().posts[postId].creationTimestamp,
-            lastUpdatedTimestamp: Core.$storage().posts[postId].lastUpdatedTimestamp
+            lastUpdatedTimestamp: Core.$storage().posts[postId].lastUpdatedTimestamp,
+            universalId: Core.$storage().posts[postId].universalId
         });
     }
 
