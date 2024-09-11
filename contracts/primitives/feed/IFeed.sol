@@ -54,8 +54,7 @@ interface IFeed {
         address indexed author,
         uint256 indexed localSequentialId,
         PostParams postParams,
-        bytes feedRulesData,
-        uint256 postTypeId
+        bytes feedRulesData
     );
 
     event Lens_Feed_PostEdited(
@@ -63,8 +62,7 @@ interface IFeed {
         address indexed author,
         PostParams newPostParams,
         bytes feedRulesData,
-        bytes postRulesChangeFeedRulesData,
-        uint256 postTypeId
+        bytes postRulesChangeFeedRulesData
     );
 
     event Lens_Feed_PostDeleted(uint256 indexed postId, address indexed author, bytes feedRulesData);
@@ -90,8 +88,6 @@ interface IFeed {
     // Getters
 
     function getPost(uint256 postId) external view returns (Post memory);
-
-    function getPostTypeId(uint256 postId) external view returns (uint8);
 
     function getPostAuthor(uint256 postId) external view returns (address);
 

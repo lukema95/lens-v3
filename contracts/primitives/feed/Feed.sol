@@ -59,9 +59,7 @@ contract Feed is IFeed {
         if (address(Core.$storage().feedRules) != address(0)) {
             IFeedRule(Core.$storage().feedRules).processCreatePost(msg.sender, postId, postParams, feedRulesData);
         }
-        emit Lens_Feed_PostCreated(
-            postId, postParams.author, localSequentialId, postParams, feedRulesData, _getPostTypeId(postParams)
-        );
+        emit Lens_Feed_PostCreated(postId, postParams.author, localSequentialId, postParams, feedRulesData);
         return postId;
     }
 
@@ -84,14 +82,7 @@ contract Feed is IFeed {
             );
         }
         Core._editPost(postId, newPostParams);
-        emit Lens_Feed_PostEdited(
-            postId,
-            author,
-            newPostParams,
-            editPostFeedRulesData,
-            postRulesChangeFeedRulesData,
-            _getPostTypeId(newPostParams)
-        );
+        emit Lens_Feed_PostEdited(postId, author, newPostParams, editPostFeedRulesData, postRulesChangeFeedRulesData);
     }
 
     function deletePost(uint256 postId, bytes32[] calldata extraDataKeysToDelete, bytes calldata feedRulesData)
@@ -117,42 +108,6 @@ contract Feed is IFeed {
         });
     }
 
-    enum Cardinality {
-        NONE,
-        ONE,
-        MANY
-    }
-
-    function _getPostTypeId(PostParams memory post) internal pure returns (uint8) {
-        // Probably better with an enum: { NONE, ONE, MANY }
-        Cardinality metadataURICardinality = bytes(post.metadataURI).length > 0 ? Cardinality.ONE : Cardinality.NONE;
-        Cardinality quotedPostCardinality = post.quotedPostIds.length > 0
-            ? (post.quotedPostIds.length > 1 ? Cardinality.MANY : Cardinality.ONE)
-            : Cardinality.NONE;
-        Cardinality parentPostCardinality = post.parentPostIds.length > 0
-            ? (post.parentPostIds.length > 1 ? Cardinality.MANY : Cardinality.ONE)
-            : Cardinality.NONE;
-
-        /*
-        We use 5 bits to encode the post type:
-        00 00  0
-         ^  ^  ^
-         ^  ^  ^
-         ^  ^  ^
-         ^  ^  contentURICardinality
-         ^  ^
-         ^  quotedPostCardinality
-         ^
-         parentPostCardinality
-
-        It will have some gaps, but it's easy to encode/decode by shifting bits.
-        */
-        uint8 postType =
-            uint8(metadataURICardinality) | (uint8(quotedPostCardinality) << 1) | (uint8(parentPostCardinality) << 3);
-
-        return postType;
-    }
-
     // Getters
 
     function getPost(uint256 postId) external view override returns (Post memory) {
@@ -167,13 +122,6 @@ contract Feed is IFeed {
             creationTimestamp: Core.$storage().posts[postId].creationTimestamp,
             lastUpdatedTimestamp: Core.$storage().posts[postId].lastUpdatedTimestamp
         });
-    }
-
-    function getPostTypeId(uint256 postId) external view returns (uint8) {
-        PostParams memory post;
-        post.quotedPostIds = Core.$storage().posts[postId].quotedPostIds;
-        post.parentPostIds = Core.$storage().posts[postId].parentPostIds;
-        return _getPostTypeId(post);
     }
 
     function getPostAuthor(uint256 postId) external view override returns (address) {
