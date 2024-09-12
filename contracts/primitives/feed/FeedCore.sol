@@ -19,6 +19,7 @@ struct PostStorage {
 
 library FeedCore {
     using ExtraDataLib for mapping(bytes32 => bytes);
+
     // Storage
 
     struct Storage {
@@ -106,12 +107,12 @@ library FeedCore {
         delete $storage().posts[postId];
     }
 
-    function _setExtraData(DataElement[] calldata extraDataToSet) internal {
-        $storage().extraData.set(extraDataToSet);
-    }
-
     // TODO: Debate this more. It should be a soft delete, you can reconstruct anyways from tx history.
     // function _disablePost(uint256 postId) internal {
     //      $storage().posts[postId].disabled = true;
     // }
+
+    function _setExtraData(DataElement[] calldata extraDataToSet) internal {
+        $storage().extraData.set(extraDataToSet);
+    }
 }

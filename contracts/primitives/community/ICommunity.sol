@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {ICommunityRule} from "./ICommunityRule.sol";
+import {DataElement} from "./../../types/Types.sol";
 
 interface ICommunity {
     event Lens_Community_MetadataUriSet(string metadataURI);
@@ -20,6 +21,8 @@ interface ICommunity {
 
     function setMetadataURI(string calldata metadataURI) external;
 
+    function setExtraData(DataElement[] calldata extraDataToSet) external;
+
     function joinCommunity(address account, bytes calldata data) external;
 
     function leaveCommunity(address account, bytes calldata data) external;
@@ -37,4 +40,6 @@ interface ICommunity {
     function getCommunityRules() external view returns (address);
 
     function getAccessControl() external view returns (address);
+
+    function getExtraData(bytes32 key) external view returns (bytes memory);
 }

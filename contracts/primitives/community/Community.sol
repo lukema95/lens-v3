@@ -5,11 +5,17 @@ import {ICommunity} from "./ICommunity.sol";
 import {ICommunityRule} from "./ICommunityRule.sol";
 import {CommunityCore as Core} from "./CommunityCore.sol";
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
+import {AccessControlLib} from "./../libraries/AccessControlLib.sol";
+import {DataElement} from "./../../types/Types.sol";
 
 contract Community is ICommunity {
+    using AccessControlLib for IAccessControl;
+    using AccessControlLib for address;
+
     // Resource IDs involved in the contract
     uint256 constant SET_RULES_RID = uint256(keccak256("SET_RULES"));
     uint256 constant SET_METADATA_RID = uint256(keccak256("SET_METADATA"));
+    uint256 constant SET_EXTRA_DATA_RID = uint256(keccak256("SET_EXTRA_DATA"));
     uint256 constant CHANGE_ACCESS_CONTROL_RID = uint256(keccak256("CHANGE_ACCESS_CONTROL"));
 
     constructor(string memory metadataURI, IAccessControl accessControl) {
@@ -21,40 +27,31 @@ contract Community is ICommunity {
     // Access Controlled functions
 
     function setCommunityRules(ICommunityRule communityRules) external override {
-        require(
-            IAccessControl(Core.$storage().accessControl).hasAccess({
-                account: msg.sender,
-                resourceLocation: address(this),
-                resourceId: SET_RULES_RID
-            })
-        );
+        Core.$storage().accessControl.requireAccess(msg.sender, SET_RULES_RID);
         Core.$storage().communityRules = address(communityRules);
         emit Lens_Community_RulesSet(address(communityRules));
     }
 
     function setMetadataURI(string calldata metadataURI) external override {
-        require(
-            IAccessControl(Core.$storage().accessControl).hasAccess({
-                account: msg.sender,
-                resourceLocation: address(this),
-                resourceId: SET_METADATA_RID
-            })
-        );
+        Core.$storage().accessControl.requireAccess(msg.sender, SET_METADATA_RID);
         Core.$storage().metadataURI = metadataURI;
         emit Lens_Community_MetadataUriSet(metadataURI);
     }
 
     // TODO: This is a 1-step operation, while some of our AC owner transfers are a 2-step, or even 3-step operations.
     function setAccessControl(IAccessControl accessControl) external {
-        require(
-            IAccessControl(Core.$storage().accessControl).hasAccess({
-                account: msg.sender,
-                resourceLocation: address(this),
-                resourceId: CHANGE_ACCESS_CONTROL_RID
-            })
-        ); // msg.sender must have permissions to change access control
-        accessControl.hasAccess(address(0), address(0), 0); // We expect this to not panic.
+        // msg.sender must have permissions to change access control
+        Core.$storage().accessControl.requireAccess(msg.sender, CHANGE_ACCESS_CONTROL_RID);
+        accessControl.verifyHasAccessFunction();
         Core.$storage().accessControl = address(accessControl);
+    }
+
+    function setExtraData(DataElement[] calldata extraDataToSet) external override {
+        Core.$storage().accessControl.requireAccess(msg.sender, SET_EXTRA_DATA_RID);
+        Core._setExtraData(extraDataToSet);
+        for (uint256 i = 0; i < extraDataToSet.length; i++) {
+            emit Lens_Community_ExtraDataSet(extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value);
+        }
     }
 
     // Public functions
@@ -113,5 +110,9 @@ contract Community is ICommunity {
 
     function getAccessControl() external view override returns (address) {
         return Core.$storage().accessControl;
+    }
+
+    function getExtraData(bytes32 key) external view override returns (bytes memory) {
+        return Core.$storage().extraData[key];
     }
 }
