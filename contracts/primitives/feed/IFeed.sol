@@ -69,6 +69,8 @@ interface IFeed {
 
     event Lens_Feed_RulesSet(address indexed feedRules);
 
+    event Lens_Feed_ExtraDataSet(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+
     function createPost(PostParams calldata postParams, bytes calldata data) external returns (uint256);
 
     function editPost(

@@ -14,6 +14,8 @@ interface ICommunity {
 
     event Lens_Community_MemberRemoved(address indexed account, uint256 indexed memberId, bytes data);
 
+    event Lens_Community_ExtraDataSet(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+
     function setCommunityRules(ICommunityRule communityRules) external;
 
     function setMetadataURI(string calldata metadataURI) external;

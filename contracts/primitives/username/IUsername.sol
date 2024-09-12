@@ -12,6 +12,8 @@ interface IUsername {
 
     event Lens_Username_Unregistered(string username, address indexed previousAccount, bytes data);
 
+    event Lens_Username_ExtraDataSet(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+
     // function setUsernameRules(address usernameRules, bytes calldata initializationData) external;
 
     function setUsernameRules(IUsernameRule usernameRules) external;

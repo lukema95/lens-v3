@@ -28,6 +28,8 @@ interface IGraph {
         address indexed followerAccount, address indexed accountToUnfollow, uint256 followId, bytes graphRulesData
     );
 
+    event Lens_Graph_ExtraDataSet(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+
     function setGraphRules(IGraphRule graphRules) external;
 
     function setFollowRules(address account, IFollowRule followRules, bytes calldata graphRulesData) external;
