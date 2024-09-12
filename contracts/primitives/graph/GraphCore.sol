@@ -2,9 +2,13 @@
 pragma solidity ^0.8.17;
 
 import {Follow} from "./IGraph.sol";
+import "../libraries/ExtraDataLib.sol";
 
 library GraphCore {
+    using ExtraDataLib for mapping(bytes32 => bytes);
+
     // Storage
+
     struct Storage {
         address accessControl;
         address graphRules;
@@ -15,6 +19,7 @@ library GraphCore {
         mapping(address => mapping(uint256 => address)) followers;
         mapping(address => uint256) followersCount;
         mapping(address => mapping(address => bool)) isBlocked;
+        mapping(bytes32 => bytes) extraData;
     }
 
     // keccak256('lens.graph.core.storage')
@@ -34,6 +39,10 @@ library GraphCore {
 
     function unfollow(address followerAccount, address accountToUnfollow) external returns (uint256) {
         return _unfollow(followerAccount, accountToUnfollow);
+    }
+
+    function setExtraData(DataElement[] calldata extraDataToSet) external {
+        $storage().extraData.set(extraDataToSet);
     }
 
     // Internal functions - Use these functions to be called as an inlined library
@@ -58,5 +67,9 @@ library GraphCore {
         delete $storage().followers[accountToUnfollow][followId];
         delete $storage().follows[followerAccount][accountToUnfollow];
         return followId;
+    }
+
+    function _setExtraData(DataElement[] calldata extraDataToSet) internal {
+        $storage().extraData.set(extraDataToSet);
     }
 }

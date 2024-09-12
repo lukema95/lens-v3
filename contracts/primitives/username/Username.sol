@@ -5,11 +5,17 @@ import {UsernameCore as Core} from "./UsernameCore.sol";
 import {IUsernameRule} from "./IUsernameRule.sol";
 import {IUsername} from "./IUsername.sol";
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
+import {AccessControlLib} from "./../libraries/AccessControlLib.sol";
+import {DataElement} from "./../../types/Types.sol";
 
 contract Username is IUsername {
+    using AccessControlLib for IAccessControl;
+    using AccessControlLib for address;
+
     // Resource IDs involved in the contract
     uint256 constant SET_RULES_RID = uint256(keccak256("SET_RULES"));
     uint256 constant CHANGE_ACCESS_CONTROL_RID = uint256(keccak256("CHANGE_ACCESS_CONTROL"));
+    uint256 constant SET_EXTRA_DATA_RID = uint256(keccak256("SET_EXTRA_DATA"));
 
     // Storage fields and structs
     struct LengthRestriction {
@@ -27,25 +33,15 @@ contract Username is IUsername {
 
     // TODO: This is a 1-step operation, while some of our AC owner transfers are a 2-step, or even 3-step operations.
     function setAccessControl(IAccessControl accessControl) external {
-        require(
-            IAccessControl(Core.$storage().accessControl).hasAccess({
-                account: msg.sender,
-                resourceLocation: address(this),
-                resourceId: CHANGE_ACCESS_CONTROL_RID
-            })
-        ); // msg.sender must have permissions to change access control
-        accessControl.hasAccess(address(0), address(0), 0); // We expect this to not panic.
+        // msg.sender must have permissions to change access control
+        Core.$storage().accessControl.requireAccess(msg.sender, CHANGE_ACCESS_CONTROL_RID);
+        accessControl.verifyHasAccessFunction();
         Core.$storage().accessControl = address(accessControl);
     }
 
     function setUsernameRules(IUsernameRule usernameRules) external {
-        require(
-            IAccessControl(Core.$storage().accessControl).hasAccess({
-                account: msg.sender,
-                resourceLocation: address(this),
-                resourceId: SET_RULES_RID
-            })
-        ); // msg.sender must have permissions to set rules
+        // msg.sender must have permissions to set rules
+        Core.$storage().accessControl.requireAccess(msg.sender, SET_RULES_RID);
         Core.$storage().usernameRules = address(usernameRules);
         emit Lens_Username_RulesSet(address(usernameRules));
     }
@@ -76,6 +72,14 @@ contract Username is IUsername {
         IUsernameRule(Core.$storage().usernameRules).processUnregistering(msg.sender, account, username, data);
         Core._unregisterUsername(username);
         emit Lens_Username_Unregistered(username, account, data);
+    }
+
+    function setExtraData(DataElement[] calldata extraDataToSet) external override {
+        Core.$storage().accessControl.requireAccess(msg.sender, SET_EXTRA_DATA_RID);
+        Core._setExtraData(extraDataToSet);
+        for (uint256 i = 0; i < extraDataToSet.length; i++) {
+            emit Lens_Username_ExtraDataSet(extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value);
+        }
     }
 
     // Internal
@@ -125,5 +129,9 @@ contract Username is IUsername {
 
     function getAccessControl() external view returns (address) {
         return Core.$storage().accessControl;
+    }
+
+    function getExtraData(bytes32 key) external view override returns (bytes memory) {
+        return Core.$storage().extraData[key];
     }
 }

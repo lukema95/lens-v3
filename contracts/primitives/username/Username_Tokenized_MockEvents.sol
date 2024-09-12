@@ -16,4 +16,6 @@ contract UsernameTokenized {
     event Lens_Username_MinLengthSet(uint8 length);
 
     event Lens_Username_MaxLengthSet(uint8 length);
+
+    event Lens_Username_Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 }

@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import {IPostRule} from "./IPostRule.sol";
 import {IFeedRule} from "./IFeedRule.sol";
 import {IAccessControl} from "../access-control/IAccessControl.sol";
+import {DataElement} from "../../types/Types.sol";
 
 /*
     TODO: Natspec
@@ -17,11 +18,6 @@ import {IAccessControl} from "../access-control/IAccessControl.sol";
     Example:
         mapping(uint256 postId => mapping(bytes32 (keccak256(name)) => bytes abi.encoded(value) or "" empty bytes)
 */
-
-struct DataElement {
-    bytes32 key;
-    bytes value;
-}
 
 struct PostParams {
     address author; // Multiple authors can be added in extraData
@@ -69,6 +65,8 @@ interface IFeed {
 
     event Lens_Feed_RulesSet(address indexed feedRules);
 
+    event Lens_Feed_ExtraDataSet(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+
     function createPost(PostParams calldata postParams, bytes calldata data) external returns (uint256);
 
     function editPost(
@@ -82,6 +80,8 @@ interface IFeed {
     // But this will at least remove it from the current state, so contracts accesing it will know.
     function deletePost(uint256 postId, bytes32[] calldata extraDataKeysToDelete, bytes calldata feedRulesData)
         external;
+
+    function setExtraData(DataElement[] calldata extraDataToSet) external;
 
     function setFeedRules(IFeedRule feedRules) external;
 
@@ -99,5 +99,9 @@ interface IFeed {
 
     function getFeedMetadataURI() external view returns (string memory);
 
+    function getPostExtraData(uint256 postId, bytes32 key) external view returns (bytes memory);
+
     function getAccessControl() external view returns (IAccessControl);
+
+    function getExtraData(bytes32 key) external view returns (bytes memory);
 }

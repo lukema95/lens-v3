@@ -3,7 +3,13 @@ pragma solidity ^0.8.0;
 
 import {IFollowRule} from "./IFollowRule.sol";
 import {IGraphRule} from "./IGraphRule.sol";
+import {DataElement} from "../../types/Types.sol";
 
+// TODO: Might worth to add extraData to the follow entity
+// Maybe it requires a targetExtraData and a followerExtraData
+// so then you have different auth for them, and they store different data
+// e.g. the follower can store a label/tag/category, like "I follow this account because of crypto/politics/etc"
+// and the target can store other information like tiers, etc.
 struct Follow {
     uint256 id;
     uint256 timestamp;
@@ -28,9 +34,13 @@ interface IGraph {
         address indexed followerAccount, address indexed accountToUnfollow, uint256 followId, bytes graphRulesData
     );
 
+    event Lens_Graph_ExtraDataSet(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+
     function setGraphRules(IGraphRule graphRules) external;
 
     function setFollowRules(address account, IFollowRule followRules, bytes calldata graphRulesData) external;
+
+    function setExtraData(DataElement[] calldata extraDataToSet) external;
 
     function follow(
         address followerAccount,
@@ -57,4 +67,6 @@ interface IGraph {
     function getFollowRules(address account) external view returns (IFollowRule);
 
     function getGraphRules() external view returns (IGraphRule);
+
+    function getExtraData(bytes32 key) external view returns (bytes memory);
 }
