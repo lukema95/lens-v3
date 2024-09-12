@@ -2,6 +2,7 @@
 pragma solidity ^0.8.17;
 
 import {PostParams} from "./IFeed.sol";
+import "../libraries/ExtraDataLib.sol";
 
 struct PostStorage {
     address author;
@@ -17,13 +18,16 @@ struct PostStorage {
 }
 
 library FeedCore {
+    using ExtraDataLib for mapping(bytes32 => bytes);
     // Storage
+
     struct Storage {
         address accessControl;
         string metadataURI;
         address feedRules;
         uint256 postCount;
         mapping(uint256 => PostStorage) posts;
+        mapping(bytes32 => bytes) extraData;
     }
 
     // keccak256('lens.feed.core.storage')
@@ -49,6 +53,10 @@ library FeedCore {
         _deletePost(postId, extraDataKeysToDelete);
     }
 
+    function setExtraData(DataElement[] calldata extraDataToSet) external {
+        $storage().extraData.set(extraDataToSet);
+    }
+
     // Internal functions - Use these functions to be called as an inlined library
 
     function _generatePostId(uint256 localSequentialId) internal view returns (uint256) {
@@ -68,9 +76,7 @@ library FeedCore {
         _newPost.postRules = address(postParams.postRules); // TODO: Probably change to type address in PostParams struct
         _newPost.creationTimestamp = uint80(block.timestamp);
         _newPost.lastUpdatedTimestamp = uint80(block.timestamp);
-        for (uint256 i = 0; i < postParams.extraData.length; i++) {
-            _newPost.extraData[postParams.extraData[i].key] = postParams.extraData[i].value;
-        }
+        _newPost.extraData.set(postParams.extraData);
         return (postId, localSequentialId);
     }
 
@@ -90,9 +96,7 @@ library FeedCore {
             _post.postRules = address(postParams.postRules); // TODO: Probably change to type address in PostParams struct
         }
         _post.lastUpdatedTimestamp = uint80(block.timestamp);
-        for (uint256 i = 0; i < postParams.extraData.length; i++) {
-            _post.extraData[postParams.extraData[i].key] = postParams.extraData[i].value;
-        }
+        ExtraDataLib._setExtraData(_post.extraData, postParams.extraData);
     }
 
     function _deletePost(uint256 postId, bytes32[] calldata extraDataKeysToDelete) internal {
@@ -100,6 +104,10 @@ library FeedCore {
             delete $storage().posts[postId].extraData[extraDataKeysToDelete[i]];
         }
         delete $storage().posts[postId];
+    }
+
+    function _setExtraData(DataElement[] calldata extraDataToSet) internal {
+        $storage().extraData.set(extraDataToSet);
     }
 
     // TODO: Debate this more. It should be a soft delete, you can reconstruct anyways from tx history.
