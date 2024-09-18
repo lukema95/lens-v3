@@ -5,7 +5,6 @@ import {IAccessControl} from "./../primitives/access-control/IAccessControl.sol"
 import {Username} from "./../primitives/username/Username.sol";
 import {IUsernameRule} from "./../primitives/username/IUsernameRule.sol";
 import {OwnerOnlyAccessControl} from "./../primitives/access-control/OwnerOnlyAccessControl.sol";
-import {UsernameRuleCombinator} from "./../primitives/username/UsernameRuleCombinator.sol";
 
 contract UsernameFactory {
     event Lens_UsernameFactory_NewUsernameInstance(
@@ -76,30 +75,30 @@ contract UsernameFactory {
         return usernameInstance;
     }
 
-    function deploy__Immutable_WithRules(
-        string memory namespace,
-        IAccessControl accessControl,
-        bytes calldata rulesInitializationData
-    ) external returns (address) {
-        require(
-            IAccessControl(_accessControl).hasAccess({
-                account: msg.sender,
-                resourceLocation: address(this),
-                resourceId: DEPLOY_USERNAME_RID
-            })
-        ); // msg.sender must have permissions to deploy
-        Username usernameInstance = new Username(namespace, _factoryOwnedAccessControl);
-        IUsernameRule rulesInstance = new UsernameRuleCombinator();
-        rulesInstance.configure(rulesInitializationData);
-        usernameInstance.setUsernameRules(rulesInstance);
-        usernameInstance.setAccessControl(accessControl);
-        emit Lens_UsernameFactory_NewUsernameInstance({
-            usernameInstance: address(usernameInstance),
-            namespace: namespace,
-            accessControl: accessControl,
-            rules: rulesInstance,
-            rulesInitializationData: rulesInitializationData
-        });
-        return address(usernameInstance);
-    }
+    // function deploy__Immutable_WithRules(
+    //     string memory namespace,
+    //     IAccessControl accessControl,
+    //     bytes calldata rulesInitializationData
+    // ) external returns (address) {
+    //     require(
+    //         IAccessControl(_accessControl).hasAccess({
+    //             account: msg.sender,
+    //             resourceLocation: address(this),
+    //             resourceId: DEPLOY_USERNAME_RID
+    //         })
+    //     ); // msg.sender must have permissions to deploy
+    //     Username usernameInstance = new Username(namespace, _factoryOwnedAccessControl);
+    //     IUsernameRule rulesInstance = new UsernameRuleCombinator();
+    //     rulesInstance.configure(rulesInitializationData);
+    //     usernameInstance.setUsernameRules(rulesInstance);
+    //     usernameInstance.setAccessControl(accessControl);
+    //     emit Lens_UsernameFactory_NewUsernameInstance({
+    //         usernameInstance: address(usernameInstance),
+    //         namespace: namespace,
+    //         accessControl: accessControl,
+    //         rules: rulesInstance,
+    //         rulesInitializationData: rulesInitializationData
+    //     });
+    //     return address(usernameInstance);
+    // }
 }

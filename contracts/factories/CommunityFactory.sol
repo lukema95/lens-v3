@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import {IAccessControl} from "./../primitives/access-control/IAccessControl.sol";
 import {Community} from "./../primitives/community/Community.sol";
 import {OwnerOnlyAccessControl} from "./../primitives/access-control/OwnerOnlyAccessControl.sol";
-import {CommunityRuleCombinator} from "./../primitives/community/CommunityRuleCombinator.sol";
 import {ICommunityRule} from "./../primitives/community/ICommunityRule.sol";
 
 contract CommunityFactory {
@@ -61,30 +60,30 @@ contract CommunityFactory {
         return communityInstance;
     }
 
-    function deploy__Immutable_WithRules(
-        string memory metadataURI,
-        IAccessControl accessControl,
-        bytes calldata rulesInitializationData
-    ) external returns (address) {
-        require(
-            IAccessControl(_accessControl).hasAccess({
-                account: msg.sender,
-                resourceLocation: address(this),
-                resourceId: DEPLOY_COMMUNITY_RID
-            })
-        ); // msg.sender must have permissions to deploy
-        Community communityInstance = new Community(metadataURI, _factoryOwnedAccessControl);
-        ICommunityRule rulesInstance = new CommunityRuleCombinator();
-        rulesInstance.configure(rulesInitializationData);
-        communityInstance.setCommunityRules(rulesInstance);
-        communityInstance.setAccessControl(accessControl);
-        emit Lens_CommunityFactory_NewCommunityInstance({
-            communityInstance: address(communityInstance),
-            metadataURI: metadataURI,
-            accessControl: accessControl,
-            rules: rulesInstance,
-            rulesInitializationData: rulesInitializationData
-        });
-        return address(communityInstance);
-    }
+    // function deploy__Immutable_WithRules(
+    //     string memory metadataURI,
+    //     IAccessControl accessControl,
+    //     bytes calldata rulesInitializationData
+    // ) external returns (address) {
+    //     require(
+    //         IAccessControl(_accessControl).hasAccess({
+    //             account: msg.sender,
+    //             resourceLocation: address(this),
+    //             resourceId: DEPLOY_COMMUNITY_RID
+    //         })
+    //     ); // msg.sender must have permissions to deploy
+    //     Community communityInstance = new Community(metadataURI, _factoryOwnedAccessControl);
+    //     ICommunityRule rulesInstance = new CommunityRuleCombinator();
+    //     rulesInstance.configure(rulesInitializationData);
+    //     communityInstance.setCommunityRules(rulesInstance);
+    //     communityInstance.setAccessControl(accessControl);
+    //     emit Lens_CommunityFactory_NewCommunityInstance({
+    //         communityInstance: address(communityInstance),
+    //         metadataURI: metadataURI,
+    //         accessControl: accessControl,
+    //         rules: rulesInstance,
+    //         rulesInitializationData: rulesInitializationData
+    //     });
+    //     return address(communityInstance);
+    // }
 }

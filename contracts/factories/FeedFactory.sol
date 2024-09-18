@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import {IAccessControl} from "./../primitives/access-control/IAccessControl.sol";
 import {Feed} from "./../primitives/feed/Feed.sol";
 import {OwnerOnlyAccessControl} from "./../primitives/access-control/OwnerOnlyAccessControl.sol";
-import {FeedRuleCombinator} from "./../primitives/feed/FeedRuleCombinator.sol";
 import {IFeedRule} from "./../primitives/feed/IFeedRule.sol";
 
 contract FeedFactory {
@@ -61,30 +60,30 @@ contract FeedFactory {
         return feedInstance;
     }
 
-    function deploy__Immutable_WithRules(
-        string memory metadataURI,
-        IAccessControl accessControl,
-        bytes calldata rulesInitializationData
-    ) external returns (address) {
-        require(
-            IAccessControl(_accessControl).hasAccess({
-                account: msg.sender,
-                resourceLocation: address(this),
-                resourceId: DEPLOY_FEED_RID
-            })
-        ); // msg.sender must have permissions to deploy
-        Feed feedInstance = new Feed(metadataURI, _factoryOwnedAccessControl);
-        IFeedRule rulesInstance = new FeedRuleCombinator();
-        rulesInstance.configure(rulesInitializationData);
-        feedInstance.setFeedRules(rulesInstance);
-        feedInstance.setAccessControl(accessControl);
-        emit Lens_FeedFactory_NewFeedInstance({
-            feedInstance: address(feedInstance),
-            metadataURI: metadataURI,
-            accessControl: accessControl,
-            rules: rulesInstance,
-            rulesInitializationData: rulesInitializationData
-        });
-        return address(feedInstance);
-    }
+    // function deploy__Immutable_WithRules(
+    //     string memory metadataURI,
+    //     IAccessControl accessControl,
+    //     bytes calldata rulesInitializationData
+    // ) external returns (address) {
+    //     require(
+    //         IAccessControl(_accessControl).hasAccess({
+    //             account: msg.sender,
+    //             resourceLocation: address(this),
+    //             resourceId: DEPLOY_FEED_RID
+    //         })
+    //     ); // msg.sender must have permissions to deploy
+    //     Feed feedInstance = new Feed(metadataURI, _factoryOwnedAccessControl);
+    //     IFeedRule rulesInstance = new FeedRuleCombinator();
+    //     rulesInstance.configure(rulesInitializationData);
+    //     feedInstance.setFeedRules(rulesInstance);
+    //     feedInstance.setAccessControl(accessControl);
+    //     emit Lens_FeedFactory_NewFeedInstance({
+    //         feedInstance: address(feedInstance),
+    //         metadataURI: metadataURI,
+    //         accessControl: accessControl,
+    //         rules: rulesInstance,
+    //         rulesInitializationData: rulesInitializationData
+    //     });
+    //     return address(feedInstance);
+    // }
 }

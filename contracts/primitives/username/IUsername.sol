@@ -27,7 +27,7 @@ interface IUsername {
 
     function getNamespace() external view returns (string memory);
 
-    function getUsernameRules() external view returns (address);
+    // function getUsernameRules() external view returns (address);
 
     function getExtraData(bytes32 key) external view returns (bytes memory);
 }

@@ -9,8 +9,6 @@ library UsernameCore {
     // Storage
 
     struct Storage {
-        address accessControl;
-        address usernameRules;
         string namespace;
         mapping(string => address) usernameToAccount;
         mapping(address => string) accountToUsername;

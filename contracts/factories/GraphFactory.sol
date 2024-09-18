@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import {IAccessControl} from "./../primitives/access-control/IAccessControl.sol";
 import {Graph} from "./../primitives/graph/Graph.sol";
 import {OwnerOnlyAccessControl} from "./../primitives/access-control/OwnerOnlyAccessControl.sol";
-import {GraphRuleCombinator} from "./../primitives/graph/GraphRuleCombinator.sol";
 import {IGraphRule} from "./../primitives/graph/IGraphRule.sol";
 
 contract GraphFactory {
@@ -61,30 +60,30 @@ contract GraphFactory {
         return graphInstance;
     }
 
-    function deploy__Immutable_WithRules(
-        string memory metadataURI,
-        IAccessControl accessControl,
-        bytes calldata rulesInitializationData
-    ) external returns (address) {
-        require(
-            IAccessControl(_accessControl).hasAccess({
-                account: msg.sender,
-                resourceLocation: address(this),
-                resourceId: DEPLOY_GRAPH_RID
-            })
-        ); // msg.sender must have permissions to deploy
-        Graph graphInstance = new Graph(metadataURI, _factoryOwnedAccessControl);
-        IGraphRule rulesInstance = new GraphRuleCombinator();
-        rulesInstance.configure(rulesInitializationData);
-        graphInstance.setGraphRules(rulesInstance);
-        graphInstance.setAccessControl(accessControl);
-        emit Lens_GraphFactory_NewGraphInstance({
-            graphInstance: address(graphInstance),
-            metadataURI: metadataURI,
-            accessControl: accessControl,
-            rules: rulesInstance,
-            rulesInitializationData: rulesInitializationData
-        });
-        return address(graphInstance);
-    }
+    // function deploy__Immutable_WithRules(
+    //     string memory metadataURI,
+    //     IAccessControl accessControl,
+    //     bytes calldata rulesInitializationData
+    // ) external returns (address) {
+    //     require(
+    //         IAccessControl(_accessControl).hasAccess({
+    //             account: msg.sender,
+    //             resourceLocation: address(this),
+    //             resourceId: DEPLOY_GRAPH_RID
+    //         })
+    //     ); // msg.sender must have permissions to deploy
+    //     Graph graphInstance = new Graph(metadataURI, _factoryOwnedAccessControl);
+    //     IGraphRule rulesInstance = new GraphRuleCombinator();
+    //     rulesInstance.configure(rulesInitializationData);
+    //     graphInstance.setGraphRules(rulesInstance);
+    //     graphInstance.setAccessControl(accessControl);
+    //     emit Lens_GraphFactory_NewGraphInstance({
+    //         graphInstance: address(graphInstance),
+    //         metadataURI: metadataURI,
+    //         accessControl: accessControl,
+    //         rules: rulesInstance,
+    //         rulesInitializationData: rulesInitializationData
+    //     });
+    //     return address(graphInstance);
+    // }
 }
