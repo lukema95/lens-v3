@@ -5,3 +5,9 @@ struct DataElement {
     bytes32 key;
     bytes value;
 }
+
+struct RuleConfiguration {
+    address ruleAddress;
+    bytes configData;
+    bool isRequired;
+}

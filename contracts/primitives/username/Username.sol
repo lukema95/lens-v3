@@ -7,9 +7,14 @@ import {IUsername} from "./IUsername.sol";
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
 import {DataElement} from "./../../types/Types.sol";
 import {RuleBased} from "./../base/RuleBased.sol";
+import {AccessControlled} from "./../base/AccessControlled.sol";
+import {IAccessControl} from "./../access-control/IAccessControl.sol";
+import {RuleConfiguration} from "./../../types/Types.sol";
 
-contract Username is IUsername, RuleBased {
+contract Username is IUsername, RuleBased, AccessControlled {
     uint256 constant SET_EXTRA_DATA_RID = uint256(keccak256("SET_EXTRA_DATA"));
+    // TODO: Do we want more granular resources here? Like add/update/remove RIDs? Or are we OK with the multi-purpose?
+    uint256 constant SET_RULES_RID = uint256(keccak256("SET_RULES"));
 
     // TODO: This will be a mandatory rule now
     // // Storage fields and structs
@@ -18,17 +23,41 @@ contract Username is IUsername, RuleBased {
     //     uint8 max;
     // }
 
-    constructor(string memory namespace, IAccessControl accessControl) RuleBased(accessControl) {
+    constructor(string memory namespace, IAccessControl accessControl)
+        RuleBased(bytes32(0))
+        AccessControlled(accessControl)
+    {
         Core.$storage().namespace = namespace;
     }
 
     // Access Controlled functions
 
-    function setUsernameRules(IUsernameRule usernameRules) external {
-        // msg.sender must have permissions to set rules
-        // Core.$storage().accessControl.requireAccess(msg.sender, SET_RULES_RID);
-        // Core.$storage().usernameRules = address(usernameRules);
-        emit Lens_Username_RulesSet(address(usernameRules));
+    function addUsernameRules(RuleConfiguration[] calldata ruleConfigurations) external {
+        _requireAccess(SET_RULES_RID);
+        for (uint256 i = 0; i < ruleConfigurations.length; i++) {
+            _addRule(ruleConfigurations[i]);
+            emit Lens_Username_RuleAdded(
+                ruleConfigurations[i].ruleAddress, ruleConfigurations[i].configData, ruleConfigurations[i].isRequired
+            );
+        }
+    }
+
+    function updateUsernameRules(RuleConfiguration[] calldata ruleConfigurations) external {
+        _requireAccess(SET_RULES_RID);
+        for (uint256 i = 0; i < ruleConfigurations.length; i++) {
+            _updateRule(ruleConfigurations[i]);
+            emit Lens_Username_RuleUpdated(
+                ruleConfigurations[i].ruleAddress, ruleConfigurations[i].configData, ruleConfigurations[i].isRequired
+            );
+        }
+    }
+
+    function removeUsernameRules(address[] calldata rules) external {
+        _requireAccess(SET_RULES_RID);
+        for (uint256 i = 0; i < rules.length; i++) {
+            _removeRule(rules[i]);
+            emit Lens_Username_RuleRemoved(rules[i]);
+        }
     }
 
     // Permissionless functions

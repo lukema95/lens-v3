@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IUsernameRule} from "./IUsernameRule.sol";
-import {DataElement} from "../../types/Types.sol";
+import {DataElement, RuleConfiguration} from "../../types/Types.sol";
 
 interface IUsername {
-    event Lens_Username_RulesSet(address indexed usernameRules);
+    event Lens_Username_RuleAdded(address indexed ruleAddress, bytes configData, bool indexed isRequired);
+
+    event Lens_Username_RuleUpdated(address indexed ruleAddress, bytes configData, bool indexed isRequired);
+
+    event Lens_Username_RuleRemoved(address indexed ruleAddress);
 
     event Lens_Username_Registered(string username, address indexed account, bytes data);
 
@@ -15,7 +18,11 @@ interface IUsername {
 
     function setExtraData(DataElement[] calldata extraDataToSet) external;
 
-    function setUsernameRules(IUsernameRule usernameRules) external;
+    function addUsernameRules(RuleConfiguration[] calldata ruleConfigurations) external;
+
+    function updateUsernameRules(RuleConfiguration[] calldata ruleConfigurations) external;
+
+    function removeUsernameRules(address[] calldata rules) external;
 
     function registerUsername(address account, string memory username, bytes calldata data) external;
 

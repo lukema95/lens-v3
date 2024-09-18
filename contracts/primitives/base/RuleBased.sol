@@ -1,88 +1,108 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {AccessControlled} from "./AccessControlled.sol";
-import {IAccessControl} from "./../access-control/IAccessControl.sol";
 import {IRule} from "./../rules/IRule.sol";
+import {RuleConfiguration} from "./../../types/Types.sol";
 
-contract RuleBased is AccessControlled {
-    uint256 constant SET_RULES_RID = uint256(keccak256("SET_RULES"));
-
+contract RuleBased {
     struct RuleState {
         uint8 index;
         bool isRequired;
         bool isSet;
     }
 
-    struct RuleBasedStorage {
+    struct RulesStorage {
         address[] requiredRules;
         address[] anyOfRules;
         mapping(address => RuleState) ruleStates;
     }
 
-    struct RuleConfiguration {
-        address contractAddress;
-        bytes data;
+    struct RuleBasedStorage {
+        mapping(bytes32 => RulesStorage) rulesStorage;
     }
 
     // keccak256('lens.rule.based.storage')
     bytes32 constant RULE_BASED_STORAGE_SLOT = 0x78c2efc16b0e28b79e7018ec8a12d1eec1218d52bcd7993a02f6763876b0ceb6;
 
-    function $storage() private pure returns (RuleBasedStorage storage _storage) {
+    function $ruleBasedStorage() private pure returns (RuleBasedStorage storage _storage) {
         assembly {
             _storage.slot := RULE_BASED_STORAGE_SLOT
         }
     }
 
-    constructor(IAccessControl accessControl) AccessControlled(accessControl) {}
+    bytes32 private immutable DEFAULT_RULES_STORAGE_KEY;
 
-    function _addRule(RuleConfiguration memory rule, bool requiredRule) internal virtual {
-        require(!_ruleAlreadySet(rule.contractAddress), "RuleAlreadySet");
-        _addRuleToStorage(rule.contractAddress, requiredRule);
-        IRule(rule.contractAddress).configure(rule.data);
-        // emit Lens_RuleAdded(rule.contractAddress, rule.data, requiredRule);
+    constructor(bytes32 defaultRulesStorageKey) {
+        DEFAULT_RULES_STORAGE_KEY = defaultRulesStorageKey;
     }
 
-    function _updateRule(RuleConfiguration memory rule, bool requiredRule) internal virtual {
-        require(_ruleAlreadySet(rule.contractAddress), "RuleNotSet");
-        if ($storage().ruleStates[rule.contractAddress].isRequired != requiredRule) {
-            _removeRuleFromStorage(rule.contractAddress);
-            _addRuleToStorage(rule.contractAddress, requiredRule);
-        }
-        IRule(rule.contractAddress).configure(rule.data);
-        // emit Lens_RuleUpdated(rule.contractAddress, rule.data);
+    // Internal
+
+    function _addRule(RuleConfiguration memory rule) internal virtual {
+        _addRule(DEFAULT_RULES_STORAGE_KEY, rule);
+    }
+
+    function _updateRule(RuleConfiguration memory rule) internal virtual {
+        _updateRule(DEFAULT_RULES_STORAGE_KEY, rule);
     }
 
     function _removeRule(address rule) internal virtual {
-        require(_ruleAlreadySet(rule), "RuleNotSet");
-        _removeRuleFromStorage(rule);
+        _removeRule(DEFAULT_RULES_STORAGE_KEY, rule);
     }
 
-    function _ruleAlreadySet(address rule) internal view returns (bool) {
-        return $storage().ruleStates[rule].isSet;
+    function _addRule(bytes32 ruleStorageKey, RuleConfiguration memory rule) internal virtual {
+        require(!_ruleAlreadySet(ruleStorageKey, rule.ruleAddress), "RuleAlreadySet");
+        _addRuleToStorage(ruleStorageKey, rule.ruleAddress, rule.isRequired);
+        IRule(rule.ruleAddress).configure(rule.configData);
     }
 
-    function _addRuleToStorage(address rule, bool requiredRule) private {
-        address[] storage rules = _getRulesArray(requiredRule);
-        uint8 index = rules.length;
-        rules.push(rule);
-        $storage().ruleStates[rule] = RuleState({index: index, isRequired: requiredRule, isSet: true});
+    function _updateRule(bytes32 ruleStorageKey, RuleConfiguration memory rule) internal virtual {
+        require(_ruleAlreadySet(ruleStorageKey, rule.ruleAddress), "RuleNotSet");
+        if ($ruleBasedStorage().rulesStorage[ruleStorageKey].ruleStates[rule.ruleAddress].isRequired != rule.isRequired)
+        {
+            _removeRuleFromStorage(ruleStorageKey, rule.ruleAddress);
+            _addRuleToStorage(ruleStorageKey, rule.ruleAddress, rule.isRequired);
+        }
+        IRule(rule.ruleAddress).configure(rule.configData);
     }
 
-    function _removeRuleFromStorage(address rule) private {
-        uint8 index = $storage().ruleStates[rule].index;
-        address[] storage rules = _getRulesArray($storage().ruleStates[rule].isRequired);
+    function _removeRule(bytes32 ruleStorageKey, address rule) internal virtual {
+        require(_ruleAlreadySet(ruleStorageKey, rule), "RuleNotSet");
+        _removeRuleFromStorage(ruleStorageKey, rule);
+    }
+
+    // Private
+
+    function _addRuleToStorage(bytes32 ruleStorageKey, address ruleAddress, bool requiredRule) private {
+        address[] storage rules = _getRulesArray(ruleStorageKey, requiredRule);
+        uint8 index = uint8(rules.length); // TODO: Add a check if needed
+        rules.push(ruleAddress);
+        $ruleBasedStorage().rulesStorage[ruleStorageKey].ruleStates[ruleAddress] =
+            RuleState({index: index, isRequired: requiredRule, isSet: true});
+    }
+
+    function _removeRuleFromStorage(bytes32 ruleStorageKey, address ruleAddress) private {
+        uint8 index = $ruleBasedStorage().rulesStorage[ruleStorageKey].ruleStates[ruleAddress].index;
+        address[] storage rules = _getRulesArray(
+            ruleStorageKey, $ruleBasedStorage().rulesStorage[ruleStorageKey].ruleStates[ruleAddress].isRequired
+        );
         if (rules.length > 1) {
             // Copy the last element in the array into the index of the rule to delete
             rules[index] = rules[rules.length - 1];
             // Set the proper index for the swapped rule
-            $storage().ruleStates[rules[index]].index = index;
+            $ruleBasedStorage().rulesStorage[ruleStorageKey].ruleStates[rules[index]].index = index;
         }
         rules.pop();
-        delete $storage().ruleStates[rule];
+        delete $ruleBasedStorage().rulesStorage[ruleStorageKey].ruleStates[ruleAddress];
     }
 
-    function _getRulesArray(bool requiredRules) internal view returns (address[] storage) {
-        return requiredRules ? $storage().requiredRules : $storage().anyOfRules;
+    function _ruleAlreadySet(bytes32 ruleStorageKey, address rule) private view returns (bool) {
+        return $ruleBasedStorage().rulesStorage[ruleStorageKey].ruleStates[rule].isSet;
+    }
+
+    function _getRulesArray(bytes32 ruleStorageKey, bool requiredRules) private view returns (address[] storage) {
+        return requiredRules
+            ? $ruleBasedStorage().rulesStorage[ruleStorageKey].requiredRules
+            : $ruleBasedStorage().rulesStorage[ruleStorageKey].anyOfRules;
     }
 }
