@@ -74,35 +74,6 @@
   {
     "inputs": [
       {
-        "internalType": "string",
-        "name": "namespace",
-        "type": "string"
-      },
-      {
-        "internalType": "contract IAccessControl",
-        "name": "accessControl",
-        "type": "address"
-      },
-      {
-        "internalType": "bytes",
-        "name": "rulesInitializationData",
-        "type": "bytes"
-      }
-    ],
-    "name": "deploy__Immutable_WithRules",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "contract IAccessControl",
         "name": "accessControl",
         "type": "address"
