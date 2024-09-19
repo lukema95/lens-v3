@@ -2,8 +2,12 @@
 pragma solidity ^0.8.0;
 
 import {IRule} from "./../rules/IRule.sol";
+import {RuleConfiguration} from "./../../types/Types.sol";
 
-interface IFollowRule is IRule {
+interface IFollowRule {
+    // This should be called by the primitive, and stored under the "msg.sender" context (msg.sender == primitive)
+    function configure(address account, RuleConfiguration calldata ruleConfiguration) external;
+
     /**
      * Predicate to be evaluated upon each follow using the logic set by `accountToFollow`. Finishes execution
      * successfully if the predicate evalues to "true", reverts if the predicate evaluates to "false".

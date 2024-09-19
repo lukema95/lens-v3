@@ -39,25 +39,57 @@ contract RuleBased {
     // Internal
 
     function _addRule(RuleConfiguration memory rule) internal virtual {
-        _addRule(DEFAULT_RULES_STORAGE_KEY, rule);
+        _addDefaultRule(DEFAULT_RULES_STORAGE_KEY, rule);
     }
 
     function _updateRule(RuleConfiguration memory rule) internal virtual {
-        _updateRule(DEFAULT_RULES_STORAGE_KEY, rule);
+        _updateDefaultRule(DEFAULT_RULES_STORAGE_KEY, rule);
     }
 
     function _removeRule(address rule) internal virtual {
         _removeRule(DEFAULT_RULES_STORAGE_KEY, rule);
     }
 
-    function _addRule(bytes32 ruleStorageKey, RuleConfiguration memory rule) internal virtual {
-        require(!_ruleAlreadySet(ruleStorageKey, rule.ruleAddress), "RuleAlreadySet");
+    function _processRules(bytes[] memory datas) internal virtual {
+        _processRules(DEFAULT_RULES_STORAGE_KEY, datas);
+    }
+
+    // We expect rule.configData to contain be an encodeWithSignature `configure` function call
+    function _addRule(bytes32 ruleStorageKey, RuleConfiguration memory rule, bytes memory encodedConfigureCall)
+        internal
+        virtual
+    {
+        require(!_ruleAlreadySet(ruleStorageKey, rule.ruleAddress), "AddRule: Same rule was already added");
+        _addRuleToStorage(ruleStorageKey, rule.ruleAddress, rule.isRequired);
+        (bool success,) = rule.ruleAddress.call(encodedConfigureCall);
+        require(success, "AddRule: Rule configuration failed");
+    }
+
+    // We expect rule.configData to contain be an encodeWithSignature `configure` function call
+    function _addDefaultRule(bytes32 ruleStorageKey, RuleConfiguration memory rule) private {
+        require(!_ruleAlreadySet(ruleStorageKey, rule.ruleAddress), "AddRule: Same rule was already added");
         _addRuleToStorage(ruleStorageKey, rule.ruleAddress, rule.isRequired);
         IRule(rule.ruleAddress).configure(rule.configData);
     }
 
-    function _updateRule(bytes32 ruleStorageKey, RuleConfiguration memory rule) internal virtual {
-        require(_ruleAlreadySet(ruleStorageKey, rule.ruleAddress), "RuleNotSet");
+    // We expect rule.configData to contain be an encodeWithSignature `configure` function call
+    function _updateRule(bytes32 ruleStorageKey, RuleConfiguration memory rule, bytes memory encodedConfigureCall)
+        internal
+        virtual
+    {
+        require(_ruleAlreadySet(ruleStorageKey, rule.ruleAddress), "ConfigureRule: Rule doesn't exist");
+        if ($ruleBasedStorage().rulesStorage[ruleStorageKey].ruleStates[rule.ruleAddress].isRequired != rule.isRequired)
+        {
+            _removeRuleFromStorage(ruleStorageKey, rule.ruleAddress);
+            _addRuleToStorage(ruleStorageKey, rule.ruleAddress, rule.isRequired);
+        }
+        (bool success,) = rule.ruleAddress.call(encodedConfigureCall);
+        require(success, "AddRule: Rule configuration failed");
+    }
+
+    // We expect rule.configData to contain be an encodeWithSignature `configure` function call
+    function _updateDefaultRule(bytes32 ruleStorageKey, RuleConfiguration memory rule) private {
+        require(_ruleAlreadySet(ruleStorageKey, rule.ruleAddress), "ConfigureRule: Rule doesn't exist");
         if ($ruleBasedStorage().rulesStorage[ruleStorageKey].ruleStates[rule.ruleAddress].isRequired != rule.isRequired)
         {
             _removeRuleFromStorage(ruleStorageKey, rule.ruleAddress);
@@ -69,6 +101,22 @@ contract RuleBased {
     function _removeRule(bytes32 ruleStorageKey, address rule) internal virtual {
         require(_ruleAlreadySet(ruleStorageKey, rule), "RuleNotSet");
         _removeRuleFromStorage(ruleStorageKey, rule);
+    }
+
+    function _processRules(bytes32 ruleStorageKey, bytes[] memory datas) internal virtual {
+        address[] storage requiredRules = _getRulesArray(ruleStorageKey, true);
+        for (uint256 i = 0; i < requiredRules.length; i++) {
+            (bool callNotReverted,) = requiredRules[i].call(datas[i]);
+            require(callNotReverted, "RuleCombinator: Some required rule failed");
+        }
+        address[] storage anyOfRules = _getRulesArray(ruleStorageKey, false);
+        for (uint256 i = requiredRules.length; i < requiredRules.length + anyOfRules.length; i++) {
+            (bool success, bytes memory returnData) = anyOfRules[i].delegatecall(datas[i]);
+            if (success && abi.decode(returnData, (bool))) {
+                return; // If any of the rules passed, we can return
+            }
+        }
+        revert("RuleCombinator: All of the OR rules failed");
     }
 
     // Private

@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import {IFollowRule} from "./IFollowRule.sol";
 import {IGraphRule} from "./IGraphRule.sol";
 import {DataElement} from "../../types/Types.sol";
+import {RuleConfiguration} from "./../../types/Types.sol";
 
 // TODO: Might worth to add extraData to the follow entity
 // Maybe it requires a targetExtraData and a followerExtraData
@@ -18,9 +19,17 @@ struct Follow {
 interface IGraph {
     event Lens_Graph_MetadataUriSet(string metadataURI);
 
-    event Lens_Graph_RulesSet(address indexed graphRules);
+    event Lens_Graph_RuleAdded(address indexed graphRules);
 
-    event Lens_Graph_FollowRulesSet(address indexed account, address indexed followRules, bytes graphRulesData);
+    event Lens_Graph_Follow_RuleAdded(
+        address indexed account, address indexed ruleAddress, RuleConfiguration ruleConfiguration
+    );
+
+    event Lens_Graph_Follow_RuleUpdated(
+        address indexed account, address indexed ruleAddress, RuleConfiguration ruleConfiguration
+    );
+
+    event Lens_Graph_Follow_RuleRemoved(address indexed account, address indexed ruleAddress);
 
     event Lens_Graph_Followed(
         address indexed followerAccount,
@@ -36,9 +45,13 @@ interface IGraph {
 
     event Lens_Graph_ExtraDataSet(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
 
-    function setGraphRules(IGraphRule graphRules) external;
+    // function setGraphRules(IGraphRule graphRules) external;
 
-    function setFollowRules(address account, IFollowRule followRules, bytes calldata graphRulesData) external;
+    function addFollowRules(address account, RuleConfiguration[] calldata rules, bytes[] calldata graphRulesData)
+        external;
+    function updateFollowRules(address account, RuleConfiguration[] calldata rules, bytes[] calldata graphRulesData)
+        external;
+    function removeFollowRules(address account, address[] calldata rules, bytes[] calldata graphRulesData) external;
 
     function setExtraData(DataElement[] calldata extraDataToSet) external;
 
