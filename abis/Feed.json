@@ -19,6 +19,31 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "key",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "value",
+        "type": "bytes"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes",
+        "name": "valueIndexed",
+        "type": "bytes"
+      }
+    ],
+    "name": "Lens_Feed_ExtraDataSet",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": false,
         "internalType": "string",
         "name": "metadataURI",
@@ -33,6 +58,12 @@
     "inputs": [
       {
         "indexed": true,
+        "internalType": "uint256",
+        "name": "postId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
         "internalType": "address",
         "name": "author",
         "type": "address"
@@ -40,7 +71,7 @@
       {
         "indexed": true,
         "internalType": "uint256",
-        "name": "postId",
+        "name": "localSequentialId",
         "type": "uint256"
       },
       {
@@ -103,12 +134,6 @@
         "internalType": "bytes",
         "name": "feedRulesData",
         "type": "bytes"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "postTypeId",
-        "type": "uint256"
       }
     ],
     "name": "Lens_Feed_PostCreated",
@@ -119,15 +144,15 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "address",
-        "name": "author",
-        "type": "address"
-      },
-      {
-        "indexed": true,
         "internalType": "uint256",
         "name": "postId",
         "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "author",
+        "type": "address"
       },
       {
         "indexed": false,
@@ -144,15 +169,15 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "address",
-        "name": "author",
-        "type": "address"
-      },
-      {
-        "indexed": true,
         "internalType": "uint256",
         "name": "postId",
         "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "author",
+        "type": "address"
       },
       {
         "components": [
@@ -220,12 +245,6 @@
         "internalType": "bytes",
         "name": "postRulesChangeFeedRulesData",
         "type": "bytes"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "postTypeId",
-        "type": "uint256"
       }
     ],
     "name": "Lens_Feed_PostEdited",
@@ -431,6 +450,25 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "key",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getExtraData",
+    "outputs": [
+      {
+        "internalType": "bytes",
+        "name": "",
+        "type": "bytes"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "getFeedMetadataURI",
     "outputs": [
@@ -472,6 +510,11 @@
             "internalType": "address",
             "name": "author",
             "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "localSequentialId",
+            "type": "uint256"
           },
           {
             "internalType": "address",
@@ -555,6 +598,30 @@
         "internalType": "uint256",
         "name": "postId",
         "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "key",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getPostExtraData",
+    "outputs": [
+      {
+        "internalType": "bytes",
+        "name": "",
+        "type": "bytes"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "postId",
+        "type": "uint256"
       }
     ],
     "name": "getPostRules",
@@ -571,31 +638,37 @@
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "postId",
-        "type": "uint256"
-      }
-    ],
-    "name": "getPostTypeId",
-    "outputs": [
-      {
-        "internalType": "uint8",
-        "name": "",
-        "type": "uint8"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "contract IAccessControl",
         "name": "accessControl",
         "type": "address"
       }
     ],
     "name": "setAccessControl",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "key",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes",
+            "name": "value",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct DataElement[]",
+        "name": "extraDataToSet",
+        "type": "tuple[]"
+      }
+    ],
+    "name": "setExtraData",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
