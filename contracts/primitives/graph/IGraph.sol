@@ -19,7 +19,9 @@ struct Follow {
 interface IGraph {
     event Lens_Graph_MetadataUriSet(string metadataURI);
 
-    event Lens_Graph_RuleAdded(address indexed graphRules);
+    event Lens_Graph_RuleAdded(address indexed ruleAddress, bytes configData, bool indexed isRequired);
+    event Lens_Graph_RuleUpdated(address indexed ruleAddress, bytes configData, bool indexed isRequired);
+    event Lens_Graph_RuleRemoved(address indexed ruleAddress);
 
     event Lens_Graph_Follow_RuleAdded(
         address indexed account, address indexed ruleAddress, RuleConfiguration ruleConfiguration
@@ -45,7 +47,11 @@ interface IGraph {
 
     event Lens_Graph_ExtraDataSet(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
 
-    // function setGraphRules(IGraphRule graphRules) external;
+    function addGraphRules(RuleConfiguration[] calldata rules) external;
+
+    function updateGraphRules(RuleConfiguration[] calldata rules) external;
+
+    function removeGraphRules(address[] calldata rules) external;
 
     function addFollowRules(address account, RuleConfiguration[] calldata rules, bytes[] calldata graphRulesData)
         external;
@@ -79,7 +85,7 @@ interface IGraph {
 
     function getFollowRules(address account) external view returns (IFollowRule);
 
-    function getGraphRules() external view returns (IGraphRule);
+    function getGraphRules(bool isRequired) external view returns (address[] memory);
 
     function getExtraData(bytes32 key) external view returns (bytes memory);
 }

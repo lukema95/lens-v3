@@ -9,8 +9,9 @@ import {IAccessControl} from "./../access-control/IAccessControl.sol";
 import {AccessControlLib} from "./../libraries/AccessControlLib.sol";
 import {RuleConfiguration, DataElement} from "./../../types/Types.sol";
 import {RuleBased} from "./../base/RuleBased.sol";
+import {AccessControlled} from "./../base/AccessControlled.sol";
 
-contract Graph is IGraph, RuleBased {
+contract Graph is IGraph, RuleBased, AccessControlled {
     using AccessControlLib for IAccessControl;
     using AccessControlLib for address;
 
@@ -20,28 +21,50 @@ contract Graph is IGraph, RuleBased {
     uint256 constant SET_EXTRA_DATA_RID = uint256(keccak256("SET_EXTRA_DATA"));
     uint256 constant CHANGE_ACCESS_CONTROL_RID = uint256(keccak256("CHANGE_ACCESS_CONTROL"));
 
+    uint256 constant SKIP_FOLLOW_RULES_CHECKS_RID = uint256(keccak256("SKIP_FOLLOW_RULES_CHECKS"));
+
     bytes32 public constant FOLLOW_RULE_STORAGE_KEY = keccak256("lens.graph.follow.rule.storage.key");
 
-    constructor(string memory metadataURI, IAccessControl accessControl) RuleBased(bytes32(0)) {
+    constructor(string memory metadataURI, IAccessControl accessControl)
+        RuleBased(bytes32(0))
+        AccessControlled(accessControl)
+    {
         Core.$storage().metadataURI = metadataURI;
-        Core.$storage().accessControl = address(accessControl);
         emit Lens_Graph_MetadataUriSet(metadataURI);
     }
 
     // Access Controlled functions
 
-    // function setGraphRules(IGraphRule graphRules) external override {
-    //     Core.$storage().accessControl.requireAccess(msg.sender, SET_RULES_RID);
-    //     Core.$storage().graphRules = address(graphRules);
-    //     emit Lens_Graph_RulesSet(address(graphRules));
+    // TODO: This is a 1-step operation, while some of our AC owner transfers are a 2-step, or even 3-step operations.
+    // function setAccessControl(IAccessControl accessControl) external override {
+    //     // msg.sender must have permissions to change access control
+    //     Core.$storage().accessControl.requireAccess(msg.sender, CHANGE_ACCESS_CONTROL_RID);
+    //     accessControl.verifyHasAccessFunction();
+    //     Core.$storage().accessControl = address(accessControl);
     // }
 
-    // TODO: This is a 1-step operation, while some of our AC owner transfers are a 2-step, or even 3-step operations.
-    function setAccessControl(IAccessControl accessControl) external {
-        // msg.sender must have permissions to change access control
-        Core.$storage().accessControl.requireAccess(msg.sender, CHANGE_ACCESS_CONTROL_RID);
-        accessControl.verifyHasAccessFunction();
-        Core.$storage().accessControl = address(accessControl);
+    function addGraphRules(RuleConfiguration[] calldata rules) external override {
+        _requireAccess(SET_RULES_RID);
+        for (uint256 i = 0; i < rules.length; i++) {
+            _addRule(rules[i]);
+            emit Lens_Graph_RuleAdded(rules[i].ruleAddress, rules[i].configData, rules[i].isRequired);
+        }
+    }
+
+    function updateGraphRules(RuleConfiguration[] calldata rules) external override {
+        _requireAccess(SET_RULES_RID);
+        for (uint256 i = 0; i < rules.length; i++) {
+            _updateRule(rules[i]);
+            emit Lens_Graph_RuleUpdated(rules[i].ruleAddress, rules[i].configData, rules[i].isRequired);
+        }
+    }
+
+    function removeGraphRules(address[] calldata rules) external override {
+        _requireAccess(SET_RULES_RID);
+        for (uint256 i = 0; i < rules.length; i++) {
+            _removeRule(rules[i]);
+            emit Lens_Graph_RuleRemoved(rules[i]);
+        }
     }
 
     // Public user functions
@@ -51,7 +74,7 @@ contract Graph is IGraph, RuleBased {
         external
         override
     {
-        require(msg.sender == account);
+        require(msg.sender == account || _hasAccess(SKIP_FOLLOW_RULES_CHECKS_RID));
         address[] memory ruleAddresses = new address[](rules.length);
         for (uint256 i = 0; i < rules.length; i++) {
             // Passes the rule to add, and the call to do to configure the rule (account, configData)
@@ -70,7 +93,7 @@ contract Graph is IGraph, RuleBased {
         external
         override
     {
-        require(msg.sender == account);
+        require(msg.sender == account || _hasAccess(SKIP_FOLLOW_RULES_CHECKS_RID));
         address[] memory ruleAddresses = new address[](rules.length);
         for (uint256 i = 0; i < rules.length; i++) {
             // Passes the rule to add, and the call to do to configure the rule (account, configData)
@@ -89,7 +112,7 @@ contract Graph is IGraph, RuleBased {
         external
         override
     {
-        require(msg.sender == account);
+        require(msg.sender == account || _hasAccess(SKIP_FOLLOW_RULES_CHECKS_RID));
         for (uint256 i = 0; i < rules.length; i++) {
             // Passes the rule to add, and the call to do to configure the rule (account, configData)
             _removeRule(FOLLOW_RULE_STORAGE_KEY, rules[i]);
@@ -173,16 +196,16 @@ contract Graph is IGraph, RuleBased {
         return Core.$storage().follows[followerAccount][targetAccount];
     }
 
+    function getGraphRules(bool isRequired) external view override returns (address[] memory) {
+        return _getRulesArray(isRequired);
+    }
+
     function getFollowRules(address account) external view override returns (IFollowRule) {
-        return IFollowRule(Core.$storage().followRules[account]);
+        // return ???
     }
 
     function getFollowersCount(address account) external view override returns (uint256) {
         return Core.$storage().followersCount[account];
-    }
-
-    function getGraphRules() external view override returns (IGraphRule) {
-        return IGraphRule(Core.$storage().graphRules);
     }
 
     function getExtraData(bytes32 key) external view override returns (bytes memory) {

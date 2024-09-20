@@ -41,6 +41,14 @@ contract AccessControlled {
         _accessControl().requireAccess(account, resourceId);
     }
 
+    function _hasAccess(uint256 resourceId) internal view returns (bool) {
+        return _hasAccess(msg.sender, resourceId);
+    }
+
+    function _hasAccess(address account, uint256 resourceId) internal view returns (bool) {
+        return _accessControl().hasAccess(account, resourceId);
+    }
+
     // Access Controlled Functions
     function setAccessControl(IAccessControl newAccessControl) external {
         // TODO: This is a 1-step operation, while some of our AC owner transfers are a 2-step, or even 3-step operations.

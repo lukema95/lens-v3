@@ -12,6 +12,18 @@ library AccessControlLib {
         require(accessControl.hasAccess({account: account, resourceLocation: address(this), resourceId: resourceId}));
     }
 
+    function hasAccess(address accessControl, address account, uint256 resourceId) internal view returns (bool) {
+        return hasAccess(IAccessControl(accessControl), account, resourceId);
+    }
+
+    function hasAccess(IAccessControl accessControl, address account, uint256 resourceId)
+        internal
+        view
+        returns (bool)
+    {
+        return accessControl.hasAccess({account: account, resourceLocation: address(this), resourceId: resourceId});
+    }
+
     function verifyHasAccessFunction(address accessControl) internal view {
         verifyHasAccessFunction(IAccessControl(accessControl));
     }
