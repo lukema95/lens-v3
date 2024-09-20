@@ -41,10 +41,22 @@
         "type": "address"
       },
       {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "contractAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes",
+            "name": "data",
+            "type": "bytes"
+          }
+        ],
         "indexed": false,
-        "internalType": "bytes",
-        "name": "data",
-        "type": "bytes"
+        "internalType": "struct RuleCombinator.RuleConfiguration",
+        "name": "addedRule",
+        "type": "tuple"
       }
     ],
     "name": "Lens_RuleCombinator_RuleAdded",
@@ -60,10 +72,22 @@
         "type": "address"
       },
       {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "contractAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes",
+            "name": "data",
+            "type": "bytes"
+          }
+        ],
         "indexed": false,
-        "internalType": "bytes",
-        "name": "data",
-        "type": "bytes"
+        "internalType": "struct RuleCombinator.RuleConfiguration",
+        "name": "removedRules",
+        "type": "tuple"
       }
     ],
     "name": "Lens_RuleCombinator_RuleRemoved",
@@ -79,10 +103,22 @@
         "type": "address"
       },
       {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "contractAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes",
+            "name": "data",
+            "type": "bytes"
+          }
+        ],
         "indexed": false,
-        "internalType": "bytes",
-        "name": "data",
-        "type": "bytes"
+        "internalType": "struct RuleCombinator.RuleConfiguration",
+        "name": "updatedRules",
+        "type": "tuple"
       }
     ],
     "name": "Lens_RuleCombinator_RuleUpdated",
