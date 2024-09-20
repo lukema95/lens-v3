@@ -19,31 +19,6 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "key",
-        "type": "bytes32"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "value",
-        "type": "bytes"
-      },
-      {
-        "indexed": true,
-        "internalType": "bytes",
-        "name": "valueIndexed",
-        "type": "bytes"
-      }
-    ],
-    "name": "Lens_Username_ExtraDataSet",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
         "indexed": false,
         "internalType": "string",
         "name": "username",
@@ -71,61 +46,11 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "ruleAddress",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "configData",
-        "type": "bytes"
-      },
-      {
-        "indexed": true,
-        "internalType": "bool",
-        "name": "isRequired",
-        "type": "bool"
-      }
-    ],
-    "name": "Lens_Username_RuleAdded",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "ruleAddress",
+        "name": "usernameRules",
         "type": "address"
       }
     ],
-    "name": "Lens_Username_RuleRemoved",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "ruleAddress",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "configData",
-        "type": "bytes"
-      },
-      {
-        "indexed": true,
-        "internalType": "bool",
-        "name": "isRequired",
-        "type": "bool"
-      }
-    ],
-    "name": "Lens_Username_RuleUpdated",
+    "name": "Lens_Username_RulesSet",
     "type": "event"
   },
   {
@@ -173,62 +98,13 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "components": [
-          {
-            "internalType": "address",
-            "name": "ruleAddress",
-            "type": "address"
-          },
-          {
-            "internalType": "bytes",
-            "name": "configData",
-            "type": "bytes"
-          },
-          {
-            "internalType": "bool",
-            "name": "isRequired",
-            "type": "bool"
-          }
-        ],
-        "internalType": "struct RuleConfiguration[]",
-        "name": "ruleConfigurations",
-        "type": "tuple[]"
-      }
-    ],
-    "name": "addUsernameRules",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "getAccessControl",
     "outputs": [
       {
-        "internalType": "contract IAccessControl",
+        "internalType": "address",
         "name": "",
         "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "key",
-        "type": "bytes32"
-      }
-    ],
-    "name": "getExtraData",
-    "outputs": [
-      {
-        "internalType": "bytes",
-        "name": "",
-        "type": "bytes"
       }
     ],
     "stateMutability": "view",
@@ -242,6 +118,19 @@
         "internalType": "string",
         "name": "",
         "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getUsernameRules",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -273,21 +162,8 @@
   {
     "inputs": [
       {
-        "internalType": "address[]",
-        "name": "rules",
-        "type": "address[]"
-      }
-    ],
-    "name": "removeUsernameRules",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "contract IAccessControl",
-        "name": "newAccessControl",
+        "name": "accessControl",
         "type": "address"
       }
     ],
@@ -299,24 +175,12 @@
   {
     "inputs": [
       {
-        "components": [
-          {
-            "internalType": "bytes32",
-            "name": "key",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "bytes",
-            "name": "value",
-            "type": "bytes"
-          }
-        ],
-        "internalType": "struct DataElement[]",
-        "name": "extraDataToSet",
-        "type": "tuple[]"
+        "internalType": "contract IUsernameRule",
+        "name": "usernameRules",
+        "type": "address"
       }
     ],
-    "name": "setExtraData",
+    "name": "setUsernameRules",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -335,36 +199,6 @@
       }
     ],
     "name": "unregisterUsername",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "components": [
-          {
-            "internalType": "address",
-            "name": "ruleAddress",
-            "type": "address"
-          },
-          {
-            "internalType": "bytes",
-            "name": "configData",
-            "type": "bytes"
-          },
-          {
-            "internalType": "bool",
-            "name": "isRequired",
-            "type": "bool"
-          }
-        ],
-        "internalType": "struct RuleConfiguration[]",
-        "name": "ruleConfigurations",
-        "type": "tuple[]"
-      }
-    ],
-    "name": "updateUsernameRules",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
