@@ -43,12 +43,23 @@ contract RuleBasedUsername {
     }
 
     function _processRegistering(address account, string memory username, RuleExecutionData calldata data) internal {
+        _processUsernameRule(IUsernameRule.processRegistering.selector, account, username, data);
+    }
+
+    function _processUnregistering(address account, string memory username, RuleExecutionData calldata data) internal {
+        _processUsernameRule(IUsernameRule.processUnregistering.selector, account, username, data);
+    }
+
+    function _processUsernameRule(
+        bytes4 selector,
+        address account,
+        string memory username,
+        RuleExecutionData calldata data
+    ) private {
         // Check required rules (AND-combined rules)
         for (uint256 i = 0; i < $usernameRulesStorage().requiredRules.length; i++) {
             (bool callNotReverted,) = $usernameRulesStorage().requiredRules[i].call(
-                abi.encodeWithSelector(
-                    IUsernameRule.processRegistering.selector, account, username, data.dataForRequiredRules[i]
-                )
+                abi.encodeWithSelector(selector, account, username, data.dataForRequiredRules[i])
             );
             require(callNotReverted, "Some required rule failed");
         }
@@ -58,9 +69,7 @@ contract RuleBasedUsername {
         }
         for (uint256 i = 0; i < $usernameRulesStorage().anyOfRules.length; i++) {
             (bool callNotReverted, bytes memory returnData) = $usernameRulesStorage().anyOfRules[i].call(
-                abi.encodeWithSelector(
-                    IUsernameRule.processRegistering.selector, account, username, data.dataForAnyOfRules[i]
-                )
+                abi.encodeWithSelector(selector, account, username, data.dataForAnyOfRules[i])
             );
             if (callNotReverted && abi.decode(returnData, (bool))) {
                 // Note: abi.decode would fail if call reverted, so don't put this out of the brackets!

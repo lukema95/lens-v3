@@ -30,7 +30,7 @@ contract Username is IUsername, RuleBasedUsername, AccessControlled {
     // Access Controlled functions
 
     function addUsernameRules(RuleConfiguration[] calldata ruleConfigurations) external {
-        _requireAccess(SET_RULES_RID);
+        _requireAccess(msg.sender, SET_RULES_RID);
         for (uint256 i = 0; i < ruleConfigurations.length; i++) {
             _addUsernameRule(ruleConfigurations[i]);
             emit Lens_Username_RuleAdded(
@@ -40,7 +40,7 @@ contract Username is IUsername, RuleBasedUsername, AccessControlled {
     }
 
     function updateUsernameRules(RuleConfiguration[] calldata ruleConfigurations) external {
-        _requireAccess(SET_RULES_RID);
+        _requireAccess(msg.sender, SET_RULES_RID);
         for (uint256 i = 0; i < ruleConfigurations.length; i++) {
             _updateUsernameRule(ruleConfigurations[i]);
             emit Lens_Username_RuleUpdated(
@@ -50,7 +50,7 @@ contract Username is IUsername, RuleBasedUsername, AccessControlled {
     }
 
     function removeUsernameRules(address[] calldata rules) external {
-        _requireAccess(SET_RULES_RID);
+        _requireAccess(msg.sender, SET_RULES_RID);
         for (uint256 i = 0; i < rules.length; i++) {
             _removeUsernameRule(rules[i]);
             emit Lens_Username_RuleRemoved(rules[i]);
@@ -80,7 +80,7 @@ contract Username is IUsername, RuleBasedUsername, AccessControlled {
     function unregisterUsername(string memory username, RuleExecutionData calldata data) external {
         address account = Core.$storage().usernameToAccount[username];
         require(msg.sender == account); // msg.sender must be the account
-        _processRegistering(account, username, data);
+        _processUnregistering(account, username, data);
         Core._unregisterUsername(username);
         emit Lens_Username_Unregistered(username, account, data);
     }

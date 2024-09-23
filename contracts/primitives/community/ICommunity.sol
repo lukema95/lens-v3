@@ -1,33 +1,36 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {ICommunityRule} from "./ICommunityRule.sol";
-import {DataElement} from "./../../types/Types.sol";
+import {DataElement, RuleConfiguration, RuleExecutionData} from "./../../types/Types.sol";
 
 interface ICommunity {
     event Lens_Community_MetadataUriSet(string metadataURI);
 
-    event Lens_Community_RulesSet(address indexed communityRules);
+    event Lens_Community_RuleAdded(address indexed rule, bytes configData, bool indexed isRequired);
+    event Lens_Community_RuleUpdated(address indexed rule, bytes configData, bool indexed isRequired);
+    event Lens_Community_RuleRemoved(address indexed rule);
 
-    event Lens_Community_MemberJoined(address indexed account, uint256 indexed memberId, bytes data);
-
-    event Lens_Community_MemberLeft(address indexed account, uint256 indexed memberId, bytes data);
-
-    event Lens_Community_MemberRemoved(address indexed account, uint256 indexed memberId, bytes data);
+    event Lens_Community_MemberJoined(address indexed account, uint256 indexed membershipId, RuleExecutionData data);
+    event Lens_Community_MemberLeft(address indexed account, uint256 indexed membershipId, RuleExecutionData data);
+    event Lens_Community_MemberRemoved(address indexed account, uint256 indexed membershipId, RuleExecutionData data);
 
     event Lens_Community_ExtraDataSet(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
 
-    function setCommunityRules(ICommunityRule communityRules) external;
+    function addCommunityRules(RuleConfiguration[] calldata rules) external;
 
-    function setMetadataURI(string calldata metadataURI) external;
+    function updateCommunityRules(RuleConfiguration[] calldata rules) external;
 
-    function setExtraData(DataElement[] calldata extraDataToSet) external;
+    function removeCommunityRules(address[] calldata rules) external;
 
-    function joinCommunity(address account, bytes calldata data) external;
+    function setMetadataUri(string calldata metadataURI) external;
 
-    function leaveCommunity(address account, bytes calldata data) external;
+    // function setExtraData(DataElement[] calldata extraDataToSet) external;
 
-    function removeMember(address account, bytes calldata data) external;
+    function joinCommunity(address account, RuleExecutionData calldata data) external;
+
+    function leaveCommunity(address account, RuleExecutionData calldata data) external;
+
+    function removeMember(address account, RuleExecutionData calldata data) external;
 
     function getMetadataURI() external view returns (string memory);
 
@@ -37,9 +40,7 @@ interface ICommunity {
 
     function getMembershipId(address account) external view returns (uint256);
 
-    function getCommunityRules() external view returns (address);
+    function getCommunityRules(bool isRequired) external view returns (address[] memory);
 
-    function getAccessControl() external view returns (address);
-
-    function getExtraData(bytes32 key) external view returns (bytes memory);
+    // function getExtraData(bytes32 key) external view returns (bytes memory);
 }

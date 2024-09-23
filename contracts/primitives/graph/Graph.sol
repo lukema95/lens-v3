@@ -4,15 +4,11 @@ pragma solidity ^0.8.0;
 import {Follow, IGraph} from "./IGraph.sol";
 import {GraphCore as Core} from "./GraphCore.sol";
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
-import {AccessControlLib} from "./../libraries/AccessControlLib.sol";
 import {RuleConfiguration, RuleExecutionData, DataElement} from "./../../types/Types.sol";
 import {RuleBasedGraph} from "./RuleBasedGraph.sol";
 import {AccessControlled} from "./../base/AccessControlled.sol";
 
 contract Graph is IGraph, RuleBasedGraph, AccessControlled {
-    using AccessControlLib for IAccessControl;
-    using AccessControlLib for address;
-
     // Resource IDs involved in the contract
     uint256 constant SET_RULES_RID = uint256(keccak256("SET_RULES"));
     uint256 constant SET_METADATA_RID = uint256(keccak256("SET_METADATA"));
@@ -31,7 +27,7 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
     // Access Controlled functions
 
     function addGraphRules(RuleConfiguration[] calldata rules) external override {
-        _requireAccess(SET_RULES_RID);
+        _requireAccess(msg.sender, SET_RULES_RID);
         for (uint256 i = 0; i < rules.length; i++) {
             _addGraphRule(rules[i]);
             emit Lens_Graph_RuleAdded(rules[i].ruleAddress, rules[i].configData, rules[i].isRequired);
@@ -39,7 +35,7 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
     }
 
     function updateGraphRules(RuleConfiguration[] calldata rules) external override {
-        _requireAccess(SET_RULES_RID);
+        _requireAccess(msg.sender, SET_RULES_RID);
         for (uint256 i = 0; i < rules.length; i++) {
             _updateGraphRule(rules[i]);
             emit Lens_Graph_RuleUpdated(rules[i].ruleAddress, rules[i].configData, rules[i].isRequired);
@@ -47,14 +43,14 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
     }
 
     function removeGraphRules(address[] calldata rules) external override {
-        _requireAccess(SET_RULES_RID);
+        _requireAccess(msg.sender, SET_RULES_RID);
         for (uint256 i = 0; i < rules.length; i++) {
             _removeGraphRule(rules[i]);
             emit Lens_Graph_RuleRemoved(rules[i]);
         }
     }
 
-    // External functions
+    // Public functions
 
     function addFollowRules(
         address account,
@@ -131,7 +127,7 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
     }
 
     function setExtraData(DataElement[] calldata extraDataToSet) external override {
-        _requireAccess(SET_EXTRA_DATA_RID);
+        _requireAccess(msg.sender, SET_EXTRA_DATA_RID);
         Core._setExtraData(extraDataToSet);
         for (uint256 i = 0; i < extraDataToSet.length; i++) {
             emit Lens_Graph_ExtraDataSet(extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value);

@@ -14,8 +14,6 @@ library CommunityCore {
     // Storage
 
     struct Storage {
-        address accessControl;
-        address communityRules;
         string metadataURI;
         uint256 lastMemberIdAssigned;
         uint256 numberOfMembers;

@@ -33,16 +33,8 @@ contract AccessControlled {
         _;
     }
 
-    function _requireAccess(uint256 resourceId) internal view {
-        _requireAccess(msg.sender, resourceId);
-    }
-
     function _requireAccess(address account, uint256 resourceId) internal view {
         _accessControl().requireAccess(account, resourceId);
-    }
-
-    function _hasAccess(uint256 resourceId) internal view returns (bool) {
-        return _hasAccess(msg.sender, resourceId);
     }
 
     function _hasAccess(address account, uint256 resourceId) internal view returns (bool) {
