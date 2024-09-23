@@ -6,26 +6,13 @@ import {IFeedRule} from "./IFeedRule.sol";
 import {IAccessControl} from "../access-control/IAccessControl.sol";
 import {DataElement} from "../../types/Types.sol";
 
-/*
-    TODO: Natspec
-
-    // extraData - arbitrary key-value storage
-
-    >> 1. pass extraData(name, value)
-        2. store value at "name" somehow
-        3. anyone can go to post and ask for "name" to get the value (or get 0 or "" or smth if not set)
-
-    Example:
-        mapping(uint256 postId => mapping(bytes32 (keccak256(name)) => bytes abi.encoded(value) or "" empty bytes)
-*/
-
 struct PostParams {
     address author; // Multiple authors can be added in extraData
     address source; // Client source, if any
     string metadataURI;
     uint256[] quotedPostIds;
     uint256[] parentPostIds;
-    IPostRule postRules;
+    // IPostRule postRules; // TODO: Do we even this now? Rules are stored in $storage now (see Graph and FollowRules)
     DataElement[] extraData;
 }
 
@@ -37,7 +24,7 @@ struct Post {
     string metadataURI;
     uint256[] quotedPostIds;
     uint256[] parentPostIds;
-    IPostRule postRules;
+    // IPostRule postRules; // TODO: Do we even this now? Rules are stored in $storage now (see Graph and FollowRules)
     uint80 creationTimestamp;
     uint80 lastUpdatedTimestamp;
 }
@@ -50,40 +37,49 @@ interface IFeed {
         address indexed author,
         uint256 indexed localSequentialId,
         PostParams postParams,
-        bytes feedRulesData
+        RuleExecutionData feedRulesData
     );
 
     event Lens_Feed_PostEdited(
         uint256 indexed postId,
         address indexed author,
         PostParams newPostParams,
-        bytes feedRulesData,
-        bytes postRulesChangeFeedRulesData
+        RuleExecutionData feedRulesData,
+        RuleExecutionData postRulesChangeFeedRulesData
     );
 
-    event Lens_Feed_PostDeleted(uint256 indexed postId, address indexed author, bytes feedRulesData);
+    event Lens_Feed_PostDeleted(uint256 indexed postId, address indexed author, RuleExecutionData feedRulesData);
 
     event Lens_Feed_RulesSet(address indexed feedRules);
 
     event Lens_Feed_ExtraDataSet(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
 
-    function createPost(PostParams calldata postParams, bytes calldata data) external returns (uint256);
+    function addFeedRules(RuleConfiguration[] calldata rules) external;
+
+    function updateFeedRules(RuleConfiguration[] calldata rules) external;
+
+    function removeFeedRules(address[] calldata rules) external;
+
+    function createPost(PostParams calldata postParams, RuleExecutionData calldata feedRulesData)
+        external
+        returns (uint256);
 
     function editPost(
         uint256 postId,
         PostParams calldata newPostParams,
-        bytes calldata editPostFeedRulesData,
-        bytes calldata postRulesChangeFeedRulesData
+        RuleExecutionData calldata editPostFeedRulesData,
+        RuleExecutionData calldata postRulesChangeFeedRulesData
     ) external;
 
     // "Delete" - u know u cannot delete stuff from the internet, right? :]
     // But this will at least remove it from the current state, so contracts accesing it will know.
-    function deletePost(uint256 postId, bytes32[] calldata extraDataKeysToDelete, bytes calldata feedRulesData)
-        external;
+    function deletePost(
+        uint256 postId,
+        bytes32[] calldata extraDataKeysToDelete,
+        RuleExecutionData calldata feedRulesData
+    ) external;
 
     function setExtraData(DataElement[] calldata extraDataToSet) external;
-
-    function setFeedRules(IFeedRule feedRules) external;
 
     // Getters
 
@@ -100,8 +96,6 @@ interface IFeed {
     function getFeedMetadataURI() external view returns (string memory);
 
     function getPostExtraData(uint256 postId, bytes32 key) external view returns (bytes memory);
-
-    function getAccessControl() external view returns (IAccessControl);
 
     function getExtraData(bytes32 key) external view returns (bytes memory);
 }

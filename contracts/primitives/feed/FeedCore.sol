@@ -4,6 +4,7 @@ pragma solidity ^0.8.17;
 import {PostParams} from "./IFeed.sol";
 import "../libraries/ExtraDataLib.sol";
 
+// TODO: Add root post
 struct PostStorage {
     address author;
     uint256 localSequentialId;
@@ -11,7 +12,6 @@ struct PostStorage {
     string metadataURI;
     uint256[] quotedPostIds;
     uint256[] parentPostIds;
-    address postRules;
     uint80 creationTimestamp;
     uint80 lastUpdatedTimestamp;
     mapping(bytes32 => bytes) extraData;
@@ -23,9 +23,7 @@ library FeedCore {
     // Storage
 
     struct Storage {
-        address accessControl;
         string metadataURI;
-        address feedRules;
         uint256 postCount;
         mapping(uint256 => PostStorage) posts;
         mapping(bytes32 => bytes) extraData;
@@ -74,7 +72,6 @@ library FeedCore {
         _newPost.metadataURI = postParams.metadataURI;
         _newPost.quotedPostIds = postParams.quotedPostIds;
         _newPost.parentPostIds = postParams.parentPostIds;
-        _newPost.postRules = address(postParams.postRules); // TODO: Probably change to type address in PostParams struct
         _newPost.creationTimestamp = uint80(block.timestamp);
         _newPost.lastUpdatedTimestamp = uint80(block.timestamp);
         _newPost.extraData.set(postParams.extraData);
@@ -88,14 +85,14 @@ library FeedCore {
         _post.metadataURI = postParams.metadataURI;
         _post.quotedPostIds = postParams.quotedPostIds;
         _post.parentPostIds = postParams.parentPostIds;
-        address currentPostRules = _post.postRules;
-        if (address(currentPostRules) != address(postParams.postRules)) {
-            // Basically, a hook is called in the rules, cause maybe the previous rules have some "immutable" flag!
-            // currentPostRules.onRuleChanged(postId, postParams.postRules);
-            // TODO: In the core we do not know interfaces of rules! It's made abstract, just addresses.
-            // TODO: Maybe the immutability should be at the post-level, not rule-level...
-            _post.postRules = address(postParams.postRules); // TODO: Probably change to type address in PostParams struct
-        }
+        // address currentPostRules = _post.postRules;
+        // if (address(currentPostRules) != address(postParams.postRules)) {
+        //     // Basically, a hook is called in the rules, cause maybe the previous rules have some "immutable" flag!
+        //     // currentPostRules.onRuleChanged(postId, postParams.postRules);
+        //     // TODO: In the core we do not know interfaces of rules! It's made abstract, just addresses.
+        //     // TODO: Maybe the immutability should be at the post-level, not rule-level...
+        //     _post.postRules = address(postParams.postRules); // TODO: Probably change to type address in PostParams struct
+        // }
         _post.lastUpdatedTimestamp = uint80(block.timestamp);
         ExtraDataLib._setExtraData(_post.extraData, postParams.extraData);
     }

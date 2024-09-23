@@ -1,17 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {RuleExecutionData} from "../../types/Types.sol";
-
 interface IGraphRule {
     function configure(bytes calldata data) external;
 
-    function processFollow(
-        address followerAcount,
-        address accountToFollow,
-        uint256 followId,
-        RuleExecutionData calldata data
-    ) external;
+    function processFollow(address followerAcount, address accountToFollow, uint256 followId, bytes calldata data)
+        external;
 
     // TODO: Should this exist? Maybe not, so it cannot prevent the unfollow...
     // Maybe the function should exist but not being called by `unfollow` but by the user in a separate tx later.
@@ -28,6 +22,5 @@ interface IGraphRule {
 
     // function processUnblock(address account, bytes calldata data) external;
 
-    function processFollowRulesChange(address account, address[] calldata followRules, RuleExecutionData calldata data)
-        external;
+    function processFollowRulesChange(address account, address[] calldata followRules, bytes calldata data) external;
 }

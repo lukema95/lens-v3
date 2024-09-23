@@ -17,8 +17,6 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
 
     // uint256 constant SKIP_FOLLOW_RULES_CHECKS_RID = uint256(keccak256("SKIP_FOLLOW_RULES_CHECKS"));
 
-    bytes32 public constant FOLLOW_RULE_STORAGE_KEY = keccak256("lens.graph.follow.rule.storage.key");
-
     constructor(string memory metadataURI, IAccessControl accessControl) AccessControlled(accessControl) {
         Core.$storage().metadataURI = metadataURI;
         emit Lens_Graph_MetadataUriSet(metadataURI);

@@ -8,25 +8,25 @@ interface IFeedRule {
     function configure(bytes calldata data) external;
 
     function processCreatePost(
-        address originalMsgSender,
         uint256 postId,
+        uint256 localSequentialId,
         PostParams calldata postParams,
         bytes calldata data
     ) external;
 
     function processEditPost(
-        address originalMsgSender,
         uint256 postId,
+        uint256 localSequentialId,
         PostParams calldata newPostParams,
         bytes calldata data
     ) external;
 
-    function processDeletePost(address originalMsgSender, uint256 postId, bytes calldata data) external;
+    function processDeletePost(uint256 postId, uint256 localSequentialId, bytes calldata feedRulesData) external;
 
     function processPostRulesChange(
-        address originalMsgSender,
         uint256 postId,
-        IPostRule newPostRules,
+        uint256 localSequentialId,
+        address[] newPostRules,
         bytes calldata data
     ) external;
 
