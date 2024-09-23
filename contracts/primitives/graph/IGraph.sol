@@ -93,5 +93,9 @@ interface IGraph {
 
     function getFollowersCount(address account) external view returns (uint256);
 
+    function getGraphRules(bool isRequired) external view returns (address[] memory);
+
+    function getFollowRules(address account, bool isRequired) external view returns (address[] memory);
+
     function getExtraData(bytes32 key) external view returns (bytes memory);
 }

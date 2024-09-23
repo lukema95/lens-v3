@@ -78,7 +78,7 @@ contract RuleBasedGraph {
                     graphRulesData.dataForRequiredRules[i]
                 )
             );
-            require(callNotReverted, "RuleCombinator: Some required rule failed");
+            require(callNotReverted, "Some required rule failed");
         }
         // Check any-of rules (OR-combined rules)
         if ($graphRulesStorage().anyOfRules.length == 0) {
@@ -98,7 +98,7 @@ contract RuleBasedGraph {
                 return; // If any of the OR-combined rules passed, it means they succeed and we can return
             }
         }
-        revert("RuleCombinator: All of the OR rules failed");
+        revert("All of the any-of rules failed");
     }
 
     function _graphProcessFollow(
@@ -118,7 +118,7 @@ contract RuleBasedGraph {
                     graphRulesData.dataForRequiredRules[i]
                 )
             );
-            require(callNotReverted, "RuleCombinator: Some required rule failed");
+            require(callNotReverted, "Some required rule failed");
         }
         // Check any-of rules (OR-combined rules)
         if ($graphRulesStorage().anyOfRules.length == 0) {
@@ -139,7 +139,7 @@ contract RuleBasedGraph {
                 return; // If any of the OR-combined rules passed, it means they succeed and we can return
             }
         }
-        revert("RuleCombinator: All of the OR rules failed");
+        revert("All of the any-of rules failed");
     }
 
     function _accountProcessFollow(
@@ -159,7 +159,7 @@ contract RuleBasedGraph {
                     followRulesData.dataForRequiredRules[i]
                 )
             );
-            require(callNotReverted, "RuleCombinator: Some required rule failed");
+            require(callNotReverted, "Some required rule failed");
         }
         // Check any-of rules (OR-combined rules)
         if ($graphRulesStorage().anyOfRules.length == 0) {
@@ -180,7 +180,7 @@ contract RuleBasedGraph {
                 return; // If any of the OR-combined rules passed, it means they succeed and we can return
             }
         }
-        revert("RuleCombinator: All of the OR rules failed");
+        revert("All of the any-of rules failed");
     }
 
     function _graphProcessUnfollow(
@@ -200,7 +200,7 @@ contract RuleBasedGraph {
                     graphRulesData.dataForRequiredRules[i]
                 )
             );
-            require(callNotReverted, "RuleCombinator: Some required rule failed");
+            require(callNotReverted, "Some required rule failed");
         }
         // Check any-of rules (OR-combined rules)
         if ($graphRulesStorage().anyOfRules.length == 0) {
@@ -221,7 +221,7 @@ contract RuleBasedGraph {
                 return; // If any of the OR-combined rules passed, it means they succeed and we can return
             }
         }
-        revert("RuleCombinator: All of the OR rules failed");
+        revert("All of the any-of rules failed");
     }
 
     function _getGraphRules(bool isRequired) internal view returns (address[] memory) {

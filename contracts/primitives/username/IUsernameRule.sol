@@ -1,16 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IRule} from "./../rules/IRule.sol";
+import {RuleExecutionData} from "./../../types/Types.sol";
 
-interface IUsernameRule is IRule {
-    function processRegistering(address originalMsgSender, address account, string memory username, bytes calldata data)
-        external;
+interface IUsernameRule {
+    function configure(bytes calldata data) external;
 
-    function processUnregistering(
-        address originalMsgSender,
-        address account,
-        string memory username,
-        bytes calldata data
-    ) external;
+    function processRegistering(address account, string memory username, RuleExecutionData calldata data) external;
+
+    function processUnregistering(address account, string memory username, RuleExecutionData calldata data) external;
 }

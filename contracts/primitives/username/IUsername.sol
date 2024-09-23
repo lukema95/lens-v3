@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {DataElement, RuleConfiguration} from "../../types/Types.sol";
+import {DataElement, RuleConfiguration, RuleExecutionData} from "../../types/Types.sol";
 
 interface IUsername {
     event Lens_Username_RuleAdded(address indexed ruleAddress, bytes configData, bool indexed isRequired);
@@ -10,9 +10,9 @@ interface IUsername {
 
     event Lens_Username_RuleRemoved(address indexed ruleAddress);
 
-    event Lens_Username_Registered(string username, address indexed account, bytes data);
+    event Lens_Username_Registered(string username, address indexed account, RuleExecutionData data);
 
-    event Lens_Username_Unregistered(string username, address indexed previousAccount, bytes data);
+    event Lens_Username_Unregistered(string username, address indexed previousAccount, RuleExecutionData data);
 
     event Lens_Username_ExtraDataSet(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
 
@@ -24,9 +24,9 @@ interface IUsername {
 
     function removeUsernameRules(address[] calldata rules) external;
 
-    function registerUsername(address account, string memory username, bytes calldata data) external;
+    function registerUsername(address account, string memory username, RuleExecutionData calldata data) external;
 
-    function unregisterUsername(string memory username, bytes calldata data) external;
+    function unregisterUsername(string memory username, RuleExecutionData calldata data) external;
 
     function usernameOf(address user) external view returns (string memory);
 
@@ -34,8 +34,7 @@ interface IUsername {
 
     function getNamespace() external view returns (string memory);
 
-    // function getUsernameRequiredRules() external view returns (address[]);
-    // function getUsernameAnyOfRules() external view returns (address[]);
+    function getUsernameRules(bool isRequired) external view returns (address[] memory);
 
     function getExtraData(bytes32 key) external view returns (bytes memory);
 }

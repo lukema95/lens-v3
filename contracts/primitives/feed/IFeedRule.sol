@@ -3,9 +3,10 @@ pragma solidity ^0.8.0;
 
 import {IPostRule} from "./IPostRule.sol";
 import {PostParams} from "./IFeed.sol";
-import {IRule} from "./../rules/IRule.sol";
 
-interface IFeedRule is IRule {
+interface IFeedRule {
+    function configure(bytes calldata data) external;
+
     function processCreatePost(
         address originalMsgSender,
         uint256 postId,

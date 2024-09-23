@@ -159,4 +159,12 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
     function getExtraData(bytes32 key) external view override returns (bytes memory) {
         return Core.$storage().extraData[key];
     }
+
+    function getGraphRules(bool isRequired) external view override returns (address[] memory) {
+        return _getGraphRules(isRequired);
+    }
+
+    function getFollowRules(address account, bool isRequired) external view override returns (address[] memory) {
+        return _getFollowRules(account, isRequired);
+    }
 }
