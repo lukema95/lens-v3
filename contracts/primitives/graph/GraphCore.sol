@@ -10,15 +10,11 @@ library GraphCore {
     // Storage
 
     struct Storage {
-        address accessControl;
-        address graphRules;
-        mapping(address => address) followRules;
         string metadataURI;
         mapping(address => uint256) lastFollowIdAssigned;
         mapping(address => mapping(address => Follow)) follows;
         mapping(address => mapping(uint256 => address)) followers;
         mapping(address => uint256) followersCount;
-        mapping(address => mapping(address => bool)) isBlocked;
         mapping(bytes32 => bytes) extraData;
     }
 
