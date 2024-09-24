@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {PostParams} from "./IFeed.sol";
+import {EditPostParams, CreatePostParams} from "./IFeed.sol";
 import "../libraries/ExtraDataLib.sol";
 
+// TODO: Add root post
 struct PostStorage {
     address author;
     uint256 localSequentialId;
@@ -11,7 +12,6 @@ struct PostStorage {
     string metadataURI;
     uint256[] quotedPostIds;
     uint256[] parentPostIds;
-    address postRules;
     uint80 creationTimestamp;
     uint80 lastUpdatedTimestamp;
     mapping(bytes32 => bytes) extraData;
@@ -23,9 +23,7 @@ library FeedCore {
     // Storage
 
     struct Storage {
-        address accessControl;
         string metadataURI;
-        address feedRules;
         uint256 postCount;
         mapping(uint256 => PostStorage) posts;
         mapping(bytes32 => bytes) extraData;
@@ -42,11 +40,11 @@ library FeedCore {
 
     // External functions - Use these functions to be called through DELEGATECALL
 
-    function createPost(PostParams calldata postParams) external returns (uint256, uint256) {
+    function createPost(CreatePostParams calldata postParams) external returns (uint256, uint256) {
         return _createPost(postParams);
     }
 
-    function editPost(uint256 postId, PostParams calldata postParams) external {
+    function editPost(uint256 postId, EditPostParams calldata postParams) external {
         _editPost(postId, postParams);
     }
 
@@ -64,7 +62,7 @@ library FeedCore {
         return uint256(keccak256(abi.encode("evm:", block.chainid, address(this), localSequentialId)));
     }
 
-    function _createPost(PostParams calldata postParams) internal returns (uint256, uint256) {
+    function _createPost(CreatePostParams calldata postParams) internal returns (uint256, uint256) {
         uint256 localSequentialId = ++$storage().postCount;
         uint256 postId = _generatePostId(localSequentialId);
         PostStorage storage _newPost = $storage().posts[postId];
@@ -74,28 +72,27 @@ library FeedCore {
         _newPost.metadataURI = postParams.metadataURI;
         _newPost.quotedPostIds = postParams.quotedPostIds;
         _newPost.parentPostIds = postParams.parentPostIds;
-        _newPost.postRules = address(postParams.postRules); // TODO: Probably change to type address in PostParams struct
         _newPost.creationTimestamp = uint80(block.timestamp);
         _newPost.lastUpdatedTimestamp = uint80(block.timestamp);
         _newPost.extraData.set(postParams.extraData);
         return (postId, localSequentialId);
     }
 
-    function _editPost(uint256 postId, PostParams calldata postParams) internal {
+    function _editPost(uint256 postId, EditPostParams calldata postParams) internal {
         PostStorage storage _post = $storage().posts[postId];
-        _post.author = postParams.author; // TODO: Author can be changed? NO, we should remove that, or add a require
-        _post.source = postParams.source; // TODO: Can you edit the source? you might be editing from a diff source than the original source...
+        // _post.author = postParams.author; // TODO: Author can be changed? NO, we should remove that, or add a require
+        // _post.source = postParams.source; // TODO: Can you edit the source? you might be editing from a diff source than the original source...
         _post.metadataURI = postParams.metadataURI;
-        _post.quotedPostIds = postParams.quotedPostIds;
-        _post.parentPostIds = postParams.parentPostIds;
-        address currentPostRules = _post.postRules;
-        if (address(currentPostRules) != address(postParams.postRules)) {
-            // Basically, a hook is called in the rules, cause maybe the previous rules have some "immutable" flag!
-            // currentPostRules.onRuleChanged(postId, postParams.postRules);
-            // TODO: In the core we do not know interfaces of rules! It's made abstract, just addresses.
-            // TODO: Maybe the immutability should be at the post-level, not rule-level...
-            _post.postRules = address(postParams.postRules); // TODO: Probably change to type address in PostParams struct
-        }
+        // _post.quotedPostIds = postParams.quotedPostIds; // This functionality can be added later if needed
+        // _post.parentPostIds = postParams.parentPostIds; // This functionality can be added later if needed
+        // address currentPostRules = _post.postRules;
+        // if (address(currentPostRules) != address(postParams.postRules)) {
+        //     // Basically, a hook is called in the rules, cause maybe the previous rules have some "immutable" flag!
+        //     // currentPostRules.onRuleChanged(postId, postParams.postRules);
+        //     // TODO: In the core we do not know interfaces of rules! It's made abstract, just addresses.
+        //     // TODO: Maybe the immutability should be at the post-level, not rule-level...
+        //     _post.postRules = address(postParams.postRules); // TODO: Probably change to type address in PostParams struct
+        // }
         _post.lastUpdatedTimestamp = uint80(block.timestamp);
         ExtraDataLib._setExtraData(_post.extraData, postParams.extraData);
     }

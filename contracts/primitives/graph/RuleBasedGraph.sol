@@ -61,7 +61,7 @@ contract RuleBasedGraph {
         $followRulesStorage(account).removeRule(rule);
     }
 
-    // TODO: Unfortunately we had to copy-paste this code because we didn't think of a better solution for encoding yet.
+    // TODO: Unfortunately we had to copy-paste this code because we couldn't think of a better solution for encoding yet.
 
     function _graphProcessFollowRulesChange(
         address account,

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {RuleConfiguration} from "./../../types/Types.sol";
 import {RuleConfiguration, RuleExecutionData, DataElement} from "./../../types/Types.sol";
 
 // TODO: Might worth to add extraData to the follow entity
