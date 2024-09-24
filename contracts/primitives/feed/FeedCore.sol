@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {PostParams} from "./IFeed.sol";
+import {EditPostParams, CreatePostParams} from "./IFeed.sol";
 import "../libraries/ExtraDataLib.sol";
 
 // TODO: Add root post
@@ -40,11 +40,11 @@ library FeedCore {
 
     // External functions - Use these functions to be called through DELEGATECALL
 
-    function createPost(PostParams calldata postParams) external returns (uint256, uint256) {
+    function createPost(CreatePostParams calldata postParams) external returns (uint256, uint256) {
         return _createPost(postParams);
     }
 
-    function editPost(uint256 postId, PostParams calldata postParams) external {
+    function editPost(uint256 postId, EditPostParams calldata postParams) external {
         _editPost(postId, postParams);
     }
 
@@ -62,7 +62,7 @@ library FeedCore {
         return uint256(keccak256(abi.encode("evm:", block.chainid, address(this), localSequentialId)));
     }
 
-    function _createPost(PostParams calldata postParams) internal returns (uint256, uint256) {
+    function _createPost(CreatePostParams calldata postParams) internal returns (uint256, uint256) {
         uint256 localSequentialId = ++$storage().postCount;
         uint256 postId = _generatePostId(localSequentialId);
         PostStorage storage _newPost = $storage().posts[postId];
@@ -78,13 +78,13 @@ library FeedCore {
         return (postId, localSequentialId);
     }
 
-    function _editPost(uint256 postId, PostParams calldata postParams) internal {
+    function _editPost(uint256 postId, EditPostParams calldata postParams) internal {
         PostStorage storage _post = $storage().posts[postId];
-        _post.author = postParams.author; // TODO: Author can be changed? NO, we should remove that, or add a require
-        _post.source = postParams.source; // TODO: Can you edit the source? you might be editing from a diff source than the original source...
+        // _post.author = postParams.author; // TODO: Author can be changed? NO, we should remove that, or add a require
+        // _post.source = postParams.source; // TODO: Can you edit the source? you might be editing from a diff source than the original source...
         _post.metadataURI = postParams.metadataURI;
-        _post.quotedPostIds = postParams.quotedPostIds;
-        _post.parentPostIds = postParams.parentPostIds;
+        // _post.quotedPostIds = postParams.quotedPostIds; // This functionality can be added later if needed
+        // _post.parentPostIds = postParams.parentPostIds; // This functionality can be added later if needed
         // address currentPostRules = _post.postRules;
         // if (address(currentPostRules) != address(postParams.postRules)) {
         //     // Basically, a hook is called in the rules, cause maybe the previous rules have some "immutable" flag!

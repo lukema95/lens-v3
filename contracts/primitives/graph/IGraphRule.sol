@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import {RuleConfiguration} from "./../../types/Types.sol";
+
 interface IGraphRule {
     function configure(bytes calldata data) external;
 
@@ -22,5 +24,6 @@ interface IGraphRule {
 
     // function processUnblock(address account, bytes calldata data) external;
 
-    function processFollowRulesChange(address account, address[] calldata followRules, bytes calldata data) external;
+    function processFollowRulesChange(address account, RuleConfiguration[] calldata followRules, bytes calldata data)
+        external;
 }

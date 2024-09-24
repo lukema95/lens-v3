@@ -1,13 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import {RuleConfiguration} from "./../../types/Types.sol";
+
 // TODO: We do not have native referrals here, shoud we add them?
 interface IPostRule {
     function configure(uint256 postId, bytes calldata data) external;
 
-    function processQuote(address feed, uint256 quotedPostId, uint256 postId, bytes calldata data) external;
+    function processQuote(uint256 quotedPostId, uint256 childPostId, bytes calldata data) external;
 
-    function processParent(address feed, uint256 parentPostId, uint256 postId, bytes calldata data) external;
+    function processParent(uint256 parentPostId, uint256 childPostId, bytes calldata data) external;
+
+    function processChildPostRulesChanged(
+        uint256 parentPostId,
+        uint256 postId,
+        RuleConfiguration[] calldata newChildPostRulesData,
+        bytes calldata data
+    ) external;
 }
 
 /*
@@ -54,5 +63,14 @@ So when you try to remove it, it reverts. Or even some "clone" rule, that will p
 But this would only work if the Rules are stored and changed inside the Post/PostParams, right?
 We cannot have 2 txs approach for for this, right?
 
+Right, it is not possible to enforce this with 2 txs, because someone can frontrun.
 
+--
+
+The vision for this right now is:
+1) We still have addPostRules,  upfdatePostRules, deletePostRules, which will be able to add/update/delete rules from a post
+2) The createPost will automatically call addPostRules (so we can enforce the CloneRule by calling processRulesChanged)
+3) The editPost and deletePost will not have changing PostRules logic - if you want to change the rules you need to call
+   editPostRules/deletePostRules
+4) createPost
 */
