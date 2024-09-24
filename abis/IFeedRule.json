@@ -1,18 +1,5 @@
 [
   {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "data",
-        "type": "bytes"
-      }
-    ],
-    "name": "Lens_RuleConfigured",
-    "type": "event"
-  },
-  {
     "inputs": [
       {
         "internalType": "bytes",
@@ -28,13 +15,13 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "originalMsgSender",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "postId",
+        "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "postId",
+        "name": "localSequentialId",
         "type": "uint256"
       },
       {
@@ -65,9 +52,111 @@
             "type": "uint256[]"
           },
           {
-            "internalType": "contract IPostRule",
-            "name": "postRules",
-            "type": "address"
+            "components": [
+              {
+                "internalType": "address",
+                "name": "ruleAddress",
+                "type": "address"
+              },
+              {
+                "internalType": "bytes",
+                "name": "configData",
+                "type": "bytes"
+              },
+              {
+                "internalType": "bool",
+                "name": "isRequired",
+                "type": "bool"
+              }
+            ],
+            "internalType": "struct RuleConfiguration[]",
+            "name": "rules",
+            "type": "tuple[]"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes[]",
+                "name": "dataForRequiredRules",
+                "type": "bytes[]"
+              },
+              {
+                "internalType": "bytes[]",
+                "name": "dataForAnyOfRules",
+                "type": "bytes[]"
+              }
+            ],
+            "internalType": "struct RuleExecutionData",
+            "name": "feedRulesData",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes[]",
+                "name": "dataForRequiredRules",
+                "type": "bytes[]"
+              },
+              {
+                "internalType": "bytes[]",
+                "name": "dataForAnyOfRules",
+                "type": "bytes[]"
+              }
+            ],
+            "internalType": "struct RuleExecutionData[]",
+            "name": "changeRulesQuotesPostRulesData",
+            "type": "tuple[]"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes[]",
+                "name": "dataForRequiredRules",
+                "type": "bytes[]"
+              },
+              {
+                "internalType": "bytes[]",
+                "name": "dataForAnyOfRules",
+                "type": "bytes[]"
+              }
+            ],
+            "internalType": "struct RuleExecutionData[]",
+            "name": "changeRulesParentsPostRulesData",
+            "type": "tuple[]"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes[]",
+                "name": "dataForRequiredRules",
+                "type": "bytes[]"
+              },
+              {
+                "internalType": "bytes[]",
+                "name": "dataForAnyOfRules",
+                "type": "bytes[]"
+              }
+            ],
+            "internalType": "struct RuleExecutionData[]",
+            "name": "quotesPostRulesData",
+            "type": "tuple[]"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes[]",
+                "name": "dataForRequiredRules",
+                "type": "bytes[]"
+              },
+              {
+                "internalType": "bytes[]",
+                "name": "dataForAnyOfRules",
+                "type": "bytes[]"
+              }
+            ],
+            "internalType": "struct RuleExecutionData[]",
+            "name": "parentsPostRulesData",
+            "type": "tuple[]"
           },
           {
             "components": [
@@ -87,7 +176,7 @@
             "type": "tuple[]"
           }
         ],
-        "internalType": "struct PostParams",
+        "internalType": "struct CreatePostParams",
         "name": "postParams",
         "type": "tuple"
       },
@@ -105,18 +194,18 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "originalMsgSender",
-        "type": "address"
-      },
-      {
         "internalType": "uint256",
         "name": "postId",
         "type": "uint256"
       },
       {
+        "internalType": "uint256",
+        "name": "localSequentialId",
+        "type": "uint256"
+      },
+      {
         "internalType": "bytes",
-        "name": "data",
+        "name": "feedRulesData",
         "type": "bytes"
       }
     ],
@@ -128,13 +217,13 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "originalMsgSender",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "postId",
+        "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "postId",
+        "name": "localSequentialId",
         "type": "uint256"
       },
       {
@@ -165,11 +254,6 @@
             "type": "uint256[]"
           },
           {
-            "internalType": "contract IPostRule",
-            "name": "postRules",
-            "type": "address"
-          },
-          {
             "components": [
               {
                 "internalType": "bytes32",
@@ -187,7 +271,7 @@
             "type": "tuple[]"
           }
         ],
-        "internalType": "struct PostParams",
+        "internalType": "struct EditPostParams",
         "name": "newPostParams",
         "type": "tuple"
       },
@@ -205,19 +289,36 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "originalMsgSender",
-        "type": "address"
-      },
-      {
         "internalType": "uint256",
         "name": "postId",
         "type": "uint256"
       },
       {
-        "internalType": "contract IPostRule",
+        "internalType": "uint256",
+        "name": "localSequentialId",
+        "type": "uint256"
+      },
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "ruleAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes",
+            "name": "configData",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isRequired",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct RuleConfiguration[]",
         "name": "newPostRules",
-        "type": "address"
+        "type": "tuple[]"
       },
       {
         "internalType": "bytes",
@@ -225,7 +326,7 @@
         "type": "bytes"
       }
     ],
-    "name": "processPostRulesChange",
+    "name": "processPostRulesChanged",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

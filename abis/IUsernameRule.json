@@ -1,18 +1,5 @@
 [
   {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "data",
-        "type": "bytes"
-      }
-    ],
-    "name": "Lens_RuleConfigured",
-    "type": "event"
-  },
-  {
     "inputs": [
       {
         "internalType": "bytes",
@@ -27,11 +14,6 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "address",
-        "name": "originalMsgSender",
-        "type": "address"
-      },
       {
         "internalType": "address",
         "name": "account",
@@ -55,11 +37,6 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "address",
-        "name": "originalMsgSender",
-        "type": "address"
-      },
       {
         "internalType": "address",
         "name": "account",

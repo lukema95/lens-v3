@@ -1,18 +1,5 @@
 [
   {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "data",
-        "type": "bytes"
-      }
-    ],
-    "name": "Lens_RuleConfigured",
-    "type": "event"
-  },
-  {
     "inputs": [
       {
         "internalType": "bytes",
@@ -29,13 +16,13 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "originalMsgSender",
+        "name": "account",
         "type": "address"
       },
       {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "membershipId",
+        "type": "uint256"
       },
       {
         "internalType": "bytes",
@@ -52,13 +39,13 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "originalMsgSender",
+        "name": "account",
         "type": "address"
       },
       {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "membershipId",
+        "type": "uint256"
       },
       {
         "internalType": "bytes",
@@ -75,13 +62,13 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "originalMsgSender",
+        "name": "account",
         "type": "address"
       },
       {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "membershipId",
+        "type": "uint256"
       },
       {
         "internalType": "bytes",

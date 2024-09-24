@@ -56,10 +56,22 @@
         "type": "address"
       },
       {
+        "components": [
+          {
+            "internalType": "bytes[]",
+            "name": "dataForRequiredRules",
+            "type": "bytes[]"
+          },
+          {
+            "internalType": "bytes[]",
+            "name": "dataForAnyOfRules",
+            "type": "bytes[]"
+          }
+        ],
         "indexed": false,
-        "internalType": "bytes",
+        "internalType": "struct RuleExecutionData",
         "name": "data",
-        "type": "bytes"
+        "type": "tuple"
       }
     ],
     "name": "Lens_Username_Registered",
@@ -144,10 +156,22 @@
         "type": "address"
       },
       {
+        "components": [
+          {
+            "internalType": "bytes[]",
+            "name": "dataForRequiredRules",
+            "type": "bytes[]"
+          },
+          {
+            "internalType": "bytes[]",
+            "name": "dataForAnyOfRules",
+            "type": "bytes[]"
+          }
+        ],
         "indexed": false,
-        "internalType": "bytes",
+        "internalType": "struct RuleExecutionData",
         "name": "data",
-        "type": "bytes"
+        "type": "tuple"
       }
     ],
     "name": "Lens_Username_Unregistered",
@@ -250,6 +274,25 @@
   {
     "inputs": [
       {
+        "internalType": "bool",
+        "name": "isRequired",
+        "type": "bool"
+      }
+    ],
+    "name": "getUsernameRules",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "account",
         "type": "address"
@@ -260,9 +303,21 @@
         "type": "string"
       },
       {
-        "internalType": "bytes",
+        "components": [
+          {
+            "internalType": "bytes[]",
+            "name": "dataForRequiredRules",
+            "type": "bytes[]"
+          },
+          {
+            "internalType": "bytes[]",
+            "name": "dataForAnyOfRules",
+            "type": "bytes[]"
+          }
+        ],
+        "internalType": "struct RuleExecutionData",
         "name": "data",
-        "type": "bytes"
+        "type": "tuple"
       }
     ],
     "name": "registerUsername",
@@ -329,9 +384,21 @@
         "type": "string"
       },
       {
-        "internalType": "bytes",
+        "components": [
+          {
+            "internalType": "bytes[]",
+            "name": "dataForRequiredRules",
+            "type": "bytes[]"
+          },
+          {
+            "internalType": "bytes[]",
+            "name": "dataForAnyOfRules",
+            "type": "bytes[]"
+          }
+        ],
+        "internalType": "struct RuleExecutionData",
         "name": "data",
-        "type": "bytes"
+        "type": "tuple"
       }
     ],
     "name": "unregisterUsername",
