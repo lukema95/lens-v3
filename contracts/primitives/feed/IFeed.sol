@@ -66,12 +66,12 @@ interface IFeed {
     event Lens_Feed_RuleRemoved(address indexed ruleAddress);
 
     event Lens_Feed_Post_RuleAdded(
-        uint256 indexed postId, address author, address indexed ruleAddress, bytes configData, bool indexed isRequired
+        uint256 indexed postId, address indexed author, address indexed ruleAddress, bytes configData, bool isRequired
     );
     event Lens_Feed_Post_RuleUpdated(
-        uint256 indexed postId, address author, address indexed ruleAddress, bytes configData, bool indexed isRequired
+        uint256 indexed postId, address indexed author, address indexed ruleAddress, bytes configData, bool isRequired
     );
-    event Lens_Feed_Post_RuleRemoved(uint256 indexed postId, address author, address indexed ruleAddress);
+    event Lens_Feed_Post_RuleRemoved(uint256 indexed postId, address indexed author, address indexed ruleAddress);
 
     function addFeedRules(RuleConfiguration[] calldata rules) external;
 
