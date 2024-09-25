@@ -155,19 +155,6 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
-        "internalType": "string",
-        "name": "metadataURI",
-        "type": "string"
-      }
-    ],
-    "name": "Lens_Community_MetadataUriSet",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
         "indexed": true,
         "internalType": "address",
         "name": "rule",
@@ -225,6 +212,38 @@
       }
     ],
     "name": "Lens_Community_RuleUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "metadataURI",
+        "type": "string"
+      }
+    ],
+    "name": "Lens_MetadataURISet",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "resourceId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      }
+    ],
+    "name": "Lens_ResourceId_Available",
     "type": "event"
   },
   {
@@ -477,7 +496,7 @@
         "type": "string"
       }
     ],
-    "name": "setMetadataUri",
+    "name": "setMetadataURI",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

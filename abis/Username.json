@@ -7,6 +7,11 @@
         "type": "string"
       },
       {
+        "internalType": "string",
+        "name": "metadataURI",
+        "type": "string"
+      },
+      {
         "internalType": "contract IAccessControl",
         "name": "accessControl",
         "type": "address"
@@ -14,6 +19,38 @@
     ],
     "stateMutability": "nonpayable",
     "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "metadataURI",
+        "type": "string"
+      }
+    ],
+    "name": "Lens_MetadataURISet",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "resourceId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      }
+    ],
+    "name": "Lens_ResourceId_Available",
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -260,6 +297,19 @@
   },
   {
     "inputs": [],
+    "name": "getMetadataURI",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "getNamespace",
     "outputs": [
       {
@@ -372,6 +422,19 @@
       }
     ],
     "name": "setExtraData",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "metadataURI",
+        "type": "string"
+      }
+    ],
+    "name": "setMetadataURI",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

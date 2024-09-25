@@ -41,7 +41,7 @@
         "type": "string"
       }
     ],
-    "name": "Lens_Username_MetadataUriSet",
+    "name": "Lens_Username_MetadataURISet",
     "type": "event"
   },
   {
@@ -111,7 +111,7 @@
         "type": "string"
       }
     ],
-    "name": "Lens_Username_TokenUriSet",
+    "name": "Lens_Username_TokenURISet",
     "type": "event"
   },
   {

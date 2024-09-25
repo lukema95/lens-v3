@@ -27,6 +27,12 @@
       },
       {
         "indexed": false,
+        "internalType": "string",
+        "name": "metadataURI",
+        "type": "string"
+      },
+      {
+        "indexed": false,
         "internalType": "contract IAccessControl",
         "name": "accessControl",
         "type": "address"
@@ -52,6 +58,11 @@
       {
         "internalType": "string",
         "name": "namespace",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "metadataURI",
         "type": "string"
       },
       {

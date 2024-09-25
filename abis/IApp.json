@@ -165,7 +165,7 @@
         "type": "string"
       }
     ],
-    "name": "Lens_App_MetadataUriSet",
+    "name": "Lens_App_MetadataURISet",
     "type": "event"
   },
   {
