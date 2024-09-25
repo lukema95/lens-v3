@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IPostRule} from "./IPostRule.sol";
-import {IFeedRule} from "./IFeedRule.sol";
-import {IAccessControl} from "../access-control/IAccessControl.sol";
 import {DataElement, RuleConfiguration, RuleExecutionData} from "../../types/Types.sol";
-
+import {IMetadataBased} from "./../base/IMetadataBased.sol";
 // TODO: Should we remove the ignored params for now? This will simplify the interface, but if somebody (or we) want
 // to implement it later - we would have to break the interface to bring them back.
+
 struct EditPostParams {
     address author; // TODO: This is ignored now (you cannot edit the author, so just pass anything)
     address source; // TODO: This is ignored now (you cannot edit the source, so just pass anything)
@@ -46,9 +44,7 @@ struct Post {
     uint80 lastUpdatedTimestamp;
 }
 
-interface IFeed {
-    event Lens_Feed_MetadataUriSet(string metadataURI);
-
+interface IFeed is IMetadataBased {
     event Lens_Feed_PostCreated(
         uint256 indexed postId, address indexed author, uint256 indexed localSequentialId, CreatePostParams postParams
     );
@@ -132,8 +128,6 @@ interface IFeed {
     function getPostRules(uint256 postId, bool isRequired) external view returns (address[] memory);
 
     function getPostCount() external view returns (uint256);
-
-    function getFeedMetadataURI() external view returns (string memory);
 
     function getPostExtraData(uint256 postId, bytes32 key) external view returns (bytes memory);
 

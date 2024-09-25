@@ -2,9 +2,9 @@
 pragma solidity ^0.8.0;
 
 contract UsernameTokenized {
-    event Lens_Username_MetadataUriSet(string metadataURI);
+    event Lens_Username_MetadataURISet(string metadataURI);
 
-    event Lens_Username_TokenUriSet(string tokenURI);
+    event Lens_Username_TokenURISet(string tokenURI);
 
     event Lens_Username_Minted(address indexed to, uint256 indexed tokenId, string indexed username);
 

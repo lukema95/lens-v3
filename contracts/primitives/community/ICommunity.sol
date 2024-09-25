@@ -2,10 +2,9 @@
 pragma solidity ^0.8.0;
 
 import {DataElement, RuleConfiguration, RuleExecutionData} from "./../../types/Types.sol";
+import {IMetadataBased} from "./../base/IMetadataBased.sol";
 
-interface ICommunity {
-    event Lens_Community_MetadataUriSet(string metadataURI);
-
+interface ICommunity is IMetadataBased {
     event Lens_Community_RuleAdded(address indexed rule, bytes configData, bool indexed isRequired);
     event Lens_Community_RuleUpdated(address indexed rule, bytes configData, bool indexed isRequired);
     event Lens_Community_RuleRemoved(address indexed rule);
@@ -22,8 +21,6 @@ interface ICommunity {
 
     function removeCommunityRules(address[] calldata rules) external;
 
-    function setMetadataUri(string calldata metadataURI) external;
-
     // function setExtraData(DataElement[] calldata extraDataToSet) external;
 
     function joinCommunity(address account, RuleExecutionData calldata data) external;
@@ -31,8 +28,6 @@ interface ICommunity {
     function leaveCommunity(address account, RuleExecutionData calldata data) external;
 
     function removeMember(address account, RuleExecutionData calldata data) external;
-
-    function getMetadataURI() external view returns (string memory);
 
     function getNumberOfMembers() external view returns (uint256);
 

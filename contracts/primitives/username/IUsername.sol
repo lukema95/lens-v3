@@ -2,8 +2,9 @@
 pragma solidity ^0.8.0;
 
 import {DataElement, RuleConfiguration, RuleExecutionData} from "../../types/Types.sol";
+import {IMetadataBased} from "./../base/IMetadataBased.sol";
 
-interface IUsername {
+interface IUsername is IMetadataBased {
     event Lens_Username_RuleAdded(address indexed ruleAddress, bytes configData, bool indexed isRequired);
 
     event Lens_Username_RuleUpdated(address indexed ruleAddress, bytes configData, bool indexed isRequired);

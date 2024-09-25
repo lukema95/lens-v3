@@ -10,6 +10,7 @@ contract UsernameFactory {
     event Lens_UsernameFactory_NewUsernameInstance(
         address indexed usernameInstance,
         string indexed namespace,
+        string metadataURI,
         IAccessControl accessControl,
         IUsernameRule rules,
         bytes rulesInitializationData
@@ -53,7 +54,7 @@ contract UsernameFactory {
 
         - [Later] Add Payment to deploying UsernamePrimitive (controllable with AccessControl, skippable with AccessControl)
     */
-    function deploy__Immutable_NoRules(string memory namespace, IAccessControl accessControl)
+    function deploy__Immutable_NoRules(string memory namespace, string memory metadataURI, IAccessControl accessControl)
         external
         returns (address)
     {
@@ -64,10 +65,11 @@ contract UsernameFactory {
                 resourceId: DEPLOY_USERNAME_RID
             })
         ); // msg.sender must have permissions to deploy
-        address usernameInstance = address(new Username(namespace, accessControl));
+        address usernameInstance = address(new Username(namespace, metadataURI, accessControl));
         emit Lens_UsernameFactory_NewUsernameInstance({
             usernameInstance: usernameInstance,
             namespace: namespace,
+            metadataURI: metadataURI,
             accessControl: accessControl,
             rules: IUsernameRule(address(0)),
             rulesInitializationData: ""

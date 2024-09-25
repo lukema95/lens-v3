@@ -15,6 +15,7 @@ contract Username is IUsername, RuleBasedUsername, AccessControlled {
     uint256 constant SET_EXTRA_DATA_RID = uint256(keccak256("SET_EXTRA_DATA"));
     // TODO: Do we want more granular resources here? Like add/update/remove RIDs? Or are we OK with the multi-purpose?
     uint256 constant SET_RULES_RID = uint256(keccak256("SET_RULES"));
+    uint256 constant SET_METADATA_RID = uint256(keccak256("SET_METADATA"));
 
     // TODO: This will be a mandatory rule now
     // // Storage fields and structs
@@ -23,11 +24,21 @@ contract Username is IUsername, RuleBasedUsername, AccessControlled {
     //     uint8 max;
     // }
 
-    constructor(string memory namespace, IAccessControl accessControl) AccessControlled(accessControl) {
+    constructor(string memory namespace, string memory metadataURI, IAccessControl accessControl)
+        AccessControlled(accessControl)
+    {
         Core.$storage().namespace = namespace;
+        Core.$storage().metadataURI = metadataURI;
+        emit Lens_MetadataURISet(metadataURI);
     }
 
     // Access Controlled functions
+
+    function setMetadataURI(string calldata metadataURI) external override {
+        _requireAccess(msg.sender, SET_METADATA_RID);
+        Core.$storage().metadataURI = metadataURI;
+        emit Lens_MetadataURISet(metadataURI);
+    }
 
     function addUsernameRules(RuleConfiguration[] calldata ruleConfigurations) external {
         _requireAccess(msg.sender, SET_RULES_RID);
@@ -140,5 +151,9 @@ contract Username is IUsername, RuleBasedUsername, AccessControlled {
 
     function getUsernameRules(bool isRequired) external view override returns (address[] memory) {
         return _getUsernameRules(isRequired);
+    }
+
+    function getMetadataURI() external view override returns (string memory) {
+        return Core.$storage().metadataURI;
     }
 }

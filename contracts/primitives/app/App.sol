@@ -18,7 +18,7 @@ interface IApp {
     event Lens_App_DefaultCommunitySet(address indexed community);
     event Lens_App_PaymasterAdded(address indexed paymaster);
     event Lens_App_DefaultPaymasterSet(address indexed paymaster);
-    event Lens_App_MetadataUriSet(string metadataURI);
+    event Lens_App_MetadataURISet(string metadataURI);
 }
 
 struct InitialProperties {
@@ -74,7 +74,7 @@ contract App is IApp {
         setDefaultCommunity(props._defaultCommunity);
         setSigners(props._signers);
         setPaymaster(props._paymaster);
-        emit Lens_App_MetadataUriSet(metadataURI);
+        emit Lens_App_MetadataURISet(metadataURI);
     }
 
     // TODO: Add ACCESS CONTROL to all the functions below!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

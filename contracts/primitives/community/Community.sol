@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import {ICommunity} from "./ICommunity.sol";
-import {ICommunityRule} from "./ICommunityRule.sol";
 import {CommunityCore as Core} from "./CommunityCore.sol";
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
 import {RuleConfiguration, RuleExecutionData} from "./../../types/Types.sol";
@@ -18,15 +17,15 @@ contract Community is ICommunity, RuleBasedCommunity, AccessControlled {
 
     constructor(string memory metadataURI, IAccessControl accessControl) AccessControlled(accessControl) {
         Core.$storage().metadataURI = metadataURI;
-        emit Lens_Community_MetadataUriSet(metadataURI);
+        emit Lens_MetadataURISet(metadataURI);
     }
 
     // Access Controlled functions
 
-    function setMetadataUri(string calldata metadataURI) external override {
+    function setMetadataURI(string calldata metadataURI) external override {
         _requireAccess(msg.sender, SET_METADATA_RID);
         Core.$storage().metadataURI = metadataURI;
-        emit Lens_Community_MetadataUriSet(metadataURI);
+        emit Lens_MetadataURISet(metadataURI);
     }
 
     function addCommunityRules(RuleConfiguration[] calldata rules) external override {

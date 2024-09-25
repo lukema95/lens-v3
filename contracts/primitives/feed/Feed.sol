@@ -2,11 +2,8 @@
 pragma solidity ^0.8.0;
 
 import {IFeed, Post, EditPostParams, CreatePostParams} from "./IFeed.sol";
-import {IFeedRule} from "./IFeedRule.sol";
 import {FeedCore as Core} from "./FeedCore.sol";
-import {IPostRule} from "./../feed/IPostRule.sol";
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
-import {AccessControlLib} from "./../libraries/AccessControlLib.sol";
 import {DataElement} from "./../../types/Types.sol";
 import {RuleBasedFeed} from "./RuleBasedFeed.sol";
 import {AccessControlled} from "./../base/AccessControlled.sol";
@@ -22,10 +19,16 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
 
     constructor(string memory metadataURI, IAccessControl accessControl) AccessControlled(accessControl) {
         Core.$storage().metadataURI = metadataURI;
-        emit Lens_Feed_MetadataUriSet(metadataURI);
+        emit Lens_MetadataURISet(metadataURI);
     }
 
     // Access Controlled functions
+
+    function setMetadataURI(string calldata metadataURI) external override {
+        _requireAccess(msg.sender, SET_METADATA_RID);
+        Core.$storage().metadataURI = metadataURI;
+        emit Lens_MetadataURISet(metadataURI);
+    }
 
     function addFeedRules(RuleConfiguration[] calldata rules) external override {
         _requireAccess(msg.sender, SET_RULES_RID);
@@ -227,7 +230,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         return Core.$storage().postCount;
     }
 
-    function getFeedMetadataURI() external view override returns (string memory) {
+    function getMetadataURI() external view override returns (string memory) {
         return Core.$storage().metadataURI;
     }
 

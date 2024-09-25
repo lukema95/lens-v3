@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {RuleConfiguration, RuleExecutionData, DataElement} from "./../../types/Types.sol";
+import {IMetadataBased} from "./../base/IMetadataBased.sol";
 
 // TODO: Might worth to add extraData to the follow entity
 // Maybe it requires a targetExtraData and a followerExtraData
@@ -13,9 +14,7 @@ struct Follow {
     uint256 timestamp;
 }
 
-interface IGraph {
-    event Lens_Graph_MetadataUriSet(string metadataURI);
-
+interface IGraph is IMetadataBased {
     event Lens_Graph_RuleAdded(address indexed ruleAddress, bytes configData, bool indexed isRequired);
     event Lens_Graph_RuleUpdated(address indexed ruleAddress, bytes configData, bool indexed isRequired);
     event Lens_Graph_RuleRemoved(address indexed ruleAddress);

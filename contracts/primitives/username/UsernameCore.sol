@@ -10,6 +10,7 @@ library UsernameCore {
 
     struct Storage {
         string namespace;
+        string metadataURI;
         mapping(string => address) usernameToAccount;
         mapping(address => string) accountToUsername;
         mapping(bytes32 => bytes) extraData;

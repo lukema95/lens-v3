@@ -19,10 +19,16 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
 
     constructor(string memory metadataURI, IAccessControl accessControl) AccessControlled(accessControl) {
         Core.$storage().metadataURI = metadataURI;
-        emit Lens_Graph_MetadataUriSet(metadataURI);
+        emit Lens_MetadataURISet(metadataURI);
     }
 
     // Access Controlled functions
+
+    function setMetadataURI(string calldata metadataURI) external override {
+        _requireAccess(msg.sender, SET_METADATA_RID);
+        Core.$storage().metadataURI = metadataURI;
+        emit Lens_MetadataURISet(metadataURI);
+    }
 
     function addGraphRules(RuleConfiguration[] calldata rules) external override {
         _requireAccess(msg.sender, SET_RULES_RID);
@@ -160,5 +166,9 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
 
     function getFollowRules(address account, bool isRequired) external view override returns (address[] memory) {
         return _getFollowRules(account, isRequired);
+    }
+
+    function getMetadataURI() external view override returns (string memory) {
+        return Core.$storage().metadataURI;
     }
 }
