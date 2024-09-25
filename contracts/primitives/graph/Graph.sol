@@ -13,13 +13,20 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
     uint256 constant SET_RULES_RID = uint256(keccak256("SET_RULES"));
     uint256 constant SET_METADATA_RID = uint256(keccak256("SET_METADATA"));
     uint256 constant SET_EXTRA_DATA_RID = uint256(keccak256("SET_EXTRA_DATA"));
-    uint256 constant CHANGE_ACCESS_CONTROL_RID = uint256(keccak256("CHANGE_ACCESS_CONTROL"));
 
     // uint256 constant SKIP_FOLLOW_RULES_CHECKS_RID = uint256(keccak256("SKIP_FOLLOW_RULES_CHECKS"));
 
     constructor(string memory metadataURI, IAccessControl accessControl) AccessControlled(accessControl) {
         Core.$storage().metadataURI = metadataURI;
         emit Lens_MetadataURISet(metadataURI);
+        _emitRIDs();
+    }
+
+    function _emitRIDs() internal override {
+        super._emitRIDs();
+        emit Lens_ResourceId_Available(SET_RULES_RID, "SET_RULES");
+        emit Lens_ResourceId_Available(SET_METADATA_RID, "SET_METADATA");
+        emit Lens_ResourceId_Available(SET_EXTRA_DATA_RID, "SET_EXTRA_DATA");
     }
 
     // Access Controlled functions

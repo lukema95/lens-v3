@@ -12,10 +12,10 @@ import {IAccessControl} from "./../access-control/IAccessControl.sol";
 import {RuleConfiguration} from "./../../types/Types.sol";
 
 contract Username is IUsername, RuleBasedUsername, AccessControlled {
-    uint256 constant SET_EXTRA_DATA_RID = uint256(keccak256("SET_EXTRA_DATA"));
     // TODO: Do we want more granular resources here? Like add/update/remove RIDs? Or are we OK with the multi-purpose?
     uint256 constant SET_RULES_RID = uint256(keccak256("SET_RULES"));
     uint256 constant SET_METADATA_RID = uint256(keccak256("SET_METADATA"));
+    uint256 constant SET_EXTRA_DATA_RID = uint256(keccak256("SET_EXTRA_DATA"));
 
     // TODO: This will be a mandatory rule now
     // // Storage fields and structs
@@ -30,6 +30,14 @@ contract Username is IUsername, RuleBasedUsername, AccessControlled {
         Core.$storage().namespace = namespace;
         Core.$storage().metadataURI = metadataURI;
         emit Lens_MetadataURISet(metadataURI);
+        _emitRIDs();
+    }
+
+    function _emitRIDs() internal override {
+        super._emitRIDs();
+        emit Lens_ResourceId_Available(SET_RULES_RID, "SET_RULES");
+        emit Lens_ResourceId_Available(SET_METADATA_RID, "SET_METADATA");
+        emit Lens_ResourceId_Available(SET_EXTRA_DATA_RID, "SET_EXTRA_DATA");
     }
 
     // Access Controlled functions

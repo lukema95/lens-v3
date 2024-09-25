@@ -8,6 +8,8 @@ contract AccessControlled {
     using AccessControlLib for IAccessControl;
     using AccessControlLib for address;
 
+    event Lens_ResourceId_Available(uint256 indexed resourceId, string name);
+
     uint256 constant SET_ACCESS_CONTROL_RID = uint256(keccak256("SET_ACCESS_CONTROL"));
 
     struct AccessControlledStorage {
@@ -31,6 +33,10 @@ contract AccessControlled {
     modifier requireAccess(uint256 resourceId) {
         _requireAccess(msg.sender, resourceId);
         _;
+    }
+
+    function _emitRIDs() internal virtual {
+        emit Lens_ResourceId_Available(SET_ACCESS_CONTROL_RID, "SET_ACCESS_CONTROL");
     }
 
     function _requireAccess(address account, uint256 resourceId) internal view {

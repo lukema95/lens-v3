@@ -18,6 +18,15 @@ contract Community is ICommunity, RuleBasedCommunity, AccessControlled {
     constructor(string memory metadataURI, IAccessControl accessControl) AccessControlled(accessControl) {
         Core.$storage().metadataURI = metadataURI;
         emit Lens_MetadataURISet(metadataURI);
+        _emitRIDs();
+    }
+
+    function _emitRIDs() internal override {
+        super._emitRIDs();
+        emit Lens_ResourceId_Available(SET_RULES_RID, "SET_RULES");
+        emit Lens_ResourceId_Available(SET_METADATA_RID, "SET_METADATA");
+        emit Lens_ResourceId_Available(SET_EXTRA_DATA_RID, "SET_EXTRA_DATA");
+        emit Lens_ResourceId_Available(REMOVE_MEMBER_RID, "REMOVE_MEMBER");
     }
 
     // Access Controlled functions
