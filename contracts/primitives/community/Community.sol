@@ -7,6 +7,7 @@ import {IAccessControl} from "./../access-control/IAccessControl.sol";
 import {RuleConfiguration, RuleExecutionData} from "./../../types/Types.sol";
 import {RuleBasedCommunity} from "./RuleBasedCommunity.sol";
 import {AccessControlled} from "./../base/AccessControlled.sol";
+import {Events} from "./../../types/Events.sol";
 
 contract Community is ICommunity, RuleBasedCommunity, AccessControlled {
     // Resource IDs involved in the contract
@@ -19,6 +20,7 @@ contract Community is ICommunity, RuleBasedCommunity, AccessControlled {
         Core.$storage().metadataURI = metadataURI;
         emit Lens_MetadataURISet(metadataURI);
         _emitRIDs();
+        emit Events.Lens_Contract_Deployed("community", "lens.community", "community", "lens.community");
     }
 
     function _emitRIDs() internal override {

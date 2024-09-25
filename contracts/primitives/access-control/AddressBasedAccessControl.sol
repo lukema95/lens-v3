@@ -3,12 +3,17 @@ pragma solidity ^0.8.17;
 
 import {Ownership} from "./../../diamond/Ownership.sol";
 import {IRoleBasedAccessControl} from "./IRoleBasedAccessControl.sol";
+import {Events} from "./../../types/Events.sol";
 
 contract AddressBasedAccessControl is Ownership, IRoleBasedAccessControl {
     mapping(address => mapping(uint256 => AccessPermission)) internal _globalAccess;
     mapping(address => mapping(address => mapping(uint256 => AccessPermission))) internal _scopedAccess;
 
-    constructor(address owner) Ownership(owner) {}
+    constructor(address owner) Ownership(owner) {
+        emit Events.Lens_Contract_Deployed(
+            "access-control", "lens.access-control.address-based", "access-control", "lens.access-control.address-based"
+        );
+    }
 
     function hasAccess(address account, address resourceLocation, uint256 resourceId)
         external

@@ -7,6 +7,7 @@ import {IAccessControl} from "./../access-control/IAccessControl.sol";
 import {RuleConfiguration, RuleExecutionData, DataElement} from "./../../types/Types.sol";
 import {RuleBasedGraph} from "./RuleBasedGraph.sol";
 import {AccessControlled} from "./../base/AccessControlled.sol";
+import {Events} from "./../../types/Events.sol";
 
 contract Graph is IGraph, RuleBasedGraph, AccessControlled {
     // Resource IDs involved in the contract
@@ -20,6 +21,7 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
         Core.$storage().metadataURI = metadataURI;
         emit Lens_MetadataURISet(metadataURI);
         _emitRIDs();
+        emit Events.Lens_Contract_Deployed("graph", "lens.graph", "graph", "lens.graph");
     }
 
     function _emitRIDs() internal override {

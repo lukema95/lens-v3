@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import {IRoleBasedAccessControl} from "./IRoleBasedAccessControl.sol";
 import {Ownership} from "./../../diamond/Ownership.sol";
+import {Events} from "./../../types/Events.sol";
 
 /**
  * This Access Control:
@@ -33,6 +34,9 @@ contract OwnerAdminAccessControl is Ownership, IRoleBasedAccessControl {
     constructor(address owner) Ownership(owner) {
         emit Lens_OwnerAdminAccessControl_Created();
         emit Lens_AccessControl_RoleSet(owner, uint256(Role.OWNER));
+        emit Events.Lens_Contract_Deployed(
+            "access-control", "lens.access-control.owner-admin", "access-control", "lens.access-control.owner-admin"
+        );
     }
 
     function hasAccess(address account, address, /* resourceLocation */ uint256 /* resourceId */ )

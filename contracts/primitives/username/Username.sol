@@ -10,6 +10,7 @@ import {RuleBasedUsername} from "./RuleBasedUsername.sol";
 import {AccessControlled} from "./../base/AccessControlled.sol";
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
 import {RuleConfiguration} from "./../../types/Types.sol";
+import {Events} from "./../../types/Events.sol";
 
 contract Username is IUsername, RuleBasedUsername, AccessControlled {
     // TODO: Do we want more granular resources here? Like add/update/remove RIDs? Or are we OK with the multi-purpose?
@@ -31,6 +32,7 @@ contract Username is IUsername, RuleBasedUsername, AccessControlled {
         Core.$storage().metadataURI = metadataURI;
         emit Lens_MetadataURISet(metadataURI);
         _emitRIDs();
+        emit Events.Lens_Contract_Deployed("username", "lens.username", "username", "lens.username");
     }
 
     function _emitRIDs() internal override {

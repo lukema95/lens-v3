@@ -8,6 +8,7 @@ import {DataElement} from "./../../types/Types.sol";
 import {RuleBasedFeed} from "./RuleBasedFeed.sol";
 import {AccessControlled} from "./../base/AccessControlled.sol";
 import {RuleConfiguration, RuleExecutionData} from "./../../types/Types.sol";
+import {Events} from "./../../types/Events.sol";
 
 contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     // Resource IDs involved in the contract
@@ -20,6 +21,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         Core.$storage().metadataURI = metadataURI;
         emit Lens_MetadataURISet(metadataURI);
         _emitRIDs();
+        emit Events.Lens_Contract_Deployed("feed", "lens.feed", "feed", "lens.feed");
     }
 
     function _emitRIDs() internal override {

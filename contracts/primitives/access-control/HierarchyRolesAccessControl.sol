@@ -3,6 +3,7 @@ pragma solidity ^0.8.17;
 
 import {IRoleBasedAccessControl} from "./IRoleBasedAccessControl.sol";
 import {Ownership} from "./../../diamond/Ownership.sol";
+import {Events} from "./../../types/Events.sol";
 
 contract HierarchyRolesAccessControl is Ownership, IRoleBasedAccessControl {
     enum Role {
@@ -38,7 +39,14 @@ contract HierarchyRolesAccessControl is Ownership, IRoleBasedAccessControl {
     mapping(Role => mapping(uint256 => AccessPermission)) internal _globalAccess;
     mapping(Role => mapping(address => mapping(uint256 => AccessPermission))) internal _scopedAccess;
 
-    constructor(address owner) Ownership(owner) {}
+    constructor(address owner) Ownership(owner) {
+        emit Events.Lens_Contract_Deployed(
+            "access-control",
+            "lens.access-control.hierarchy-roles",
+            "access-control",
+            "lens.access-control.hierarchy-roles"
+        );
+    }
 
     function _confirmOwnershipTransfer(address newOwner) internal virtual override returns (address) {
         address oldOwner = super._confirmOwnershipTransfer(newOwner);
