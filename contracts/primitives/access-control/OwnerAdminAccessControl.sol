@@ -33,7 +33,7 @@ contract OwnerAdminAccessControl is Ownership, IRoleBasedAccessControl {
 
     constructor(address owner) Ownership(owner) {
         emit Lens_OwnerAdminAccessControl_Created();
-        emit Lens_AccessControl_RoleSet(owner, uint256(Role.OWNER));
+        emit Lens_AccessControl_RoleGranted(owner, uint256(Role.OWNER));
         emit Events.Lens_Contract_Deployed(
             "access-control", "lens.access-control.owner-admin", "access-control", "lens.access-control.owner-admin"
         );
@@ -48,11 +48,18 @@ contract OwnerAdminAccessControl is Ownership, IRoleBasedAccessControl {
         return _isAdmin[account] || account == _owner;
     }
 
-    function setRole(address account, uint256 roleId, bytes calldata /* data */ ) external override onlyOwner {
+    function grantRole(address account, uint256 roleId) external override onlyOwner {
         require(account != _owner);
-        require(roleId == uint256(Role.ADMIN) || roleId == uint256(Role.NONE));
-        _isAdmin[account] = roleId == uint256(Role.ADMIN);
-        emit Lens_AccessControl_RoleSet(account, roleId);
+        require(roleId == uint256(Role.ADMIN));
+        _isAdmin[account] = true;
+        emit Lens_AccessControl_RoleGranted(account, roleId);
+    }
+
+    function revokeRole(address account, uint256 roleId) external override {
+        require(account != _owner);
+        require(roleId == uint256(Role.ADMIN));
+        _isAdmin[account] = false;
+        emit Lens_AccessControl_RoleRevoked(account, roleId);
     }
 
     function hasRole(address account, uint256 roleId) external view override returns (bool) {
@@ -62,16 +69,6 @@ contract OwnerAdminAccessControl is Ownership, IRoleBasedAccessControl {
             return _isAdmin[account];
         } else {
             return false;
-        }
-    }
-
-    function getRole(address account) external view override returns (uint256) {
-        if (_isAdmin[account]) {
-            return uint256(Role.ADMIN);
-        } else if (account == _owner) {
-            return uint256(Role.OWNER);
-        } else {
-            return uint256(Role.NONE);
         }
     }
 
@@ -149,8 +146,8 @@ contract OwnerAdminAccessControl is Ownership, IRoleBasedAccessControl {
     }
 
     function _confirmOwnershipTransfer(address newOwner) internal virtual override returns (address) {
-        emit Lens_AccessControl_RoleSet(_owner, uint256(Role.NONE));
-        emit Lens_AccessControl_RoleSet(newOwner, uint256(Role.OWNER));
+        emit Lens_AccessControl_RoleRevoked(_owner, uint256(Role.OWNER));
+        emit Lens_AccessControl_RoleGranted(newOwner, uint256(Role.OWNER));
         return super._confirmOwnershipTransfer(newOwner);
     }
 }

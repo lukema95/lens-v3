@@ -33,17 +33,17 @@ contract AddressBasedAccessControl is Ownership, IRoleBasedAccessControl {
         }
     }
 
-    function setRole(address account, uint256 roleId, bytes calldata /* data */ ) external pure override {
+    function grantRole(address account, uint256 roleId) external pure override {
         // Roles are already pre-assigned. Reverts on every attempt except when it matches the already assigned role.
         require(roleId == _addressToRoleId(account));
     }
 
-    function hasRole(address account, uint256 roleId) external pure override returns (bool) {
-        return roleId == _addressToRoleId(account);
+    function revokeRole(address, /* account */ uint256 /* roleId */ ) external pure override {
+        revert();
     }
 
-    function getRole(address account) external pure override returns (uint256) {
-        return _addressToRoleId(account);
+    function hasRole(address account, uint256 roleId) external pure override returns (bool) {
+        return roleId == _addressToRoleId(account);
     }
 
     // Note: We allow to deny access to current owner. It will not change the access while it is still the owner,

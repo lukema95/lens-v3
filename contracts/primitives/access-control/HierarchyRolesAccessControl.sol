@@ -77,11 +77,11 @@ contract HierarchyRolesAccessControl is Ownership, IRoleBasedAccessControl {
         }
     }
 
-    function setRole(address account, uint256 roleId, bytes calldata data) external override {}
+    function grantRole(address account, uint256 roleId) external override {}
+
+    function revokeRole(address account, uint256 roleId) external pure override {}
 
     function hasRole(address account, uint256 roleId) external view override returns (bool) {}
-
-    function getRole(address account) external view override returns (uint256) {}
 
     function setGlobalAccess(uint256 roleId, uint256 resourceId, AccessPermission accessPermission, bytes calldata data)
         external
