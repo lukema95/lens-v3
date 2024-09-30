@@ -70,8 +70,8 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         uint256 postId,
         RuleConfiguration[] calldata rules,
         RuleExecutionData calldata feedRulesData,
-        RuleExecutionData[] calldata changeRulesQuotesPostRulesData,
-        RuleExecutionData[] calldata changeRulesParentsPostRulesData
+        RuleExecutionData calldata changeRulesQuotePostRulesData,
+        RuleExecutionData calldata changeRulesParentPostRulesData
     ) external override {
         address author = Core.$storage().posts[postId].author;
         require(msg.sender == author);
@@ -82,7 +82,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
             );
         }
         _processAllParentsRulesChildPostRulesChanged(
-            postId, rules, changeRulesQuotesPostRulesData, changeRulesParentsPostRulesData
+            postId, rules, changeRulesQuotePostRulesData, changeRulesParentPostRulesData
         );
 
         // Check the feed rules if it accepts the new RuleConfiguration
@@ -93,8 +93,8 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         uint256 postId,
         RuleConfiguration[] calldata rules,
         RuleExecutionData calldata feedRulesData,
-        RuleExecutionData[] calldata changeRulesQuotesPostRulesData,
-        RuleExecutionData[] calldata changeRulesParentsPostRulesData
+        RuleExecutionData calldata changeRulesQuotePostRulesData,
+        RuleExecutionData calldata changeRulesParentPostRulesData
     ) external override {
         address author = Core.$storage().posts[postId].author;
         require(msg.sender == author);
@@ -105,7 +105,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
             );
         }
         _processAllParentsRulesChildPostRulesChanged(
-            postId, rules, changeRulesQuotesPostRulesData, changeRulesParentsPostRulesData
+            postId, rules, changeRulesQuotePostRulesData, changeRulesParentPostRulesData
         );
 
         // Check the feed rules if it accepts the new RuleConfiguration
@@ -116,8 +116,8 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         uint256 postId,
         RuleConfiguration[] calldata rules,
         RuleExecutionData calldata feedRulesData,
-        RuleExecutionData[] calldata changeRulesQuotesPostRulesData,
-        RuleExecutionData[] calldata changeRulesParentsPostRulesData
+        RuleExecutionData calldata changeRulesQuotePostRulesData,
+        RuleExecutionData calldata changeRulesParentPostRulesData
     ) external override {
         address author = Core.$storage().posts[postId].author;
         require(msg.sender == author);
@@ -126,7 +126,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
             emit Lens_Feed_Post_RuleRemoved(postId, author, rules[i].ruleAddress);
         }
         _processAllParentsRulesChildPostRulesChanged(
-            postId, rules, changeRulesQuotesPostRulesData, changeRulesParentsPostRulesData
+            postId, rules, changeRulesQuotePostRulesData, changeRulesParentPostRulesData
         );
 
         // Check the feed rules if it accepts the new RuleConfiguration
@@ -137,6 +137,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
 
     function createPost(CreatePostParams calldata createPostParams) external override returns (uint256) {
         require(msg.sender == createPostParams.author);
+        require(createPostParams.quotedPostId != createPostParams.parentPostId);
         (uint256 postId, uint256 localSequentialId) = Core._createPost(createPostParams);
         _feedProcessCreatePost(postId, localSequentialId, createPostParams);
 
@@ -152,8 +153,8 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         _processAllParentsRulesChildPostRulesChanged(
             postId,
             createPostParams.rules,
-            createPostParams.changeRulesQuotesPostRulesData,
-            createPostParams.changeRulesParentsPostRulesData
+            createPostParams.changeRulesQuotePostRulesData,
+            createPostParams.changeRulesParentPostRulesData
         );
 
         // Check the feed rules if it accepts the new RuleConfiguration
@@ -162,8 +163,8 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         );
 
         _processAllParentsAndQuotedPostsRules(
-            createPostParams.quotedPostIds,
-            createPostParams.parentPostIds,
+            createPostParams.quotedPostId,
+            createPostParams.parentPostId,
             postId,
             createPostParams.quotesPostRulesData,
             createPostParams.parentsPostRulesData
@@ -215,8 +216,8 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
             localSequentialId: Core.$storage().posts[postId].localSequentialId,
             source: Core.$storage().posts[postId].source,
             metadataURI: Core.$storage().posts[postId].metadataURI,
-            quotedPostIds: Core.$storage().posts[postId].quotedPostIds,
-            parentPostIds: Core.$storage().posts[postId].parentPostIds,
+            quotedPostId: Core.$storage().posts[postId].quotedPostId,
+            parentPostId: Core.$storage().posts[postId].parentPostId,
             requiredRules: _getPostRules(postId, true),
             anyOfRules: _getPostRules(postId, false),
             creationTimestamp: Core.$storage().posts[postId].creationTimestamp,

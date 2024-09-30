@@ -64,20 +64,14 @@ contract RuleBasedFeed {
     }
 
     function _processAllParentsAndQuotedPostsRules(
-        uint256[] memory quotedPostIds,
-        uint256[] memory parentPostIds,
+        uint256 quotedPostId,
+        uint256 parentPostId,
         uint256 childPostId,
-        RuleExecutionData[] calldata quotedPostRulesData,
-        RuleExecutionData[] calldata parentPostRulesData
+        RuleExecutionData calldata quotedPostRulesData,
+        RuleExecutionData calldata parentPostRulesData
     ) internal {
-        // Check all quoted and parent postRules that the added RuleConfiguration is good
-        for (uint256 i = 0; i < quotedPostIds.length; i++) {
-            _postProcessQuote(quotedPostIds[i], childPostId, quotedPostRulesData[i]);
-        }
-
-        for (uint256 i = 0; i < parentPostIds.length; i++) {
-            _postProcessParent(parentPostIds[i], childPostId, parentPostRulesData[i]);
-        }
+        _postProcessQuote(quotedPostId, childPostId, quotedPostRulesData);
+        _postProcessParent(parentPostId, childPostId, parentPostRulesData);
     }
 
     function _postProcessQuote(
@@ -214,20 +208,15 @@ contract RuleBasedFeed {
     function _processAllParentsRulesChildPostRulesChanged(
         uint256 postId,
         RuleConfiguration[] calldata childRules,
-        RuleExecutionData[] calldata quotesPostRulesData,
-        RuleExecutionData[] calldata parentsPostRulesData
+        RuleExecutionData calldata quotePostRulesData,
+        RuleExecutionData calldata parentPostRulesData
     ) internal {
-        uint256[] storage quotedPostIds = Core.$storage().posts[postId].quotedPostIds;
-        uint256[] storage parentPostIds = Core.$storage().posts[postId].parentPostIds;
-
-        // Check all quoted and parent postRules that the added RuleConfiguration is good
-        for (uint256 i = 0; i < quotedPostIds.length; i++) {
-            _processChildPostRulesChanged(quotedPostIds[i], postId, childRules, quotesPostRulesData[i]);
-        }
-
-        for (uint256 i = 0; i < parentPostIds.length; i++) {
-            _processChildPostRulesChanged(parentPostIds[i], postId, childRules, parentsPostRulesData[i]);
-        }
+        _processChildPostRulesChanged(
+            Core.$storage().posts[postId].quotedPostId, postId, childRules, quotePostRulesData
+        );
+        _processChildPostRulesChanged(
+            Core.$storage().posts[postId].parentPostId, postId, childRules, parentPostRulesData
+        );
     }
 
     function _processChildPostRulesChanged(

@@ -3,15 +3,15 @@ pragma solidity ^0.8.0;
 
 import {DataElement, RuleConfiguration, RuleExecutionData} from "../../types/Types.sol";
 import {IMetadataBased} from "./../base/IMetadataBased.sol";
+
 // TODO: Should we remove the ignored params for now? This will simplify the interface, but if somebody (or we) want
 // to implement it later - we would have to break the interface to bring them back.
-
 struct EditPostParams {
     address author; // TODO: This is ignored now (you cannot edit the author, so just pass anything)
     address source; // TODO: This is ignored now (you cannot edit the source, so just pass anything)
     string metadataURI;
-    uint256[] quotedPostIds; // TODO: This is ignored now (you cannot edit the quotedPostIds, so just pass anything)
-    uint256[] parentPostIds; // TODO: This is ignored now (you cannot edit the parentPostIds, so just pass anything)
+    uint256 quotedPostId; // TODO: This is ignored now (you cannot edit the quotedPostIds, so just pass anything)
+    uint256 parentPostId; // TODO: This is ignored now (you cannot edit the parentPostIds, so just pass anything)
     DataElement[] extraData;
 }
 
@@ -19,14 +19,14 @@ struct CreatePostParams {
     address author; // Multiple authors can be added in extraData
     address source; // Client source, if any
     string metadataURI;
-    uint256[] quotedPostIds;
-    uint256[] parentPostIds;
+    uint256 quotedPostId;
+    uint256 parentPostId;
     RuleConfiguration[] rules;
     RuleExecutionData feedRulesData;
-    RuleExecutionData[] changeRulesQuotesPostRulesData; // TODO: This is getting really out of hand...
-    RuleExecutionData[] changeRulesParentsPostRulesData; // TODO: But we don't have the luxury...
-    RuleExecutionData[] quotesPostRulesData; // TODO: soooooo....
-    RuleExecutionData[] parentsPostRulesData; // TODO: ...it is what it is (c) Peter
+    RuleExecutionData changeRulesQuotePostRulesData;
+    RuleExecutionData changeRulesParentPostRulesData;
+    RuleExecutionData quotesPostRulesData;
+    RuleExecutionData parentsPostRulesData;
     DataElement[] extraData;
 }
 
@@ -36,8 +36,8 @@ struct Post {
     uint256 localSequentialId;
     address source;
     string metadataURI;
-    uint256[] quotedPostIds;
-    uint256[] parentPostIds;
+    uint256 quotedPostId;
+    uint256 parentPostId;
     address[] requiredRules;
     address[] anyOfRules;
     uint80 creationTimestamp;
@@ -95,24 +95,24 @@ interface IFeed is IMetadataBased {
         uint256 postId,
         RuleConfiguration[] calldata rules,
         RuleExecutionData calldata feedRulesData,
-        RuleExecutionData[] calldata quotesPostRulesData,
-        RuleExecutionData[] calldata parentsPostRulesData
+        RuleExecutionData calldata quotePostRulesData,
+        RuleExecutionData calldata parentPostRulesData
     ) external;
 
     function updatePostRules(
         uint256 postId,
         RuleConfiguration[] calldata rules,
         RuleExecutionData calldata feedRulesData,
-        RuleExecutionData[] calldata quotesPostRulesData,
-        RuleExecutionData[] calldata parentsPostRulesData
+        RuleExecutionData calldata quotePostRulesData,
+        RuleExecutionData calldata parentPostRulesData
     ) external;
 
     function removePostRules(
         uint256 postId,
         RuleConfiguration[] calldata rules,
         RuleExecutionData calldata feedRulesData,
-        RuleExecutionData[] calldata quotesPostRulesData,
-        RuleExecutionData[] calldata parentsPostRulesData
+        RuleExecutionData calldata quotePostRulesData,
+        RuleExecutionData calldata parentPostRulesData
     ) external;
 
     function setExtraData(DataElement[] calldata extraDataToSet) external;

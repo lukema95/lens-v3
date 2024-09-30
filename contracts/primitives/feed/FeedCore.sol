@@ -10,8 +10,8 @@ struct PostStorage {
     uint256 localSequentialId;
     address source;
     string metadataURI;
-    uint256[] quotedPostIds;
-    uint256[] parentPostIds;
+    uint256 quotedPostId;
+    uint256 parentPostId;
     uint80 creationTimestamp;
     uint80 lastUpdatedTimestamp;
     mapping(bytes32 => bytes) extraData;
@@ -70,8 +70,14 @@ library FeedCore {
         _newPost.localSequentialId = localSequentialId;
         _newPost.source = postParams.source;
         _newPost.metadataURI = postParams.metadataURI;
-        _newPost.quotedPostIds = postParams.quotedPostIds;
-        _newPost.parentPostIds = postParams.parentPostIds;
+        if (postParams.quotedPostId != 0) {
+            _requirePostExistence(postParams.quotedPostId);
+        }
+        _newPost.quotedPostId = postParams.quotedPostId;
+        if (postParams.parentPostId != 0) {
+            _requirePostExistence(postParams.parentPostId);
+        }
+        _newPost.parentPostId = postParams.parentPostId;
         _newPost.creationTimestamp = uint80(block.timestamp);
         _newPost.lastUpdatedTimestamp = uint80(block.timestamp);
         _newPost.extraData.set(postParams.extraData);
@@ -83,8 +89,8 @@ library FeedCore {
         // _post.author = postParams.author; // TODO: Author can be changed? NO, we should remove that, or add a require
         // _post.source = postParams.source; // TODO: Can you edit the source? you might be editing from a diff source than the original source...
         _post.metadataURI = postParams.metadataURI;
-        // _post.quotedPostIds = postParams.quotedPostIds; // This functionality can be added later if needed
-        // _post.parentPostIds = postParams.parentPostIds; // This functionality can be added later if needed
+        // _post.quotedPostId = postParams.quotedPostId; // This functionality can be added later if needed
+        // _post.parentPostId = postParams.parentPostId; // This functionality can be added later if needed
         // address currentPostRules = _post.postRules;
         // if (address(currentPostRules) != address(postParams.postRules)) {
         //     // Basically, a hook is called in the rules, cause maybe the previous rules have some "immutable" flag!
@@ -102,6 +108,10 @@ library FeedCore {
             delete $storage().posts[postId].extraData[extraDataKeysToDelete[i]];
         }
         delete $storage().posts[postId];
+    }
+
+    function _requirePostExistence(uint256 postId) internal view {
+        require($storage().posts[postId].creationTimestamp != 0);
     }
 
     // TODO: Debate this more. It should be a soft delete, you can reconstruct anyways from tx history.
