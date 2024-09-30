@@ -30,12 +30,24 @@ struct CreatePostParams {
     DataElement[] extraData;
 }
 
+struct CreateRepostParams {
+    address author;
+    address source;
+    string metadataURI;
+    uint256 parentPostId;
+    RuleExecutionData feedRulesData;
+    RuleExecutionData changeRulesParentPostRulesData;
+    RuleExecutionData parentsPostRulesData;
+    DataElement[] extraData;
+}
+
 // This is a return type (for getters)
 struct Post {
     address author;
     uint256 localSequentialId;
     address source;
     string metadataURI;
+    bool isRepost;
     uint256 quotedPostId;
     uint256 parentPostId;
     address[] requiredRules;
@@ -47,6 +59,10 @@ struct Post {
 interface IFeed is IMetadataBased {
     event Lens_Feed_PostCreated(
         uint256 indexed postId, address indexed author, uint256 indexed localSequentialId, CreatePostParams postParams
+    );
+
+    event Lens_Feed_RepostCreated(
+        uint256 indexed postId, address indexed author, uint256 indexed localSequentialId, CreateRepostParams postParams
     );
 
     event Lens_Feed_PostEdited(
@@ -76,6 +92,8 @@ interface IFeed is IMetadataBased {
     function removeFeedRules(address[] calldata rules) external;
 
     function createPost(CreatePostParams calldata postParams) external returns (uint256);
+
+    function createRepost(CreateRepostParams calldata repostParams) external returns (uint256);
 
     function editPost(
         uint256 postId,

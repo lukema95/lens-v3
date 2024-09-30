@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {EditPostParams, CreatePostParams} from "./IFeed.sol";
+import {EditPostParams, CreatePostParams, CreateRepostParams} from "./IFeed.sol";
 import "../libraries/ExtraDataLib.sol";
 
 // TODO: Add root post
@@ -10,6 +10,7 @@ struct PostStorage {
     uint256 localSequentialId;
     address source;
     string metadataURI;
+    bool isRepost;
     uint256 quotedPostId;
     uint256 parentPostId;
     uint80 creationTimestamp;
@@ -42,6 +43,10 @@ library FeedCore {
 
     function createPost(CreatePostParams calldata postParams) external returns (uint256, uint256) {
         return _createPost(postParams);
+    }
+
+    function createRepost(CreateRepostParams calldata repostParams) external returns (uint256, uint256) {
+        return _createRepost(repostParams);
     }
 
     function editPost(uint256 postId, EditPostParams calldata postParams) external {
@@ -84,6 +89,23 @@ library FeedCore {
         return (postId, localSequentialId);
     }
 
+    function _createRepost(CreateRepostParams calldata repostParams) internal returns (uint256, uint256) {
+        uint256 localSequentialId = ++$storage().postCount;
+        uint256 postId = _generatePostId(localSequentialId);
+        PostStorage storage _newPost = $storage().posts[postId];
+        _newPost.isRepost = true;
+        _newPost.author = repostParams.author;
+        _newPost.localSequentialId = localSequentialId;
+        _newPost.source = repostParams.source;
+        _newPost.metadataURI = repostParams.metadataURI;
+        _requirePostExistence(repostParams.parentPostId);
+        _newPost.parentPostId = repostParams.parentPostId;
+        _newPost.creationTimestamp = uint80(block.timestamp);
+        _newPost.lastUpdatedTimestamp = uint80(block.timestamp);
+        _newPost.extraData.set(repostParams.extraData);
+        return (postId, localSequentialId);
+    }
+
     function _editPost(uint256 postId, EditPostParams calldata postParams) internal {
         PostStorage storage _post = $storage().posts[postId];
         // _post.author = postParams.author; // TODO: Author can be changed? NO, we should remove that, or add a require
@@ -103,6 +125,7 @@ library FeedCore {
         ExtraDataLib._setExtraData(_post.extraData, postParams.extraData);
     }
 
+    // TODO(by: @donosonaumczuk): We should do soft-delete (disable/enable post feature), keep the storage there.
     function _deletePost(uint256 postId, bytes32[] calldata extraDataKeysToDelete) internal {
         for (uint256 i = 0; i < extraDataKeysToDelete.length; i++) {
             delete $storage().posts[postId].extraData[extraDataKeysToDelete[i]];

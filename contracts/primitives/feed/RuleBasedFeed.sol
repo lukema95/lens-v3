@@ -6,7 +6,7 @@ import {IFeedRule} from "./IFeedRule.sol";
 import {FeedCore as Core} from "./FeedCore.sol";
 import {RulesStorage, RulesLib} from "./../base/RulesLib.sol";
 import {RuleConfiguration, RuleExecutionData} from "./../../types/Types.sol";
-import {EditPostParams, CreatePostParams} from "./IFeed.sol";
+import {EditPostParams, CreatePostParams, CreateRepostParams} from "./IFeed.sol";
 
 contract RuleBasedFeed {
     using RulesLib for RulesStorage;
@@ -61,6 +61,14 @@ contract RuleBasedFeed {
 
     function _removePostRule(uint256 postId, address rule) internal {
         $postRulesStorage(postId).removeRule(rule);
+    }
+
+    function _processAllParentsPostsRules(
+        uint256 parentPostId,
+        uint256 childPostId,
+        RuleExecutionData calldata parentPostRulesData
+    ) internal {
+        _postProcessParent(parentPostId, childPostId, parentPostRulesData);
     }
 
     function _processAllParentsAndQuotedPostsRules(
@@ -164,6 +172,34 @@ contract RuleBasedFeed {
         for (uint256 i = 0; i < $feedRulesStorage().anyOfRules.length; i++) {
             (bool callNotReverted, bytes memory returnData) = $feedRulesStorage().anyOfRules[i].call(
                 abi.encodeWithSelector(IFeedRule.processCreatePost.selector, postId, localSequentialId, postParams)
+            );
+            if (callNotReverted && abi.decode(returnData, (bool))) {
+                // Note: abi.decode would fail if call reverted, so don't put this out of the brackets!
+                return; // If any of the OR-combined rules passed, it means they succeed and we can return
+            }
+        }
+        revert("All of the OR rules failed");
+    }
+
+    function _feedProcessCreateRepost(
+        uint256 postId,
+        uint256 localSequentialId,
+        CreateRepostParams calldata repostParams
+    ) internal {
+        // Check required rules (AND-combined rules)
+        for (uint256 i = 0; i < $feedRulesStorage().requiredRules.length; i++) {
+            (bool callNotReverted,) = $feedRulesStorage().requiredRules[i].call(
+                abi.encodeWithSelector(IFeedRule.processCreatePost.selector, postId, localSequentialId, repostParams)
+            );
+            require(callNotReverted, "Some required rule failed");
+        }
+        // Check any-of rules (OR-combined rules)
+        if ($feedRulesStorage().anyOfRules.length == 0) {
+            return; // If there are no OR-combined rules, we can return
+        }
+        for (uint256 i = 0; i < $feedRulesStorage().anyOfRules.length; i++) {
+            (bool callNotReverted, bytes memory returnData) = $feedRulesStorage().anyOfRules[i].call(
+                abi.encodeWithSelector(IFeedRule.processCreatePost.selector, postId, localSequentialId, repostParams)
             );
             if (callNotReverted && abi.decode(returnData, (bool))) {
                 // Note: abi.decode would fail if call reverted, so don't put this out of the brackets!

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IFeed, Post, EditPostParams, CreatePostParams} from "./IFeed.sol";
+import {IFeed, Post, EditPostParams, CreatePostParams, CreateRepostParams} from "./IFeed.sol";
 import {FeedCore as Core} from "./FeedCore.sol";
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
 import {DataElement} from "./../../types/Types.sol";
@@ -174,6 +174,17 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         return postId;
     }
 
+    function createRepost(CreateRepostParams calldata createRepostParams) external override returns (uint256) {
+        require(msg.sender == createRepostParams.author);
+        (uint256 postId, uint256 localSequentialId) = Core._createRepost(createRepostParams);
+        _feedProcessCreateRepost(postId, localSequentialId, createRepostParams);
+
+        _processAllParentsPostsRules(createRepostParams.parentPostId, postId, createRepostParams.parentsPostRulesData);
+
+        emit Lens_Feed_RepostCreated(postId, createRepostParams.author, localSequentialId, createRepostParams);
+        return postId;
+    }
+
     function editPost(
         uint256 postId,
         EditPostParams calldata newPostParams,
@@ -216,6 +227,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
             localSequentialId: Core.$storage().posts[postId].localSequentialId,
             source: Core.$storage().posts[postId].source,
             metadataURI: Core.$storage().posts[postId].metadataURI,
+            isRepost: Core.$storage().posts[postId].isRepost,
             quotedPostId: Core.$storage().posts[postId].quotedPostId,
             parentPostId: Core.$storage().posts[postId].parentPostId,
             requiredRules: _getPostRules(postId, true),
