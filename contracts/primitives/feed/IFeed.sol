@@ -4,21 +4,16 @@ pragma solidity ^0.8.0;
 import {DataElement, RuleConfiguration, RuleExecutionData} from "../../types/Types.sol";
 import {IMetadataBased} from "./../base/IMetadataBased.sol";
 
-// TODO: Should we remove the ignored params for now? This will simplify the interface, but if somebody (or we) want
-// to implement it later - we would have to break the interface to bring them back.
+// TODO: Discuss if there's a need for anything else to be added here
 struct EditPostParams {
-    address author; // TODO: This is ignored now (you cannot edit the author, so just pass anything)
-    address source; // TODO: This is ignored now (you cannot edit the source, so just pass anything)
-    string metadataURI;
-    uint256 quotedPostId; // TODO: This is ignored now (you cannot edit the quotedPostIds, so just pass anything)
-    uint256 parentPostId; // TODO: This is ignored now (you cannot edit the parentPostIds, so just pass anything)
+    string contentURI;
     DataElement[] extraData;
 }
 
 struct CreatePostParams {
     address author; // Multiple authors can be added in extraData
     address source; // Client source, if any
-    string metadataURI;
+    string contentURI;
     uint256 quotedPostId;
     uint256 parentPostId;
     RuleConfiguration[] rules;
@@ -33,7 +28,6 @@ struct CreatePostParams {
 struct CreateRepostParams {
     address author;
     address source;
-    string metadataURI;
     uint256 parentPostId;
     RuleExecutionData feedRulesData;
     RuleExecutionData changeRulesParentPostRulesData;
@@ -46,7 +40,7 @@ struct Post {
     address author;
     uint256 localSequentialId;
     address source;
-    string metadataURI;
+    string contentURI;
     bool isRepost;
     uint256 quotedPostId;
     uint256 parentPostId;

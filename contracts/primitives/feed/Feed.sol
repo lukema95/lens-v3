@@ -226,7 +226,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
             author: Core.$storage().posts[postId].author,
             localSequentialId: Core.$storage().posts[postId].localSequentialId,
             source: Core.$storage().posts[postId].source,
-            metadataURI: Core.$storage().posts[postId].metadataURI,
+            contentURI: Core.$storage().posts[postId].contentURI,
             isRepost: Core.$storage().posts[postId].isRepost,
             quotedPostId: Core.$storage().posts[postId].quotedPostId,
             parentPostId: Core.$storage().posts[postId].parentPostId,

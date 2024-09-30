@@ -8,12 +8,8 @@ interface IFeedRules {
 
     function onPost(address originalMsgSender, uint256 postId, Post memory post, bytes calldata data) external;
 
-    function onEdit(
-        address originalMsgSender,
-        uint256 postId,
-        Post memory updatedPostData,
-        bytes calldata data
-    ) external;
+    function onEdit(address originalMsgSender, uint256 postId, Post memory updatedPostData, bytes calldata data)
+        external;
 
     // TODO: 👀
     function onDelete(address originalMsgSender, uint256 postId, bytes calldata data) external;
@@ -31,7 +27,6 @@ interface IFeedRules {
  * primitive just has a post function, and on top you can have comment, quote, whatever type you wish.
  * Even the type can be emitted by this extension, and maybe the core primitive does not care about types are all...
  */
-
 struct Permissions {
     bool canPost;
     bool canEdit;
@@ -52,7 +47,7 @@ contract Feed {
     event Lens_Feed_PostDeleted(address indexed author, uint256 indexed postId, bytes data);
 
     function setFeedRules(IFeedRules feedRules, bytes calldata initializationData) external {
-        require(msg.sender == _admin, 'Not the admin');
+        require(msg.sender == _admin, "Not the admin");
         _feedRules = feedRules;
         if (address(feedRules) != address(0)) {
             feedRules.initialize(initializationData);
@@ -60,7 +55,7 @@ contract Feed {
     }
 
     function setPermissions(address account, Permissions calldata permissions) external {
-        require(msg.sender == _admin, 'Not the admin');
+        require(msg.sender == _admin, "Not the admin");
         _permissions[account] = permissions;
     }
 
@@ -68,10 +63,7 @@ contract Feed {
     // For hooks => data
     // To store => attributes
     function post(Post calldata postData, bytes calldata data) external returns (uint256) {
-        require(
-            msg.sender == postData.author || _permissions[msg.sender].canPost,
-            'Not the author nor has permissions'
-        );
+        require(msg.sender == postData.author || _permissions[msg.sender].canPost, "Not the author nor has permissions");
         _lastPostId++;
         _posts[_lastPostId] = postData;
         _feedRules.onPost(msg.sender, _lastPostId, postData, data);
@@ -83,9 +75,9 @@ contract Feed {
     function editPost(uint256 postId, Post calldata updatedPostData, bytes calldata data) external {
         require(
             msg.sender == _posts[postId].author || _permissions[msg.sender].canEdit,
-            'Not the author nor has permissions'
+            "Not the author nor has permissions"
         );
-        require(postId <= _lastPostId, 'Post does not exist');
+        require(postId <= _lastPostId, "Post does not exist");
         _feedRules.onEdit(msg.sender, postId, updatedPostData, data);
         _posts[postId] = updatedPostData; // TODO: CEI pattern... hmm...
         emit Lens_Feed_PostEdited(msg.sender, postId, updatedPostData, data);
@@ -94,7 +86,7 @@ contract Feed {
     function deletePost(uint256 postId, bytes calldata data) external {
         require(
             msg.sender == _posts[postId].author || _permissions[msg.sender].canDelete,
-            'Not the author nor has permissions'
+            "Not the author nor has permissions"
         );
         _feedRules.onDelete(msg.sender, postId, data);
         emit Lens_Feed_PostDeleted(msg.sender, postId, data);

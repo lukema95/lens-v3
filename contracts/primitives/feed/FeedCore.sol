@@ -9,7 +9,7 @@ struct PostStorage {
     address author;
     uint256 localSequentialId;
     address source;
-    string metadataURI;
+    string contentURI;
     bool isRepost;
     uint256 quotedPostId;
     uint256 parentPostId;
@@ -74,7 +74,7 @@ library FeedCore {
         _newPost.author = postParams.author;
         _newPost.localSequentialId = localSequentialId;
         _newPost.source = postParams.source;
-        _newPost.metadataURI = postParams.metadataURI;
+        _newPost.contentURI = postParams.contentURI;
         if (postParams.quotedPostId != 0) {
             _requirePostExistence(postParams.quotedPostId);
         }
@@ -97,7 +97,6 @@ library FeedCore {
         _newPost.author = repostParams.author;
         _newPost.localSequentialId = localSequentialId;
         _newPost.source = repostParams.source;
-        _newPost.metadataURI = repostParams.metadataURI;
         _requirePostExistence(repostParams.parentPostId);
         _newPost.parentPostId = repostParams.parentPostId;
         _newPost.creationTimestamp = uint80(block.timestamp);
@@ -108,19 +107,12 @@ library FeedCore {
 
     function _editPost(uint256 postId, EditPostParams calldata postParams) internal {
         PostStorage storage _post = $storage().posts[postId];
-        // _post.author = postParams.author; // TODO: Author can be changed? NO, we should remove that, or add a require
-        // _post.source = postParams.source; // TODO: Can you edit the source? you might be editing from a diff source than the original source...
-        _post.metadataURI = postParams.metadataURI;
-        // _post.quotedPostId = postParams.quotedPostId; // This functionality can be added later if needed
-        // _post.parentPostId = postParams.parentPostId; // This functionality can be added later if needed
-        // address currentPostRules = _post.postRules;
-        // if (address(currentPostRules) != address(postParams.postRules)) {
-        //     // Basically, a hook is called in the rules, cause maybe the previous rules have some "immutable" flag!
-        //     // currentPostRules.onRuleChanged(postId, postParams.postRules);
-        //     // TODO: In the core we do not know interfaces of rules! It's made abstract, just addresses.
-        //     // TODO: Maybe the immutability should be at the post-level, not rule-level...
-        //     _post.postRules = address(postParams.postRules); // TODO: Probably change to type address in PostParams struct
-        // }
+        require(_post.creationTimestamp != 0); // Post must exist
+        if (_post.isRepost) {
+            require(bytes(postParams.contentURI).length == 0);
+        } else {
+            _post.contentURI = postParams.contentURI;
+        }
         _post.lastUpdatedTimestamp = uint80(block.timestamp);
         ExtraDataLib._setExtraData(_post.extraData, postParams.extraData);
     }
