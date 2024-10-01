@@ -478,23 +478,6 @@
               }
             ],
             "internalType": "struct RuleExecutionData",
-            "name": "changeRulesParentPostRulesData",
-            "type": "tuple"
-          },
-          {
-            "components": [
-              {
-                "internalType": "bytes[]",
-                "name": "dataForRequiredRules",
-                "type": "bytes[]"
-              },
-              {
-                "internalType": "bytes[]",
-                "name": "dataForAnyOfRules",
-                "type": "bytes[]"
-              }
-            ],
-            "internalType": "struct RuleExecutionData",
             "name": "parentsPostRulesData",
             "type": "tuple"
           },
@@ -921,23 +904,6 @@
             ],
             "internalType": "struct RuleExecutionData",
             "name": "feedRulesData",
-            "type": "tuple"
-          },
-          {
-            "components": [
-              {
-                "internalType": "bytes[]",
-                "name": "dataForRequiredRules",
-                "type": "bytes[]"
-              },
-              {
-                "internalType": "bytes[]",
-                "name": "dataForAnyOfRules",
-                "type": "bytes[]"
-              }
-            ],
-            "internalType": "struct RuleExecutionData",
-            "name": "changeRulesParentPostRulesData",
             "type": "tuple"
           },
           {

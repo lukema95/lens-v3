@@ -30,7 +30,6 @@ struct CreateRepostParams {
     address source;
     uint256 parentPostId;
     RuleExecutionData feedRulesData;
-    RuleExecutionData changeRulesParentPostRulesData;
     RuleExecutionData parentsPostRulesData;
     DataElement[] extraData;
 }
