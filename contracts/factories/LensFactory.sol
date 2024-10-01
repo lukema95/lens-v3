@@ -6,7 +6,7 @@ import {IAccessControl} from "./../primitives/access-control/IAccessControl.sol"
 import {Community} from "./../primitives/community/Community.sol";
 import {OwnerOnlyAccessControl} from "./../primitives/access-control/OwnerOnlyAccessControl.sol";
 import {OwnerAdminAccessControl} from "./../primitives/access-control/OwnerAdminAccessControl.sol";
-import {RuleConfiguration} from "./../types/Types.sol";
+import {RuleConfiguration, DataElement} from "./../types/Types.sol";
 import {CommunityFactory} from "./CommunityFactory.sol";
 import {FeedFactory} from "./FeedFactory.sol";
 import {GraphFactory} from "./GraphFactory.sol";
@@ -48,27 +48,30 @@ contract LensFactory {
         string memory metadataURI,
         RoleConfiguration[] calldata roleConfigs,
         AccessConfiguration[] calldata accessConfigs,
-        RuleConfiguration[] calldata rules
+        RuleConfiguration[] calldata rules,
+        DataElement[] calldata extraData
     ) external returns (address) {
-        return COMMUNITY_FACTORY.deploy(metadataURI, _deployAccessControl(roleConfigs, accessConfigs), rules);
+        return COMMUNITY_FACTORY.deploy(metadataURI, _deployAccessControl(roleConfigs, accessConfigs), rules, extraData);
     }
 
     function deployFeed(
         string memory metadataURI,
         RoleConfiguration[] calldata roleConfigs,
         AccessConfiguration[] calldata accessConfigs,
-        RuleConfiguration[] calldata rules
+        RuleConfiguration[] calldata rules,
+        DataElement[] calldata extraData
     ) external returns (address) {
-        return FEED_FACTORY.deploy(metadataURI, _deployAccessControl(roleConfigs, accessConfigs), rules);
+        return FEED_FACTORY.deploy(metadataURI, _deployAccessControl(roleConfigs, accessConfigs), rules, extraData);
     }
 
     function deployGraph(
         string memory metadataURI,
         RoleConfiguration[] calldata roleConfigs,
         AccessConfiguration[] calldata accessConfigs,
-        RuleConfiguration[] calldata rules
+        RuleConfiguration[] calldata rules,
+        DataElement[] calldata extraData
     ) external returns (address) {
-        return GRAPH_FACTORY.deploy(metadataURI, _deployAccessControl(roleConfigs, accessConfigs), rules);
+        return GRAPH_FACTORY.deploy(metadataURI, _deployAccessControl(roleConfigs, accessConfigs), rules, extraData);
     }
 
     function deployUsername(
@@ -76,9 +79,12 @@ contract LensFactory {
         string memory metadataURI,
         RoleConfiguration[] calldata roleConfigs,
         AccessConfiguration[] calldata accessConfigs,
-        RuleConfiguration[] calldata rules
+        RuleConfiguration[] calldata rules,
+        DataElement[] calldata extraData
     ) external returns (address) {
-        return USERNAME_FACTORY.deploy(namespace, metadataURI, _deployAccessControl(roleConfigs, accessConfigs), rules);
+        return USERNAME_FACTORY.deploy(
+            namespace, metadataURI, _deployAccessControl(roleConfigs, accessConfigs), rules, extraData
+        );
     }
 
     function _deployAccessControl(
