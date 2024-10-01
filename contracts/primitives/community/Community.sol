@@ -64,7 +64,7 @@ contract Community is ICommunity, RuleBasedCommunity, AccessControlled {
     }
 
     function setExtraData(DataElement[] calldata extraDataToSet) external override {
-        // Core.$storage().accessControl.requireAccess(msg.sender, SET_EXTRA_DATA_RID);
+        _requireAccess(msg.sender, SET_EXTRA_DATA);
         Core._setExtraData(extraDataToSet);
         for (uint256 i = 0; i < extraDataToSet.length; i++) {
             emit Lens_Community_ExtraDataSet(extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value);
