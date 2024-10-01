@@ -75,6 +75,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     ) external override {
         address author = Core.$storage().posts[postId].author;
         require(msg.sender == author);
+        require(!Core.$storage().posts[postId].isRepost);
         for (uint256 i = 0; i < rules.length; i++) {
             _addPostRule(postId, rules[i]);
             emit Lens_Feed_Post_RuleAdded(
@@ -98,6 +99,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     ) external override {
         address author = Core.$storage().posts[postId].author;
         require(msg.sender == author);
+        require(!Core.$storage().posts[postId].isRepost);
         for (uint256 i = 0; i < rules.length; i++) {
             _updatePostRule(postId, rules[i]);
             emit Lens_Feed_Post_RuleUpdated(
@@ -121,6 +123,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     ) external override {
         address author = Core.$storage().posts[postId].author;
         require(msg.sender == author);
+        require(!Core.$storage().posts[postId].isRepost);
         for (uint256 i = 0; i < rules.length; i++) {
             _removePostRule(postId, rules[i].ruleAddress);
             emit Lens_Feed_Post_RuleRemoved(postId, author, rules[i].ruleAddress);
@@ -138,6 +141,8 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     function createPost(CreatePostParams calldata createPostParams) external override returns (uint256) {
         require(msg.sender == createPostParams.author);
         require(createPostParams.quotedPostId != createPostParams.parentPostId);
+        require(!Core.$storage().posts[createPostParams.parentPostId].isRepost);
+        require(!Core.$storage().posts[createPostParams.quotedPostId].isRepost);
         (uint256 postId, uint256 localSequentialId) = Core._createPost(createPostParams);
         _feedProcessCreatePost(postId, localSequentialId, createPostParams);
 
@@ -176,6 +181,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
 
     function createRepost(CreateRepostParams calldata createRepostParams) external override returns (uint256) {
         require(msg.sender == createRepostParams.author);
+        require(!Core.$storage().posts[createRepostParams.parentPostId].isRepost);
         (uint256 postId, uint256 localSequentialId) = Core._createRepost(createRepostParams);
         _feedProcessCreateRepost(postId, localSequentialId, createRepostParams);
 
