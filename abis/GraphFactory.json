@@ -1,12 +1,6 @@
 [
   {
-    "inputs": [
-      {
-        "internalType": "contract IAccessControl",
-        "name": "accessControl",
-        "type": "address"
-      }
-    ],
+    "inputs": [],
     "stateMutability": "nonpayable",
     "type": "constructor"
   },
@@ -16,35 +10,11 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "graphInstance",
+        "name": "graph",
         "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "metadataURI",
-        "type": "string"
-      },
-      {
-        "indexed": false,
-        "internalType": "contract IAccessControl",
-        "name": "accessControl",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "contract IGraphRule",
-        "name": "rules",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "rulesInitializationData",
-        "type": "bytes"
       }
     ],
-    "name": "Lens_GraphFactory_NewGraphInstance",
+    "name": "Lens_GraphFactory_Deployment",
     "type": "event"
   },
   {
@@ -58,9 +28,31 @@
         "internalType": "contract IAccessControl",
         "name": "accessControl",
         "type": "address"
+      },
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "ruleAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes",
+            "name": "configData",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isRequired",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct RuleConfiguration[]",
+        "name": "rules",
+        "type": "tuple[]"
       }
     ],
-    "name": "deploy__Immutable_NoRules",
+    "name": "deploy",
     "outputs": [
       {
         "internalType": "address",
@@ -68,19 +60,6 @@
         "type": "address"
       }
     ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "contract IAccessControl",
-        "name": "accessControl",
-        "type": "address"
-      }
-    ],
-    "name": "setAccessControl",
-    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   }

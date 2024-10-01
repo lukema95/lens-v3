@@ -59,18 +59,18 @@
           },
           {
             "internalType": "string",
-            "name": "metadataURI",
+            "name": "contentURI",
             "type": "string"
           },
           {
-            "internalType": "uint256[]",
-            "name": "quotedPostIds",
-            "type": "uint256[]"
+            "internalType": "uint256",
+            "name": "quotedPostId",
+            "type": "uint256"
           },
           {
-            "internalType": "uint256[]",
-            "name": "parentPostIds",
-            "type": "uint256[]"
+            "internalType": "uint256",
+            "name": "parentPostId",
+            "type": "uint256"
           },
           {
             "components": [
@@ -124,9 +124,9 @@
                 "type": "bytes[]"
               }
             ],
-            "internalType": "struct RuleExecutionData[]",
-            "name": "changeRulesQuotesPostRulesData",
-            "type": "tuple[]"
+            "internalType": "struct RuleExecutionData",
+            "name": "changeRulesQuotePostRulesData",
+            "type": "tuple"
           },
           {
             "components": [
@@ -141,9 +141,9 @@
                 "type": "bytes[]"
               }
             ],
-            "internalType": "struct RuleExecutionData[]",
-            "name": "changeRulesParentsPostRulesData",
-            "type": "tuple[]"
+            "internalType": "struct RuleExecutionData",
+            "name": "changeRulesParentPostRulesData",
+            "type": "tuple"
           },
           {
             "components": [
@@ -158,9 +158,9 @@
                 "type": "bytes[]"
               }
             ],
-            "internalType": "struct RuleExecutionData[]",
+            "internalType": "struct RuleExecutionData",
             "name": "quotesPostRulesData",
-            "type": "tuple[]"
+            "type": "tuple"
           },
           {
             "components": [
@@ -175,9 +175,9 @@
                 "type": "bytes[]"
               }
             ],
-            "internalType": "struct RuleExecutionData[]",
+            "internalType": "struct RuleExecutionData",
             "name": "parentsPostRulesData",
-            "type": "tuple[]"
+            "type": "tuple"
           },
           {
             "components": [
@@ -261,29 +261,9 @@
       {
         "components": [
           {
-            "internalType": "address",
-            "name": "author",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "source",
-            "type": "address"
-          },
-          {
             "internalType": "string",
-            "name": "metadataURI",
+            "name": "contentURI",
             "type": "string"
-          },
-          {
-            "internalType": "uint256[]",
-            "name": "quotedPostIds",
-            "type": "uint256[]"
-          },
-          {
-            "internalType": "uint256[]",
-            "name": "parentPostIds",
-            "type": "uint256[]"
           },
           {
             "components": [
@@ -427,6 +407,122 @@
       }
     ],
     "name": "Lens_Feed_Post_RuleUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "postId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "author",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "localSequentialId",
+        "type": "uint256"
+      },
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "author",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "source",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "parentPostId",
+            "type": "uint256"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes[]",
+                "name": "dataForRequiredRules",
+                "type": "bytes[]"
+              },
+              {
+                "internalType": "bytes[]",
+                "name": "dataForAnyOfRules",
+                "type": "bytes[]"
+              }
+            ],
+            "internalType": "struct RuleExecutionData",
+            "name": "feedRulesData",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes[]",
+                "name": "dataForRequiredRules",
+                "type": "bytes[]"
+              },
+              {
+                "internalType": "bytes[]",
+                "name": "dataForAnyOfRules",
+                "type": "bytes[]"
+              }
+            ],
+            "internalType": "struct RuleExecutionData",
+            "name": "changeRulesParentPostRulesData",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes[]",
+                "name": "dataForRequiredRules",
+                "type": "bytes[]"
+              },
+              {
+                "internalType": "bytes[]",
+                "name": "dataForAnyOfRules",
+                "type": "bytes[]"
+              }
+            ],
+            "internalType": "struct RuleExecutionData",
+            "name": "parentsPostRulesData",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes32",
+                "name": "key",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bytes",
+                "name": "value",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct DataElement[]",
+            "name": "extraData",
+            "type": "tuple[]"
+          }
+        ],
+        "indexed": false,
+        "internalType": "struct CreateRepostParams",
+        "name": "postParams",
+        "type": "tuple"
+      }
+    ],
+    "name": "Lens_Feed_RepostCreated",
     "type": "event"
   },
   {
@@ -594,9 +690,9 @@
             "type": "bytes[]"
           }
         ],
-        "internalType": "struct RuleExecutionData[]",
-        "name": "quotesPostRulesData",
-        "type": "tuple[]"
+        "internalType": "struct RuleExecutionData",
+        "name": "quotePostRulesData",
+        "type": "tuple"
       },
       {
         "components": [
@@ -611,9 +707,9 @@
             "type": "bytes[]"
           }
         ],
-        "internalType": "struct RuleExecutionData[]",
-        "name": "parentsPostRulesData",
-        "type": "tuple[]"
+        "internalType": "struct RuleExecutionData",
+        "name": "parentPostRulesData",
+        "type": "tuple"
       }
     ],
     "name": "addPostRules",
@@ -637,18 +733,18 @@
           },
           {
             "internalType": "string",
-            "name": "metadataURI",
+            "name": "contentURI",
             "type": "string"
           },
           {
-            "internalType": "uint256[]",
-            "name": "quotedPostIds",
-            "type": "uint256[]"
+            "internalType": "uint256",
+            "name": "quotedPostId",
+            "type": "uint256"
           },
           {
-            "internalType": "uint256[]",
-            "name": "parentPostIds",
-            "type": "uint256[]"
+            "internalType": "uint256",
+            "name": "parentPostId",
+            "type": "uint256"
           },
           {
             "components": [
@@ -702,9 +798,9 @@
                 "type": "bytes[]"
               }
             ],
-            "internalType": "struct RuleExecutionData[]",
-            "name": "changeRulesQuotesPostRulesData",
-            "type": "tuple[]"
+            "internalType": "struct RuleExecutionData",
+            "name": "changeRulesQuotePostRulesData",
+            "type": "tuple"
           },
           {
             "components": [
@@ -719,9 +815,9 @@
                 "type": "bytes[]"
               }
             ],
-            "internalType": "struct RuleExecutionData[]",
-            "name": "changeRulesParentsPostRulesData",
-            "type": "tuple[]"
+            "internalType": "struct RuleExecutionData",
+            "name": "changeRulesParentPostRulesData",
+            "type": "tuple"
           },
           {
             "components": [
@@ -736,9 +832,9 @@
                 "type": "bytes[]"
               }
             ],
-            "internalType": "struct RuleExecutionData[]",
+            "internalType": "struct RuleExecutionData",
             "name": "quotesPostRulesData",
-            "type": "tuple[]"
+            "type": "tuple"
           },
           {
             "components": [
@@ -753,9 +849,9 @@
                 "type": "bytes[]"
               }
             ],
-            "internalType": "struct RuleExecutionData[]",
+            "internalType": "struct RuleExecutionData",
             "name": "parentsPostRulesData",
-            "type": "tuple[]"
+            "type": "tuple"
           },
           {
             "components": [
@@ -781,6 +877,110 @@
       }
     ],
     "name": "createPost",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "author",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "source",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "parentPostId",
+            "type": "uint256"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes[]",
+                "name": "dataForRequiredRules",
+                "type": "bytes[]"
+              },
+              {
+                "internalType": "bytes[]",
+                "name": "dataForAnyOfRules",
+                "type": "bytes[]"
+              }
+            ],
+            "internalType": "struct RuleExecutionData",
+            "name": "feedRulesData",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes[]",
+                "name": "dataForRequiredRules",
+                "type": "bytes[]"
+              },
+              {
+                "internalType": "bytes[]",
+                "name": "dataForAnyOfRules",
+                "type": "bytes[]"
+              }
+            ],
+            "internalType": "struct RuleExecutionData",
+            "name": "changeRulesParentPostRulesData",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes[]",
+                "name": "dataForRequiredRules",
+                "type": "bytes[]"
+              },
+              {
+                "internalType": "bytes[]",
+                "name": "dataForAnyOfRules",
+                "type": "bytes[]"
+              }
+            ],
+            "internalType": "struct RuleExecutionData",
+            "name": "parentsPostRulesData",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes32",
+                "name": "key",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bytes",
+                "name": "value",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct DataElement[]",
+            "name": "extraData",
+            "type": "tuple[]"
+          }
+        ],
+        "internalType": "struct CreateRepostParams",
+        "name": "repostParams",
+        "type": "tuple"
+      }
+    ],
+    "name": "createRepost",
     "outputs": [
       {
         "internalType": "uint256",
@@ -836,29 +1036,9 @@
       {
         "components": [
           {
-            "internalType": "address",
-            "name": "author",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "source",
-            "type": "address"
-          },
-          {
             "internalType": "string",
-            "name": "metadataURI",
+            "name": "contentURI",
             "type": "string"
-          },
-          {
-            "internalType": "uint256[]",
-            "name": "quotedPostIds",
-            "type": "uint256[]"
-          },
-          {
-            "internalType": "uint256[]",
-            "name": "parentPostIds",
-            "type": "uint256[]"
           },
           {
             "components": [
@@ -985,18 +1165,23 @@
           },
           {
             "internalType": "string",
-            "name": "metadataURI",
+            "name": "contentURI",
             "type": "string"
           },
           {
-            "internalType": "uint256[]",
-            "name": "quotedPostIds",
-            "type": "uint256[]"
+            "internalType": "bool",
+            "name": "isRepost",
+            "type": "bool"
           },
           {
-            "internalType": "uint256[]",
-            "name": "parentPostIds",
-            "type": "uint256[]"
+            "internalType": "uint256",
+            "name": "quotedPostId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "parentPostId",
+            "type": "uint256"
           },
           {
             "internalType": "address[]",
@@ -1179,9 +1364,9 @@
             "type": "bytes[]"
           }
         ],
-        "internalType": "struct RuleExecutionData[]",
-        "name": "quotesPostRulesData",
-        "type": "tuple[]"
+        "internalType": "struct RuleExecutionData",
+        "name": "quotePostRulesData",
+        "type": "tuple"
       },
       {
         "components": [
@@ -1196,9 +1381,9 @@
             "type": "bytes[]"
           }
         ],
-        "internalType": "struct RuleExecutionData[]",
-        "name": "parentsPostRulesData",
-        "type": "tuple[]"
+        "internalType": "struct RuleExecutionData",
+        "name": "parentPostRulesData",
+        "type": "tuple"
       }
     ],
     "name": "removePostRules",
@@ -1333,9 +1518,9 @@
             "type": "bytes[]"
           }
         ],
-        "internalType": "struct RuleExecutionData[]",
-        "name": "quotesPostRulesData",
-        "type": "tuple[]"
+        "internalType": "struct RuleExecutionData",
+        "name": "quotePostRulesData",
+        "type": "tuple"
       },
       {
         "components": [
@@ -1350,9 +1535,9 @@
             "type": "bytes[]"
           }
         ],
-        "internalType": "struct RuleExecutionData[]",
-        "name": "parentsPostRulesData",
-        "type": "tuple[]"
+        "internalType": "struct RuleExecutionData",
+        "name": "parentPostRulesData",
+        "type": "tuple"
       }
     ],
     "name": "updatePostRules",

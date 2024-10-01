@@ -1,44 +1,15 @@
 [
   {
-    "inputs": [
-      {
-        "internalType": "contract IAccessControl",
-        "name": "accessControl",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
     "anonymous": false,
     "inputs": [
       {
         "indexed": true,
         "internalType": "address",
-        "name": "appInstance",
+        "name": "app",
         "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "namespace",
-        "type": "string"
-      },
-      {
-        "indexed": false,
-        "internalType": "contract IAccessControl",
-        "name": "accessControl",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "rulesInitializationData",
-        "type": "bytes"
       }
     ],
-    "name": "Lens_AppFactory_NewAppInstance",
+    "name": "Lens_AppFactory_Deployment",
     "type": "event"
   },
   {
@@ -106,7 +77,7 @@
         "type": "tuple"
       }
     ],
-    "name": "deploy__Immutable_NoRules",
+    "name": "deploy",
     "outputs": [
       {
         "internalType": "address",
@@ -114,19 +85,6 @@
         "type": "address"
       }
     ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "contract IAccessControl",
-        "name": "accessControl",
-        "type": "address"
-      }
-    ],
-    "name": "setAccessControl",
-    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   }
