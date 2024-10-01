@@ -24,6 +24,14 @@ struct AccessConfiguration {
     IRoleBasedAccessControl.AccessPermission accessPermission;
 }
 
+struct TokenizationConfiguration {
+    bool tokenizationEnabled;
+    string tokenName;
+    string tokenSymbol;
+    string baseURI;
+}
+// uint8 decimals; TODO ???
+
 contract LensFactory {
     CommunityFactory internal immutable COMMUNITY_FACTORY;
     FeedFactory internal immutable FEED_FACTORY;
@@ -49,9 +57,16 @@ contract LensFactory {
         RoleConfiguration[] calldata roleConfigs,
         AccessConfiguration[] calldata accessConfigs,
         RuleConfiguration[] calldata rules,
-        DataElement[] calldata extraData
+        DataElement[] calldata extraData,
+        TokenizationConfiguration calldata tokenizationConfig
     ) external returns (address) {
-        return COMMUNITY_FACTORY.deploy(metadataURI, _deployAccessControl(roleConfigs, accessConfigs), rules, extraData);
+        if (tokenizationConfig.tokenizationEnabled) {
+            revert("NOT_IMPLEMENTED_YET");
+        } else {
+            return COMMUNITY_FACTORY.deploy(
+                metadataURI, _deployAccessControl(roleConfigs, accessConfigs), rules, extraData
+            );
+        }
     }
 
     function deployFeed(
@@ -80,11 +95,16 @@ contract LensFactory {
         RoleConfiguration[] calldata roleConfigs,
         AccessConfiguration[] calldata accessConfigs,
         RuleConfiguration[] calldata rules,
-        DataElement[] calldata extraData
+        DataElement[] calldata extraData,
+        TokenizationConfiguration calldata tokenizationConfig
     ) external returns (address) {
-        return USERNAME_FACTORY.deploy(
-            namespace, metadataURI, _deployAccessControl(roleConfigs, accessConfigs), rules, extraData
-        );
+        if (tokenizationConfig.tokenizationEnabled) {
+            revert("NOT_IMPLEMENTED_YET");
+        } else {
+            return USERNAME_FACTORY.deploy(
+                namespace, metadataURI, _deployAccessControl(roleConfigs, accessConfigs), rules, extraData
+            );
+        }
     }
 
     function _deployAccessControl(
