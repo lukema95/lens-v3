@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {ICommunity} from "./ICommunity.sol";
 import {CommunityCore as Core} from "./CommunityCore.sol";
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
-import {RuleConfiguration, RuleExecutionData} from "./../../types/Types.sol";
+import {RuleConfiguration, RuleExecutionData, DataElement} from "./../../types/Types.sol";
 import {RuleBasedCommunity} from "./RuleBasedCommunity.sol";
 import {AccessControlled} from "./../base/AccessControlled.sol";
 import {Events} from "./../../types/Events.sol";
@@ -63,6 +63,14 @@ contract Community is ICommunity, RuleBasedCommunity, AccessControlled {
         }
     }
 
+    function setExtraData(DataElement[] calldata extraDataToSet) external override {
+        // Core.$storage().accessControl.requireAccess(msg.sender, SET_EXTRA_DATA_RID);
+        Core._setExtraData(extraDataToSet);
+        for (uint256 i = 0; i < extraDataToSet.length; i++) {
+            emit Lens_Community_ExtraDataSet(extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value);
+        }
+    }
+
     // Public functions
 
     function joinCommunity(address account, RuleExecutionData calldata communityRulesData) external override {
@@ -110,7 +118,7 @@ contract Community is ICommunity, RuleBasedCommunity, AccessControlled {
         return _getCommunityRules(isRequired);
     }
 
-    // function getExtraData(bytes32 key) external view override returns (bytes memory) {
-    //     return Core.$storage().extraData[key];
-    // }
+    function getExtraData(bytes32 key) external view override returns (bytes memory) {
+        return Core.$storage().extraData[key];
+    }
 }

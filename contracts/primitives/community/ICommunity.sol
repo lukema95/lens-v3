@@ -21,7 +21,7 @@ interface ICommunity is IMetadataBased {
 
     function removeCommunityRules(address[] calldata rules) external;
 
-    // function setExtraData(DataElement[] calldata extraDataToSet) external;
+    function setExtraData(DataElement[] calldata extraDataToSet) external;
 
     function joinCommunity(address account, RuleExecutionData calldata data) external;
 
@@ -37,5 +37,5 @@ interface ICommunity is IMetadataBased {
 
     function getCommunityRules(bool isRequired) external view returns (address[] memory);
 
-    // function getExtraData(bytes32 key) external view returns (bytes memory);
+    function getExtraData(bytes32 key) external view returns (bytes memory);
 }
