@@ -2,6 +2,11 @@
   {
     "inputs": [
       {
+        "internalType": "contract AppFactory",
+        "name": "appFactory",
+        "type": "address"
+      },
+      {
         "internalType": "contract CommunityFactory",
         "name": "communityFactory",
         "type": "address"
@@ -28,9 +33,151 @@
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "roleId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address[]",
+            "name": "accounts",
+            "type": "address[]"
+          }
+        ],
+        "internalType": "struct RoleConfiguration[]",
+        "name": "roleConfigs",
+        "type": "tuple[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "resourceId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "resourceLocation",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "roleId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "enum IRoleBasedAccessControl.AccessPermission",
+            "name": "accessPermission",
+            "type": "uint8"
+          }
+        ],
+        "internalType": "struct AccessConfiguration[]",
+        "name": "accessConfigs",
+        "type": "tuple[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "graph",
+            "type": "address"
+          },
+          {
+            "internalType": "address[]",
+            "name": "feeds",
+            "type": "address[]"
+          },
+          {
+            "internalType": "address",
+            "name": "username",
+            "type": "address"
+          },
+          {
+            "internalType": "address[]",
+            "name": "communities",
+            "type": "address[]"
+          },
+          {
+            "internalType": "address",
+            "name": "defaultFeed",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "defaultCommunity",
+            "type": "address"
+          },
+          {
+            "internalType": "address[]",
+            "name": "signers",
+            "type": "address[]"
+          },
+          {
+            "internalType": "address",
+            "name": "paymaster",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "treasury",
+            "type": "address"
+          },
+          {
+            "internalType": "string",
+            "name": "metadataURI",
+            "type": "string"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes32",
+                "name": "key",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bytes",
+                "name": "value",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct DataElement[]",
+            "name": "extraData",
+            "type": "tuple[]"
+          }
+        ],
+        "internalType": "struct InitialProperties",
+        "name": "initialProperties",
+        "type": "tuple"
+      }
+    ],
+    "name": "deployApp",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "string",
         "name": "metadataURI",
         "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
       },
       {
         "components": [
@@ -162,6 +309,11 @@
         "type": "string"
       },
       {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
         "components": [
           {
             "internalType": "uint256",
@@ -262,6 +414,11 @@
         "internalType": "string",
         "name": "metadataURI",
         "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
       },
       {
         "components": [
@@ -369,6 +526,11 @@
         "internalType": "string",
         "name": "metadataURI",
         "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
       },
       {
         "components": [

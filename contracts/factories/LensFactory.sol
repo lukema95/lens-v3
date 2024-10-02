@@ -11,6 +11,7 @@ import {CommunityFactory} from "./CommunityFactory.sol";
 import {FeedFactory} from "./FeedFactory.sol";
 import {GraphFactory} from "./GraphFactory.sol";
 import {UsernameFactory} from "./UsernameFactory.sol";
+import {AppFactory, InitialProperties} from "./AppFactory.sol";
 
 struct RoleConfiguration {
     uint256 roleId;
@@ -33,6 +34,7 @@ struct TokenizationConfiguration {
 // uint8 decimals; TODO ???
 
 contract LensFactory {
+    AppFactory internal immutable APP_FACTORY;
     CommunityFactory internal immutable COMMUNITY_FACTORY;
     FeedFactory internal immutable FEED_FACTORY;
     GraphFactory internal immutable GRAPH_FACTORY;
@@ -40,16 +42,27 @@ contract LensFactory {
     IAccessControl internal immutable _factoryOwnedAccessControl;
 
     constructor(
+        AppFactory appFactory,
         CommunityFactory communityFactory,
         FeedFactory feedFactory,
         GraphFactory graphFactory,
         UsernameFactory usernameFactory
     ) {
+        APP_FACTORY = appFactory;
         COMMUNITY_FACTORY = communityFactory;
         FEED_FACTORY = feedFactory;
         GRAPH_FACTORY = graphFactory;
         USERNAME_FACTORY = usernameFactory;
         _factoryOwnedAccessControl = new OwnerOnlyAccessControl({owner: address(this)});
+    }
+
+    function deployApp(
+        address owner,
+        RoleConfiguration[] calldata roleConfigs,
+        AccessConfiguration[] calldata accessConfigs,
+        InitialProperties calldata initialProperties
+    ) external returns (address) {
+        return APP_FACTORY.deploy(_deployAccessControl(owner, roleConfigs, accessConfigs), initialProperties);
     }
 
     function deployCommunity(
