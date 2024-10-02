@@ -54,6 +54,7 @@ contract LensFactory {
 
     function deployCommunity(
         string memory metadataURI,
+        address owner,
         RoleConfiguration[] calldata roleConfigs,
         AccessConfiguration[] calldata accessConfigs,
         RuleConfiguration[] calldata rules,
@@ -64,34 +65,39 @@ contract LensFactory {
             revert("NOT_IMPLEMENTED_YET");
         } else {
             return COMMUNITY_FACTORY.deploy(
-                metadataURI, _deployAccessControl(roleConfigs, accessConfigs), rules, extraData
+                metadataURI, _deployAccessControl(owner, roleConfigs, accessConfigs), rules, extraData
             );
         }
     }
 
     function deployFeed(
         string memory metadataURI,
+        address owner,
         RoleConfiguration[] calldata roleConfigs,
         AccessConfiguration[] calldata accessConfigs,
         RuleConfiguration[] calldata rules,
         DataElement[] calldata extraData
     ) external returns (address) {
-        return FEED_FACTORY.deploy(metadataURI, _deployAccessControl(roleConfigs, accessConfigs), rules, extraData);
+        return
+            FEED_FACTORY.deploy(metadataURI, _deployAccessControl(owner, roleConfigs, accessConfigs), rules, extraData);
     }
 
     function deployGraph(
         string memory metadataURI,
+        address owner,
         RoleConfiguration[] calldata roleConfigs,
         AccessConfiguration[] calldata accessConfigs,
         RuleConfiguration[] calldata rules,
         DataElement[] calldata extraData
     ) external returns (address) {
-        return GRAPH_FACTORY.deploy(metadataURI, _deployAccessControl(roleConfigs, accessConfigs), rules, extraData);
+        return
+            GRAPH_FACTORY.deploy(metadataURI, _deployAccessControl(owner, roleConfigs, accessConfigs), rules, extraData);
     }
 
     function deployUsername(
         string memory namespace,
         string memory metadataURI,
+        address owner,
         RoleConfiguration[] calldata roleConfigs,
         AccessConfiguration[] calldata accessConfigs,
         RuleConfiguration[] calldata rules,
@@ -102,16 +108,17 @@ contract LensFactory {
             revert("NOT_IMPLEMENTED_YET");
         } else {
             return USERNAME_FACTORY.deploy(
-                namespace, metadataURI, _deployAccessControl(roleConfigs, accessConfigs), rules, extraData
+                namespace, metadataURI, _deployAccessControl(owner, roleConfigs, accessConfigs), rules, extraData
             );
         }
     }
 
     function _deployAccessControl(
+        address owner,
         RoleConfiguration[] calldata roleConfigs,
         AccessConfiguration[] calldata accessConfigs
     ) internal returns (IRoleBasedAccessControl) {
-        IRoleBasedAccessControl accessControl = new RoleBasedAccessControl({owner: address(this)}); // TODO: We need the new access control implementation to be done!
+        RoleBasedAccessControl accessControl = new RoleBasedAccessControl({owner: address(this)}); // TODO: We need the new access control implementation to be done!
         for (uint256 i = 0; i < roleConfigs.length; i++) {
             for (uint256 j = 0; j < roleConfigs[i].accounts.length; j++) {
                 accessControl.grantRole(roleConfigs[i].accounts[j], roleConfigs[i].roleId);
@@ -132,7 +139,7 @@ contract LensFactory {
                 );
             }
         }
-        // TODO: transferOwnership after we add the isolated owner param
+        accessControl.transferOwnership(owner);
         return accessControl;
     }
 }
