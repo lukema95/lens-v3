@@ -7,56 +7,73 @@
         "type": "address"
       },
       {
-        "internalType": "string",
-        "name": "metadataURI",
-        "type": "string"
-      },
-      {
-        "internalType": "address",
-        "name": "treasury",
-        "type": "address"
-      },
-      {
         "components": [
           {
             "internalType": "address",
-            "name": "_graph",
+            "name": "graph",
             "type": "address"
           },
           {
             "internalType": "address[]",
-            "name": "_feeds",
+            "name": "feeds",
             "type": "address[]"
           },
           {
             "internalType": "address",
-            "name": "_username",
+            "name": "username",
             "type": "address"
           },
           {
             "internalType": "address[]",
-            "name": "_communities",
+            "name": "communities",
             "type": "address[]"
           },
           {
             "internalType": "address",
-            "name": "_defaultFeed",
+            "name": "defaultFeed",
             "type": "address"
           },
           {
             "internalType": "address",
-            "name": "_defaultCommunity",
+            "name": "defaultCommunity",
             "type": "address"
           },
           {
             "internalType": "address[]",
-            "name": "_signers",
+            "name": "signers",
             "type": "address[]"
           },
           {
             "internalType": "address",
-            "name": "_paymaster",
+            "name": "paymaster",
             "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "treasury",
+            "type": "address"
+          },
+          {
+            "internalType": "string",
+            "name": "metadataURI",
+            "type": "string"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes32",
+                "name": "key",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bytes",
+                "name": "value",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct DataElement[]",
+            "name": "extraData",
+            "type": "tuple[]"
           }
         ],
         "internalType": "struct InitialProperties",
@@ -176,6 +193,31 @@
     "inputs": [
       {
         "indexed": true,
+        "internalType": "bytes32",
+        "name": "key",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "value",
+        "type": "bytes"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes",
+        "name": "valueIndexed",
+        "type": "bytes"
+      }
+    ],
+    "name": "Lens_App_ExtraDataSet",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
         "internalType": "address",
         "name": "feed",
         "type": "address"
@@ -253,6 +295,32 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "address[]",
+        "name": "signers",
+        "type": "address[]"
+      }
+    ],
+    "name": "Lens_App_SignersSet",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "treasury",
+        "type": "address"
+      }
+    ],
+    "name": "Lens_App_TreasurySet",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "address",
         "name": "username",
@@ -260,6 +328,38 @@
       }
     ],
     "name": "Lens_App_UsernameAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "metadataURI",
+        "type": "string"
+      }
+    ],
+    "name": "Lens_MetadataURISet",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "resourceId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      }
+    ],
+    "name": "Lens_ResourceId_Available",
     "type": "event"
   },
   {
@@ -286,6 +386,19 @@
     "name": "addFeed",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getAccessControl",
+    "outputs": [
+      {
+        "internalType": "contract IAccessControl",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -354,6 +467,25 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "key",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getExtraData",
+    "outputs": [
+      {
+        "internalType": "bytes",
+        "name": "",
+        "type": "bytes"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "getFeeds",
     "outputs": [
@@ -374,6 +506,19 @@
         "internalType": "address[]",
         "name": "",
         "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getMetadataURI",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
       }
     ],
     "stateMutability": "view",
@@ -444,6 +589,19 @@
   {
     "inputs": [
       {
+        "internalType": "contract IAccessControl",
+        "name": "newAccessControl",
+        "type": "address"
+      }
+    ],
+    "name": "setAccessControl",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address[]",
         "name": "communities",
         "type": "address[]"
@@ -483,6 +641,31 @@
   {
     "inputs": [
       {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "key",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes",
+            "name": "value",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct DataElement[]",
+        "name": "extraDataToSet",
+        "type": "tuple[]"
+      }
+    ],
+    "name": "setExtraData",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address[]",
         "name": "feeds",
         "type": "address[]"
@@ -509,6 +692,19 @@
   {
     "inputs": [
       {
+        "internalType": "string",
+        "name": "metadataURI",
+        "type": "string"
+      }
+    ],
+    "name": "setMetadataURI",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "paymaster",
         "type": "address"
@@ -528,6 +724,19 @@
       }
     ],
     "name": "setSigners",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "treasury",
+        "type": "address"
+      }
+    ],
+    "name": "setTreasury",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

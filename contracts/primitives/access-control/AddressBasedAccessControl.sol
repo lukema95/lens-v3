@@ -71,26 +71,14 @@ contract AddressBasedAccessControl is Ownership, IRoleBasedAccessControl {
         _scopedAccess[_roleIdToAddress(roleId)][resourceLocation][resourceId] = accessPermission;
     }
 
-    function getGlobalAccess(uint256 roleId, uint256 resourceId)
-        external
-        view
-        override
-        onlyOwner
-        returns (AccessPermission)
-    {
+    function getGlobalAccess(uint256 roleId, uint256 resourceId) external view override returns (AccessPermission) {
         if (!_isValidRoleId(roleId)) {
             return AccessPermission.UNDEFINED;
         }
         return _getGlobalAccess(_roleIdToAddress(roleId), resourceId);
     }
 
-    function getGlobalAccess(address account, uint256 resourceId)
-        external
-        view
-        override
-        onlyOwner
-        returns (AccessPermission)
-    {
+    function getGlobalAccess(address account, uint256 resourceId) external view override returns (AccessPermission) {
         return _getGlobalAccess(account, resourceId);
     }
 

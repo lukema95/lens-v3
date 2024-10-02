@@ -5,7 +5,7 @@ import {IRoleBasedAccessControl} from "./../primitives/access-control/IRoleBased
 import {IAccessControl} from "./../primitives/access-control/IAccessControl.sol";
 import {Community} from "./../primitives/community/Community.sol";
 import {OwnerOnlyAccessControl} from "./../primitives/access-control/OwnerOnlyAccessControl.sol";
-import {OwnerAdminAccessControl} from "./../primitives/access-control/OwnerAdminAccessControl.sol";
+import {RoleBasedAccessControl} from "./../primitives/access-control/RoleBasedAccessControl.sol";
 import {RuleConfiguration, DataElement} from "./../types/Types.sol";
 import {CommunityFactory} from "./CommunityFactory.sol";
 import {FeedFactory} from "./FeedFactory.sol";
@@ -111,7 +111,7 @@ contract LensFactory {
         RoleConfiguration[] calldata roleConfigs,
         AccessConfiguration[] calldata accessConfigs
     ) internal returns (IRoleBasedAccessControl) {
-        IRoleBasedAccessControl accessControl = new OwnerAdminAccessControl({owner: address(this)}); // TODO: We need the new access control implementation to be done!
+        IRoleBasedAccessControl accessControl = new RoleBasedAccessControl({owner: address(this)}); // TODO: We need the new access control implementation to be done!
         for (uint256 i = 0; i < roleConfigs.length; i++) {
             for (uint256 j = 0; j < roleConfigs[i].accounts.length; j++) {
                 accessControl.grantRole(roleConfigs[i].accounts[j], roleConfigs[i].roleId);
@@ -132,6 +132,7 @@ contract LensFactory {
                 );
             }
         }
+        // TODO: transferOwnership after we add the isolated owner param
         return accessControl;
     }
 }

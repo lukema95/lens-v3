@@ -20,56 +20,73 @@
         "type": "address"
       },
       {
-        "internalType": "string",
-        "name": "metadataURI",
-        "type": "string"
-      },
-      {
-        "internalType": "address",
-        "name": "treasury",
-        "type": "address"
-      },
-      {
         "components": [
           {
             "internalType": "address",
-            "name": "_graph",
+            "name": "graph",
             "type": "address"
           },
           {
             "internalType": "address[]",
-            "name": "_feeds",
+            "name": "feeds",
             "type": "address[]"
           },
           {
             "internalType": "address",
-            "name": "_username",
+            "name": "username",
             "type": "address"
           },
           {
             "internalType": "address[]",
-            "name": "_communities",
+            "name": "communities",
             "type": "address[]"
           },
           {
             "internalType": "address",
-            "name": "_defaultFeed",
+            "name": "defaultFeed",
             "type": "address"
           },
           {
             "internalType": "address",
-            "name": "_defaultCommunity",
+            "name": "defaultCommunity",
             "type": "address"
           },
           {
             "internalType": "address[]",
-            "name": "_signers",
+            "name": "signers",
             "type": "address[]"
           },
           {
             "internalType": "address",
-            "name": "_paymaster",
+            "name": "paymaster",
             "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "treasury",
+            "type": "address"
+          },
+          {
+            "internalType": "string",
+            "name": "metadataURI",
+            "type": "string"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes32",
+                "name": "key",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bytes",
+                "name": "value",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct DataElement[]",
+            "name": "extraData",
+            "type": "tuple[]"
           }
         ],
         "internalType": "struct InitialProperties",

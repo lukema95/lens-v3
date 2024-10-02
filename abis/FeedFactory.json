@@ -50,6 +50,23 @@
         "internalType": "struct RuleConfiguration[]",
         "name": "rules",
         "type": "tuple[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "key",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes",
+            "name": "value",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct DataElement[]",
+        "name": "extraData",
+        "type": "tuple[]"
       }
     ],
     "name": "deploy",
