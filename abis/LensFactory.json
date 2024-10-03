@@ -38,48 +38,9 @@
         "type": "address"
       },
       {
-        "components": [
-          {
-            "internalType": "uint256",
-            "name": "roleId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "address[]",
-            "name": "accounts",
-            "type": "address[]"
-          }
-        ],
-        "internalType": "struct RoleConfiguration[]",
-        "name": "roleConfigs",
-        "type": "tuple[]"
-      },
-      {
-        "components": [
-          {
-            "internalType": "uint256",
-            "name": "resourceId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "address",
-            "name": "resourceLocation",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "roleId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "enum IRoleBasedAccessControl.AccessPermission",
-            "name": "accessPermission",
-            "type": "uint8"
-          }
-        ],
-        "internalType": "struct AccessConfiguration[]",
-        "name": "accessConfigs",
-        "type": "tuple[]"
+        "internalType": "address[]",
+        "name": "admins",
+        "type": "address[]"
       },
       {
         "components": [
@@ -180,48 +141,9 @@
         "type": "address"
       },
       {
-        "components": [
-          {
-            "internalType": "uint256",
-            "name": "roleId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "address[]",
-            "name": "accounts",
-            "type": "address[]"
-          }
-        ],
-        "internalType": "struct RoleConfiguration[]",
-        "name": "roleConfigs",
-        "type": "tuple[]"
-      },
-      {
-        "components": [
-          {
-            "internalType": "uint256",
-            "name": "resourceId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "address",
-            "name": "resourceLocation",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "roleId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "enum IRoleBasedAccessControl.AccessPermission",
-            "name": "accessPermission",
-            "type": "uint8"
-          }
-        ],
-        "internalType": "struct AccessConfiguration[]",
-        "name": "accessConfigs",
-        "type": "tuple[]"
+        "internalType": "address[]",
+        "name": "admins",
+        "type": "address[]"
       },
       {
         "components": [
@@ -314,48 +236,9 @@
         "type": "address"
       },
       {
-        "components": [
-          {
-            "internalType": "uint256",
-            "name": "roleId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "address[]",
-            "name": "accounts",
-            "type": "address[]"
-          }
-        ],
-        "internalType": "struct RoleConfiguration[]",
-        "name": "roleConfigs",
-        "type": "tuple[]"
-      },
-      {
-        "components": [
-          {
-            "internalType": "uint256",
-            "name": "resourceId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "address",
-            "name": "resourceLocation",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "roleId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "enum IRoleBasedAccessControl.AccessPermission",
-            "name": "accessPermission",
-            "type": "uint8"
-          }
-        ],
-        "internalType": "struct AccessConfiguration[]",
-        "name": "accessConfigs",
-        "type": "tuple[]"
+        "internalType": "address[]",
+        "name": "admins",
+        "type": "address[]"
       },
       {
         "components": [
@@ -421,48 +304,9 @@
         "type": "address"
       },
       {
-        "components": [
-          {
-            "internalType": "uint256",
-            "name": "roleId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "address[]",
-            "name": "accounts",
-            "type": "address[]"
-          }
-        ],
-        "internalType": "struct RoleConfiguration[]",
-        "name": "roleConfigs",
-        "type": "tuple[]"
-      },
-      {
-        "components": [
-          {
-            "internalType": "uint256",
-            "name": "resourceId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "address",
-            "name": "resourceLocation",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "roleId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "enum IRoleBasedAccessControl.AccessPermission",
-            "name": "accessPermission",
-            "type": "uint8"
-          }
-        ],
-        "internalType": "struct AccessConfiguration[]",
-        "name": "accessConfigs",
-        "type": "tuple[]"
+        "internalType": "address[]",
+        "name": "admins",
+        "type": "address[]"
       },
       {
         "components": [
@@ -533,48 +377,9 @@
         "type": "address"
       },
       {
-        "components": [
-          {
-            "internalType": "uint256",
-            "name": "roleId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "address[]",
-            "name": "accounts",
-            "type": "address[]"
-          }
-        ],
-        "internalType": "struct RoleConfiguration[]",
-        "name": "roleConfigs",
-        "type": "tuple[]"
-      },
-      {
-        "components": [
-          {
-            "internalType": "uint256",
-            "name": "resourceId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "address",
-            "name": "resourceLocation",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "roleId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "enum IRoleBasedAccessControl.AccessPermission",
-            "name": "accessPermission",
-            "type": "uint8"
-          }
-        ],
-        "internalType": "struct AccessConfiguration[]",
-        "name": "accessConfigs",
-        "type": "tuple[]"
+        "internalType": "address[]",
+        "name": "admins",
+        "type": "address[]"
       },
       {
         "components": [

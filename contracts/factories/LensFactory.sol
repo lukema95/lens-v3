@@ -13,17 +13,17 @@ import {GraphFactory} from "./GraphFactory.sol";
 import {UsernameFactory} from "./UsernameFactory.sol";
 import {AppFactory, InitialProperties} from "./AppFactory.sol";
 
-struct RoleConfiguration {
-    uint256 roleId;
-    address[] accounts;
-}
+// struct RoleConfiguration {
+//     uint256 roleId;
+//     address[] accounts;
+// }
 
-struct AccessConfiguration {
-    uint256 resourceId;
-    address resourceLocation;
-    uint256 roleId;
-    IRoleBasedAccessControl.AccessPermission accessPermission;
-}
+// struct AccessConfiguration {
+//     uint256 resourceId;
+//     address resourceLocation;
+//     uint256 roleId;
+//     IRoleBasedAccessControl.AccessPermission accessPermission;
+// }
 
 struct TokenizationConfiguration {
     bool tokenizationEnabled;
@@ -34,6 +34,7 @@ struct TokenizationConfiguration {
 // uint8 decimals; TODO ???
 
 contract LensFactory {
+    uint256 immutable ADMIN_ROLE_ID = uint256(keccak256("ADMIN"));
     AppFactory internal immutable APP_FACTORY;
     CommunityFactory internal immutable COMMUNITY_FACTORY;
     FeedFactory internal immutable FEED_FACTORY;
@@ -56,20 +57,17 @@ contract LensFactory {
         _factoryOwnedAccessControl = new OwnerOnlyAccessControl({owner: address(this)});
     }
 
-    function deployApp(
-        address owner,
-        RoleConfiguration[] calldata roleConfigs,
-        AccessConfiguration[] calldata accessConfigs,
-        InitialProperties calldata initialProperties
-    ) external returns (address) {
-        return APP_FACTORY.deploy(_deployAccessControl(owner, roleConfigs, accessConfigs), initialProperties);
+    function deployApp(address owner, address[] calldata admins, InitialProperties calldata initialProperties)
+        external
+        returns (address)
+    {
+        return APP_FACTORY.deploy(_deployAccessControl(owner, admins), initialProperties);
     }
 
     function deployCommunity(
         string memory metadataURI,
         address owner,
-        RoleConfiguration[] calldata roleConfigs,
-        AccessConfiguration[] calldata accessConfigs,
+        address[] calldata admins,
         RuleConfiguration[] calldata rules,
         DataElement[] calldata extraData,
         TokenizationConfiguration calldata tokenizationConfig
@@ -77,42 +75,35 @@ contract LensFactory {
         if (tokenizationConfig.tokenizationEnabled) {
             revert("NOT_IMPLEMENTED_YET");
         } else {
-            return COMMUNITY_FACTORY.deploy(
-                metadataURI, _deployAccessControl(owner, roleConfigs, accessConfigs), rules, extraData
-            );
+            return COMMUNITY_FACTORY.deploy(metadataURI, _deployAccessControl(owner, admins), rules, extraData);
         }
     }
 
     function deployFeed(
         string memory metadataURI,
         address owner,
-        RoleConfiguration[] calldata roleConfigs,
-        AccessConfiguration[] calldata accessConfigs,
+        address[] calldata admins,
         RuleConfiguration[] calldata rules,
         DataElement[] calldata extraData
     ) external returns (address) {
-        return
-            FEED_FACTORY.deploy(metadataURI, _deployAccessControl(owner, roleConfigs, accessConfigs), rules, extraData);
+        return FEED_FACTORY.deploy(metadataURI, _deployAccessControl(owner, admins), rules, extraData);
     }
 
     function deployGraph(
         string memory metadataURI,
         address owner,
-        RoleConfiguration[] calldata roleConfigs,
-        AccessConfiguration[] calldata accessConfigs,
+        address[] calldata admins,
         RuleConfiguration[] calldata rules,
         DataElement[] calldata extraData
     ) external returns (address) {
-        return
-            GRAPH_FACTORY.deploy(metadataURI, _deployAccessControl(owner, roleConfigs, accessConfigs), rules, extraData);
+        return GRAPH_FACTORY.deploy(metadataURI, _deployAccessControl(owner, admins), rules, extraData);
     }
 
     function deployUsername(
         string memory namespace,
         string memory metadataURI,
         address owner,
-        RoleConfiguration[] calldata roleConfigs,
-        AccessConfiguration[] calldata accessConfigs,
+        address[] calldata admins,
         RuleConfiguration[] calldata rules,
         DataElement[] calldata extraData,
         TokenizationConfiguration calldata tokenizationConfig
@@ -120,37 +111,48 @@ contract LensFactory {
         if (tokenizationConfig.tokenizationEnabled) {
             revert("NOT_IMPLEMENTED_YET");
         } else {
-            return USERNAME_FACTORY.deploy(
-                namespace, metadataURI, _deployAccessControl(owner, roleConfigs, accessConfigs), rules, extraData
-            );
+            return
+                USERNAME_FACTORY.deploy(namespace, metadataURI, _deployAccessControl(owner, admins), rules, extraData);
         }
     }
 
-    function _deployAccessControl(
-        address owner,
-        RoleConfiguration[] calldata roleConfigs,
-        AccessConfiguration[] calldata accessConfigs
-    ) internal returns (IRoleBasedAccessControl) {
-        RoleBasedAccessControl accessControl = new RoleBasedAccessControl({owner: address(this)}); // TODO: We need the new access control implementation to be done!
-        for (uint256 i = 0; i < roleConfigs.length; i++) {
-            for (uint256 j = 0; j < roleConfigs[i].accounts.length; j++) {
-                accessControl.grantRole(roleConfigs[i].accounts[j], roleConfigs[i].roleId);
-            }
-        }
-        for (uint256 i = 0; i < accessConfigs.length; i++) {
-            if (accessConfigs[i].resourceLocation == address(0)) {
-                accessControl.setGlobalAccess(
-                    accessConfigs[i].roleId, accessConfigs[i].resourceId, accessConfigs[i].accessPermission, ""
-                );
-            } else {
-                accessControl.setScopedAccess(
-                    accessConfigs[i].roleId,
-                    accessConfigs[i].resourceLocation,
-                    accessConfigs[i].resourceId,
-                    accessConfigs[i].accessPermission,
-                    ""
-                );
-            }
+    // function deployRoleBasedAccessControl(
+    //     address owner,
+    //     RoleConfiguration[] calldata roleConfigs,
+    //     AccessConfiguration[] calldata accessConfigs
+    // ) external returns (address) {
+    //     RoleBasedAccessControl accessControl = new RoleBasedAccessControl({owner: address(this)});
+    //     for (uint256 i = 0; i < roleConfigs.length; i++) {
+    //         for (uint256 j = 0; j < roleConfigs[i].accounts.length; j++) {
+    //             accessControl.grantRole(roleConfigs[i].accounts[j], roleConfigs[i].roleId);
+    //         }
+    //     }
+    //     for (uint256 i = 0; i < accessConfigs.length; i++) {
+    //         if (accessConfigs[i].resourceLocation == address(0)) {
+    //             accessControl.setGlobalAccess(
+    //                 accessConfigs[i].roleId, accessConfigs[i].resourceId, accessConfigs[i].accessPermission, ""
+    //             );
+    //         } else {
+    //             accessControl.setScopedAccess(
+    //                 accessConfigs[i].roleId,
+    //                 accessConfigs[i].resourceLocation,
+    //                 accessConfigs[i].resourceId,
+    //                 accessConfigs[i].accessPermission,
+    //                 ""
+    //             );
+    //         }
+    //     }
+    //     accessControl.transferOwnership(owner);
+    //     return address(accessControl);
+    // }
+
+    function _deployAccessControl(address owner, address[] calldata admins)
+        internal
+        returns (IRoleBasedAccessControl)
+    {
+        RoleBasedAccessControl accessControl = new RoleBasedAccessControl({owner: address(this)});
+        for (uint256 i = 0; i < admins.length; i++) {
+            accessControl.grantRole(admins[i], ADMIN_ROLE_ID);
         }
         accessControl.transferOwnership(owner);
         return accessControl;
