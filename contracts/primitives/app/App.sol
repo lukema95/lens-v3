@@ -8,7 +8,7 @@ import {DataElement} from "./../../types/Types.sol";
 import {AccessControlled} from "./../base/AccessControlled.sol";
 import {Events} from "./../../types/Events.sol";
 
-struct InitialProperties {
+struct AppInitialProperties {
     address graph;
     address[] feeds;
     address username;
@@ -18,8 +18,6 @@ struct InitialProperties {
     address[] signers;
     address paymaster;
     address treasury;
-    string metadataURI;
-    DataElement[] extraData;
 }
 
 contract App is IApp, AccessControlled {
@@ -31,18 +29,23 @@ contract App is IApp, AccessControlled {
     uint256 constant SET_EXTRA_DATA = uint256(keccak256("SET_EXTRA_DATA"));
     uint256 constant SET_METADATA = uint256(keccak256("SET_METADATA"));
 
-    constructor(IAccessControl accessControl, InitialProperties memory props) AccessControlled(accessControl) {
-        _setMetadataURI(props.metadataURI);
-        _setTreasury(props.treasury);
-        _setGraph(props.graph);
-        _setFeeds(props.feeds);
-        _setUsername(props.username);
-        _setCommunity(props.communities);
-        _setDefaultFeed(props.defaultFeed);
-        _setDefaultCommunity(props.defaultCommunity);
-        _setSigners(props.signers);
-        _setPaymaster(props.paymaster);
-        _setExtraData(props.extraData);
+    constructor(
+        string memory metadataURI,
+        IAccessControl accessControl,
+        AppInitialProperties memory initialProps,
+        DataElement[] memory extraData
+    ) AccessControlled(accessControl) {
+        _setMetadataURI(metadataURI);
+        _setTreasury(initialProps.treasury);
+        _setGraph(initialProps.graph);
+        _setFeeds(initialProps.feeds);
+        _setUsername(initialProps.username);
+        _setCommunity(initialProps.communities);
+        _setDefaultFeed(initialProps.defaultFeed);
+        _setDefaultCommunity(initialProps.defaultCommunity);
+        _setSigners(initialProps.signers);
+        _setPaymaster(initialProps.paymaster);
+        _setExtraData(extraData);
 
         _emitRIDs();
 

@@ -2,6 +2,11 @@
   {
     "inputs": [
       {
+        "internalType": "string",
+        "name": "metadataURI",
+        "type": "string"
+      },
+      {
         "internalType": "contract IAccessControl",
         "name": "accessControl",
         "type": "address"
@@ -52,33 +57,28 @@
             "internalType": "address",
             "name": "treasury",
             "type": "address"
-          },
-          {
-            "internalType": "string",
-            "name": "metadataURI",
-            "type": "string"
-          },
-          {
-            "components": [
-              {
-                "internalType": "bytes32",
-                "name": "key",
-                "type": "bytes32"
-              },
-              {
-                "internalType": "bytes",
-                "name": "value",
-                "type": "bytes"
-              }
-            ],
-            "internalType": "struct DataElement[]",
-            "name": "extraData",
-            "type": "tuple[]"
           }
         ],
-        "internalType": "struct InitialProperties",
-        "name": "props",
+        "internalType": "struct AppInitialProperties",
+        "name": "initialProps",
         "type": "tuple"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "key",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes",
+            "name": "value",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct DataElement[]",
+        "name": "extraData",
+        "type": "tuple[]"
       }
     ],
     "stateMutability": "nonpayable",

@@ -70,4 +70,23 @@ export default async function () {
   });
 
   console.log(`\n✔ LensFactory deployed at ${await lensFactory.getAddress()}`);
+
+  // TODO: Make this to be written into a file
+  console.log('\n\n--- Indexer file ---\n\n');
+  console.log('# CONTRACTS');
+  console.log('GRAPH_FACTORY=', await graphFactory.getAddress());
+  console.log('GLOBAL_GRAPH=', '0x0000000000000000000000000000000000000000'); // TODO
+  console.log('');
+  console.log('ACCOUNT_FACTORY=', '0x0000000000000000000000000000000000000000'); // TODO
+  console.log('');
+  console.log('APP_FACTORY=', await appFactory.getAddress());
+  console.log('');
+  console.log('USERNAME_FACTORY=', await usernameFactory.getAddress());
+  console.log('');
+  console.log('FEED_FACTORY=', await feedFactory.getAddress());
+  console.log('GLOBAL_FEED=', '0x0000000000000000000000000000000000000000'); // TODO
+  console.log('');
+  console.log('LENS_FACTORY=', await lensFactory.getAddress());
+  console.log('');
+  console.log('COMMUNITY_FACTORY=', await communityFactory.getAddress());
 }

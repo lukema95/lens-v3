@@ -33,6 +33,11 @@
   {
     "inputs": [
       {
+        "internalType": "string",
+        "name": "metadataURI",
+        "type": "string"
+      },
+      {
         "internalType": "address",
         "name": "owner",
         "type": "address"
@@ -88,33 +93,28 @@
             "internalType": "address",
             "name": "treasury",
             "type": "address"
-          },
-          {
-            "internalType": "string",
-            "name": "metadataURI",
-            "type": "string"
-          },
-          {
-            "components": [
-              {
-                "internalType": "bytes32",
-                "name": "key",
-                "type": "bytes32"
-              },
-              {
-                "internalType": "bytes",
-                "name": "value",
-                "type": "bytes"
-              }
-            ],
-            "internalType": "struct DataElement[]",
-            "name": "extraData",
-            "type": "tuple[]"
           }
         ],
-        "internalType": "struct InitialProperties",
+        "internalType": "struct AppInitialProperties",
         "name": "initialProperties",
         "type": "tuple"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "key",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes",
+            "name": "value",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct DataElement[]",
+        "name": "extraData",
+        "type": "tuple[]"
       }
     ],
     "name": "deployApp",

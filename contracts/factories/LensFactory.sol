@@ -11,7 +11,7 @@ import {CommunityFactory} from "./CommunityFactory.sol";
 import {FeedFactory} from "./FeedFactory.sol";
 import {GraphFactory} from "./GraphFactory.sol";
 import {UsernameFactory} from "./UsernameFactory.sol";
-import {AppFactory, InitialProperties} from "./AppFactory.sol";
+import {AppFactory, AppInitialProperties} from "./AppFactory.sol";
 
 // struct RoleConfiguration {
 //     uint256 roleId;
@@ -57,11 +57,14 @@ contract LensFactory {
         _factoryOwnedAccessControl = new OwnerOnlyAccessControl({owner: address(this)});
     }
 
-    function deployApp(address owner, address[] calldata admins, InitialProperties calldata initialProperties)
-        external
-        returns (address)
-    {
-        return APP_FACTORY.deploy(_deployAccessControl(owner, admins), initialProperties);
+    function deployApp(
+        string memory metadataURI,
+        address owner,
+        address[] calldata admins,
+        AppInitialProperties calldata initialProperties,
+        DataElement[] calldata extraData
+    ) external returns (address) {
+        return APP_FACTORY.deploy(metadataURI, _deployAccessControl(owner, admins), initialProperties, extraData);
     }
 
     function deployCommunity(
