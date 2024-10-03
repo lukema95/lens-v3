@@ -9,6 +9,7 @@ contract AccessControlled {
     using AccessControlLib for address;
 
     event Lens_ResourceId_Available(uint256 indexed resourceId, string name);
+    event Lens_AccessControlSet(address indexed accessControl);
 
     uint256 constant SET_ACCESS_CONTROL_RID = uint256(keccak256("SET_ACCESS_CONTROL"));
 
@@ -49,10 +50,10 @@ contract AccessControlled {
 
     // Access Controlled Functions
     function setAccessControl(IAccessControl newAccessControl) external {
-        // TODO: This is a 1-step operation, while some of our AC owner transfers are a 2-step, or even 3-step operations.
         _accessControl().requireAccess(msg.sender, SET_ACCESS_CONTROL_RID);
         newAccessControl.verifyHasAccessFunction();
         _setAccessControl(address(newAccessControl));
+        emit Lens_AccessControlSet(address(newAccessControl));
     }
 
     // Internal functions
