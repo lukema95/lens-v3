@@ -107,9 +107,9 @@ library FeedCore {
 
     function _editPost(uint256 postId, EditPostParams calldata postParams) internal {
         PostStorage storage _post = $storage().posts[postId];
-        require(_post.creationTimestamp != 0); // Post must exist
+        require(_post.creationTimestamp != 0, "CANNOT_EDIT_NON_EXISTENT_POST"); // Post must exist
         if (_post.isRepost) {
-            require(bytes(postParams.contentURI).length == 0);
+            require(bytes(postParams.contentURI).length == 0, "CANNOT_EDIT_REPOST_CONTENT_URI");
         } else {
             _post.contentURI = postParams.contentURI;
         }
@@ -126,7 +126,7 @@ library FeedCore {
     }
 
     function _requirePostExistence(uint256 postId) internal view {
-        require($storage().posts[postId].creationTimestamp != 0);
+        require($storage().posts[postId].creationTimestamp != 0, "POST_DOES_NOT_EXIST");
     }
 
     // TODO: Debate this more. It should be a soft delete, you can reconstruct anyways from tx history.

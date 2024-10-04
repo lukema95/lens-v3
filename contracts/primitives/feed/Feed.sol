@@ -74,8 +74,8 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         RuleExecutionData calldata changeRulesParentPostRulesData
     ) external override {
         address author = Core.$storage().posts[postId].author;
-        require(msg.sender == author);
-        require(!Core.$storage().posts[postId].isRepost);
+        require(msg.sender == author, "MSG_SENDER_NOT_AUTHOR");
+        require(!Core.$storage().posts[postId].isRepost, "CANNOT_ADD_RULES_TO_REPOST");
         for (uint256 i = 0; i < rules.length; i++) {
             _addPostRule(postId, rules[i]);
             emit Lens_Feed_Post_RuleAdded(
@@ -98,8 +98,8 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         RuleExecutionData calldata changeRulesParentPostRulesData
     ) external override {
         address author = Core.$storage().posts[postId].author;
-        require(msg.sender == author);
-        require(!Core.$storage().posts[postId].isRepost);
+        require(msg.sender == author, "MSG_SENDER_NOT_AUTHOR");
+        require(!Core.$storage().posts[postId].isRepost, "CANNOT_UPDATE_RULES_ON_REPOST");
         for (uint256 i = 0; i < rules.length; i++) {
             _updatePostRule(postId, rules[i]);
             emit Lens_Feed_Post_RuleUpdated(
@@ -122,8 +122,8 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         RuleExecutionData calldata changeRulesParentPostRulesData
     ) external override {
         address author = Core.$storage().posts[postId].author;
-        require(msg.sender == author);
-        require(!Core.$storage().posts[postId].isRepost);
+        require(msg.sender == author, "MSG_SENDER_NOT_AUTHOR");
+        require(!Core.$storage().posts[postId].isRepost, "CANNOT_REMOVE_RULES_FROM_REPOST");
         for (uint256 i = 0; i < rules.length; i++) {
             _removePostRule(postId, rules[i].ruleAddress);
             emit Lens_Feed_Post_RuleRemoved(postId, author, rules[i].ruleAddress);
@@ -139,10 +139,12 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     // Public user functions
 
     function createPost(CreatePostParams calldata createPostParams) external override returns (uint256) {
-        require(msg.sender == createPostParams.author);
-        require(createPostParams.quotedPostId != createPostParams.parentPostId);
-        require(!Core.$storage().posts[createPostParams.parentPostId].isRepost);
-        require(!Core.$storage().posts[createPostParams.quotedPostId].isRepost);
+        require(msg.sender == createPostParams.author, "MSG_SENDER_NOT_AUTHOR");
+        if (createPostParams.parentPostId != 0) {
+            require(createPostParams.quotedPostId != createPostParams.parentPostId, "CANNOT_BE_QUOTED_AND_PARENT");
+        }
+        require(!Core.$storage().posts[createPostParams.parentPostId].isRepost, "REPOST_CANNOT_BE_PARENT");
+        require(!Core.$storage().posts[createPostParams.quotedPostId].isRepost, "REPOST_CANNOT_BE_QUOTED");
         (uint256 postId, uint256 localSequentialId) = Core._createPost(createPostParams);
         _feedProcessCreatePost(postId, localSequentialId, createPostParams);
 
@@ -180,8 +182,8 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     }
 
     function createRepost(CreateRepostParams calldata createRepostParams) external override returns (uint256) {
-        require(msg.sender == createRepostParams.author);
-        require(!Core.$storage().posts[createRepostParams.parentPostId].isRepost);
+        require(msg.sender == createRepostParams.author, "MSG_SENDER_NOT_AUTHOR");
+        require(!Core.$storage().posts[createRepostParams.parentPostId].isRepost, "CANNOT_REPOST_REPOST");
         (uint256 postId, uint256 localSequentialId) = Core._createRepost(createRepostParams);
         _feedProcessCreateRepost(postId, localSequentialId, createRepostParams);
 
@@ -199,7 +201,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         address author = Core.$storage().posts[postId].author;
         // TODO: We can have this for moderators:
         // require(msg.sender == author || _hasAccess(msg.sender, EDIT_POST_RID));
-        require(msg.sender == author);
+        require(msg.sender == author, "MSG_SENDER_NOT_AUTHOR");
         _feedProcessEditPost(postId, newPostParams, editPostFeedRulesData);
         Core._editPost(postId, newPostParams);
         emit Lens_Feed_PostEdited(postId, author, newPostParams, editPostFeedRulesData);
@@ -211,7 +213,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         RuleExecutionData calldata feedRulesData
     ) external override {
         address author = Core.$storage().posts[postId].author;
-        require(msg.sender == author || _hasAccess(msg.sender, DELETE_POST_RID));
+        require(msg.sender == author || _hasAccess(msg.sender, DELETE_POST_RID), "MSG_SENDER_NOT_AUTHOR_NOR_HAS_ACCESS");
         _feedProcessDeletePost(postId, feedRulesData);
         Core._deletePost(postId, extraDataKeysToDelete);
         emit Lens_Feed_PostDeleted(postId, author, feedRulesData);

@@ -53,7 +53,6 @@ contract AccessControlled {
         _accessControl().requireAccess(msg.sender, SET_ACCESS_CONTROL_RID);
         newAccessControl.verifyHasAccessFunction();
         _setAccessControl(address(newAccessControl));
-        emit Lens_AccessControlSet(address(newAccessControl));
     }
 
     // Internal functions
@@ -64,6 +63,7 @@ contract AccessControlled {
 
     function _setAccessControl(address newAccessControl) internal {
         $accessControlledStorage().accessControl = newAccessControl;
+        emit Lens_AccessControlSet(address(newAccessControl));
     }
 
     // Getters
