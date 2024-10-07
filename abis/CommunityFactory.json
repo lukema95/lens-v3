@@ -69,7 +69,7 @@
         "type": "tuple[]"
       }
     ],
-    "name": "deploy",
+    "name": "deployCommunity",
     "outputs": [
       {
         "internalType": "address",

@@ -64,7 +64,7 @@ contract LensFactory {
         AppInitialProperties calldata initialProperties,
         DataElement[] calldata extraData
     ) external returns (address) {
-        return APP_FACTORY.deploy(metadataURI, _deployAccessControl(owner, admins), initialProperties, extraData);
+        return APP_FACTORY.deployApp(metadataURI, _deployAccessControl(owner, admins), initialProperties, extraData);
     }
 
     function deployCommunity(
@@ -78,7 +78,7 @@ contract LensFactory {
         if (tokenizationConfig.tokenizationEnabled) {
             revert("NOT_IMPLEMENTED_YET");
         } else {
-            return COMMUNITY_FACTORY.deploy(metadataURI, _deployAccessControl(owner, admins), rules, extraData);
+            return COMMUNITY_FACTORY.deployCommunity(metadataURI, _deployAccessControl(owner, admins), rules, extraData);
         }
     }
 
@@ -89,7 +89,7 @@ contract LensFactory {
         RuleConfiguration[] calldata rules,
         DataElement[] calldata extraData
     ) external returns (address) {
-        return FEED_FACTORY.deploy(metadataURI, _deployAccessControl(owner, admins), rules, extraData);
+        return FEED_FACTORY.deployFeed(metadataURI, _deployAccessControl(owner, admins), rules, extraData);
     }
 
     function deployGraph(
@@ -99,7 +99,7 @@ contract LensFactory {
         RuleConfiguration[] calldata rules,
         DataElement[] calldata extraData
     ) external returns (address) {
-        return GRAPH_FACTORY.deploy(metadataURI, _deployAccessControl(owner, admins), rules, extraData);
+        return GRAPH_FACTORY.deployGraph(metadataURI, _deployAccessControl(owner, admins), rules, extraData);
     }
 
     function deployUsername(
@@ -114,8 +114,9 @@ contract LensFactory {
         if (tokenizationConfig.tokenizationEnabled) {
             revert("NOT_IMPLEMENTED_YET");
         } else {
-            return
-                USERNAME_FACTORY.deploy(namespace, metadataURI, _deployAccessControl(owner, admins), rules, extraData);
+            return USERNAME_FACTORY.deployUsername(
+                namespace, metadataURI, _deployAccessControl(owner, admins), rules, extraData
+            );
         }
     }
 

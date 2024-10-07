@@ -94,7 +94,7 @@
         "type": "tuple[]"
       }
     ],
-    "name": "deploy",
+    "name": "deployApp",
     "outputs": [
       {
         "internalType": "address",

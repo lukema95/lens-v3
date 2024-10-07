@@ -15,7 +15,7 @@ contract CommunityFactory {
         _factoryOwnedAccessControl = new OwnerOnlyAccessControl({owner: address(this)});
     }
 
-    function deploy(
+    function deployCommunity(
         string memory metadataURI,
         IAccessControl accessControl,
         RuleConfiguration[] calldata rules,

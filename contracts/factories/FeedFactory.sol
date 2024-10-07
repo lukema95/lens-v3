@@ -15,7 +15,7 @@ contract FeedFactory {
         _factoryOwnedAccessControl = new OwnerOnlyAccessControl({owner: address(this)});
     }
 
-    function deploy(
+    function deployFeed(
         string memory metadataURI,
         IAccessControl accessControl,
         RuleConfiguration[] calldata rules,

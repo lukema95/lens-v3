@@ -15,7 +15,7 @@ contract UsernameFactory {
         _factoryOwnedAccessControl = new OwnerOnlyAccessControl({owner: address(this)});
     }
 
-    function deploy(
+    function deployUsername(
         string memory namespace,
         string memory metadataURI,
         IAccessControl accessControl,

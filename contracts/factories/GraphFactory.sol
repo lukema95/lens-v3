@@ -15,7 +15,7 @@ contract GraphFactory {
         _factoryOwnedAccessControl = new OwnerOnlyAccessControl({owner: address(this)});
     }
 
-    function deploy(
+    function deployGraph(
         string memory metadataURI,
         IAccessControl accessControl,
         RuleConfiguration[] calldata rules,
