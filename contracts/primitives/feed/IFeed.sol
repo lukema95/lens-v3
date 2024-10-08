@@ -51,11 +51,19 @@ struct Post {
 
 interface IFeed is IMetadataBased {
     event Lens_Feed_PostCreated(
-        uint256 indexed postId, address indexed author, uint256 indexed localSequentialId, CreatePostParams postParams
+        uint256 indexed postId,
+        address indexed author,
+        uint256 indexed localSequentialId,
+        CreatePostParams postParams,
+        uint256 rootPostId
     );
 
     event Lens_Feed_RepostCreated(
-        uint256 indexed postId, address indexed author, uint256 indexed localSequentialId, CreateRepostParams postParams
+        uint256 indexed postId,
+        address indexed author,
+        uint256 indexed localSequentialId,
+        CreateRepostParams postParams,
+        uint256 rootPostId
     );
 
     event Lens_Feed_PostEdited(

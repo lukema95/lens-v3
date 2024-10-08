@@ -243,6 +243,12 @@
         "internalType": "struct CreatePostParams",
         "name": "postParams",
         "type": "tuple"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "rootPostId",
+        "type": "uint256"
       }
     ],
     "name": "Lens_Feed_PostCreated",
@@ -545,6 +551,12 @@
         "internalType": "struct CreateRepostParams",
         "name": "postParams",
         "type": "tuple"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "rootPostId",
+        "type": "uint256"
       }
     ],
     "name": "Lens_Feed_RepostCreated",

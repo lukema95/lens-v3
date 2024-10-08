@@ -145,7 +145,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         }
         require(!Core.$storage().posts[createPostParams.parentPostId].isRepost, "REPOST_CANNOT_BE_PARENT");
         require(!Core.$storage().posts[createPostParams.quotedPostId].isRepost, "REPOST_CANNOT_BE_QUOTED");
-        (uint256 postId, uint256 localSequentialId) = Core._createPost(createPostParams);
+        (uint256 postId, uint256 localSequentialId, uint256 rootPostId) = Core._createPost(createPostParams);
         _feedProcessCreatePost(postId, localSequentialId, createPostParams);
 
         // We can only add rules to the post on creation, or by calling dedicated functions after (not on editPost)
@@ -177,19 +177,21 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
             createPostParams.parentsPostRulesData
         );
 
-        emit Lens_Feed_PostCreated(postId, createPostParams.author, localSequentialId, createPostParams);
+        emit Lens_Feed_PostCreated(postId, createPostParams.author, localSequentialId, createPostParams, rootPostId);
         return postId;
     }
 
     function createRepost(CreateRepostParams calldata createRepostParams) external override returns (uint256) {
         require(msg.sender == createRepostParams.author, "MSG_SENDER_NOT_AUTHOR");
         require(!Core.$storage().posts[createRepostParams.parentPostId].isRepost, "CANNOT_REPOST_REPOST");
-        (uint256 postId, uint256 localSequentialId) = Core._createRepost(createRepostParams);
+        (uint256 postId, uint256 localSequentialId, uint256 rootPostId) = Core._createRepost(createRepostParams);
         _feedProcessCreateRepost(postId, localSequentialId, createRepostParams);
 
         _processAllParentsPostsRules(createRepostParams.parentPostId, postId, createRepostParams.parentsPostRulesData);
 
-        emit Lens_Feed_RepostCreated(postId, createRepostParams.author, localSequentialId, createRepostParams);
+        emit Lens_Feed_RepostCreated(
+            postId, createRepostParams.author, localSequentialId, createRepostParams, rootPostId
+        );
         return postId;
     }
 

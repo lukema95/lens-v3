@@ -4,12 +4,12 @@ pragma solidity ^0.8.17;
 import {EditPostParams, CreatePostParams, CreateRepostParams} from "./IFeed.sol";
 import "../libraries/ExtraDataLib.sol";
 
-// TODO: Add root post
 struct PostStorage {
     address author;
     uint256 localSequentialId;
     address source;
     string contentURI;
+    uint256 rootPostId;
     bool isRepost;
     uint256 quotedPostId;
     uint256 parentPostId;
@@ -41,11 +41,11 @@ library FeedCore {
 
     // External functions - Use these functions to be called through DELEGATECALL
 
-    function createPost(CreatePostParams calldata postParams) external returns (uint256, uint256) {
+    function createPost(CreatePostParams calldata postParams) external returns (uint256, uint256, uint256) {
         return _createPost(postParams);
     }
 
-    function createRepost(CreateRepostParams calldata repostParams) external returns (uint256, uint256) {
+    function createRepost(CreateRepostParams calldata repostParams) external returns (uint256, uint256, uint256) {
         return _createRepost(repostParams);
     }
 
@@ -67,7 +67,7 @@ library FeedCore {
         return uint256(keccak256(abi.encode("evm:", block.chainid, address(this), localSequentialId)));
     }
 
-    function _createPost(CreatePostParams calldata postParams) internal returns (uint256, uint256) {
+    function _createPost(CreatePostParams calldata postParams) internal returns (uint256, uint256, uint256) {
         uint256 localSequentialId = ++$storage().postCount;
         uint256 postId = _generatePostId(localSequentialId);
         PostStorage storage _newPost = $storage().posts[postId];
@@ -75,21 +75,24 @@ library FeedCore {
         _newPost.localSequentialId = localSequentialId;
         _newPost.source = postParams.source;
         _newPost.contentURI = postParams.contentURI;
+        uint256 rootPostId = postId;
         if (postParams.quotedPostId != 0) {
             _requirePostExistence(postParams.quotedPostId);
+            _newPost.quotedPostId = postParams.quotedPostId;
         }
-        _newPost.quotedPostId = postParams.quotedPostId;
         if (postParams.parentPostId != 0) {
             _requirePostExistence(postParams.parentPostId);
+            _newPost.parentPostId = postParams.parentPostId;
+            rootPostId = $storage().posts[postParams.parentPostId].rootPostId;
         }
-        _newPost.parentPostId = postParams.parentPostId;
+        _newPost.rootPostId = rootPostId;
         _newPost.creationTimestamp = uint80(block.timestamp);
         _newPost.lastUpdatedTimestamp = uint80(block.timestamp);
         _newPost.extraData.set(postParams.extraData);
-        return (postId, localSequentialId);
+        return (postId, localSequentialId, rootPostId);
     }
 
-    function _createRepost(CreateRepostParams calldata repostParams) internal returns (uint256, uint256) {
+    function _createRepost(CreateRepostParams calldata repostParams) internal returns (uint256, uint256, uint256) {
         uint256 localSequentialId = ++$storage().postCount;
         uint256 postId = _generatePostId(localSequentialId);
         PostStorage storage _newPost = $storage().posts[postId];
@@ -99,10 +102,12 @@ library FeedCore {
         _newPost.source = repostParams.source;
         _requirePostExistence(repostParams.parentPostId);
         _newPost.parentPostId = repostParams.parentPostId;
+        uint256 rootPostId = $storage().posts[repostParams.parentPostId].rootPostId;
+        _newPost.rootPostId = rootPostId;
         _newPost.creationTimestamp = uint80(block.timestamp);
         _newPost.lastUpdatedTimestamp = uint80(block.timestamp);
         _newPost.extraData.set(repostParams.extraData);
-        return (postId, localSequentialId);
+        return (postId, localSequentialId, rootPostId);
     }
 
     function _editPost(uint256 postId, EditPostParams calldata postParams) internal {
