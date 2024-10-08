@@ -19,7 +19,7 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
 
     constructor(string memory metadataURI, IAccessControl accessControl) AccessControlled(accessControl) {
         Core.$storage().metadataURI = metadataURI;
-        emit Lens_MetadataURISet(metadataURI);
+        emit Lens_Graph_MetadataURISet(metadataURI);
         _emitRIDs();
         emit Events.Lens_Contract_Deployed("graph", "lens.graph", "graph", "lens.graph");
     }
@@ -36,7 +36,7 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
     function setMetadataURI(string calldata metadataURI) external override {
         _requireAccess(msg.sender, SET_METADATA_RID);
         Core.$storage().metadataURI = metadataURI;
-        emit Lens_MetadataURISet(metadataURI);
+        emit Lens_Graph_MetadataURISet(metadataURI);
     }
 
     function addGraphRules(RuleConfiguration[] calldata rules) external override {

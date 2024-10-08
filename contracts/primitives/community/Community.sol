@@ -18,7 +18,7 @@ contract Community is ICommunity, RuleBasedCommunity, AccessControlled {
 
     constructor(string memory metadataURI, IAccessControl accessControl) AccessControlled(accessControl) {
         Core.$storage().metadataURI = metadataURI;
-        emit Lens_MetadataURISet(metadataURI);
+        emit Lens_Community_MetadataURISet(metadataURI);
         _emitRIDs();
         emit Events.Lens_Contract_Deployed("community", "lens.community", "community", "lens.community");
     }
@@ -36,7 +36,7 @@ contract Community is ICommunity, RuleBasedCommunity, AccessControlled {
     function setMetadataURI(string calldata metadataURI) external override {
         _requireAccess(msg.sender, SET_METADATA_RID);
         Core.$storage().metadataURI = metadataURI;
-        emit Lens_MetadataURISet(metadataURI);
+        emit Lens_Community_MetadataURISet(metadataURI);
     }
 
     function addCommunityRules(RuleConfiguration[] calldata rules) external override {

@@ -15,6 +15,8 @@ interface ICommunity is IMetadataBased {
 
     event Lens_Community_ExtraDataSet(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
 
+    event Lens_Community_MetadataURISet(string metadataURI);
+
     function addCommunityRules(RuleConfiguration[] calldata rules) external;
 
     function updateCommunityRules(RuleConfiguration[] calldata rules) external;

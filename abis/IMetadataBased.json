@@ -1,18 +1,5 @@
 [
   {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "metadataURI",
-        "type": "string"
-      }
-    ],
-    "name": "Lens_MetadataURISet",
-    "type": "event"
-  },
-  {
     "inputs": [],
     "name": "getMetadataURI",
     "outputs": [

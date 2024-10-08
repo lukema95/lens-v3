@@ -30,7 +30,7 @@ contract Username is IUsername, RuleBasedUsername, AccessControlled {
     {
         Core.$storage().namespace = namespace;
         Core.$storage().metadataURI = metadataURI;
-        emit Lens_MetadataURISet(metadataURI);
+        emit Lens_Username_MetadataURISet(metadataURI);
         _emitRIDs();
         emit Events.Lens_Contract_Deployed("username", "lens.username", "username", "lens.username");
     }
@@ -47,7 +47,7 @@ contract Username is IUsername, RuleBasedUsername, AccessControlled {
     function setMetadataURI(string calldata metadataURI) external override {
         _requireAccess(msg.sender, SET_METADATA_RID);
         Core.$storage().metadataURI = metadataURI;
-        emit Lens_MetadataURISet(metadataURI);
+        emit Lens_Username_MetadataURISet(metadataURI);
     }
 
     function addUsernameRules(RuleConfiguration[] calldata ruleConfigurations) external {

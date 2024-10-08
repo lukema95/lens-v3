@@ -19,7 +19,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
 
     constructor(string memory metadataURI, IAccessControl accessControl) AccessControlled(accessControl) {
         Core.$storage().metadataURI = metadataURI;
-        emit Lens_MetadataURISet(metadataURI);
+        emit Lens_Feed_MetadataURISet(metadataURI);
         _emitRIDs();
         emit Events.Lens_Contract_Deployed("feed", "lens.feed", "feed", "lens.feed");
     }
@@ -37,7 +37,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     function setMetadataURI(string calldata metadataURI) external override {
         _requireAccess(msg.sender, SET_METADATA_RID);
         Core.$storage().metadataURI = metadataURI;
-        emit Lens_MetadataURISet(metadataURI);
+        emit Lens_Feed_MetadataURISet(metadataURI);
     }
 
     function addFeedRules(RuleConfiguration[] calldata rules) external override {

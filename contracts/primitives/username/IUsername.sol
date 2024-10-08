@@ -17,6 +17,8 @@ interface IUsername is IMetadataBased {
 
     event Lens_Username_ExtraDataSet(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
 
+    event Lens_Username_MetadataURISet(string metadataURI);
+
     function setExtraData(DataElement[] calldata extraDataToSet) external;
 
     function addUsernameRules(RuleConfiguration[] calldata ruleConfigurations) external;

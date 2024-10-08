@@ -78,6 +78,8 @@ interface IFeed is IMetadataBased {
     );
     event Lens_Feed_Post_RuleRemoved(uint256 indexed postId, address indexed author, address indexed ruleAddress);
 
+    event Lens_Feed_MetadataURISet(string metadataURI);
+
     function addFeedRules(RuleConfiguration[] calldata rules) external;
 
     function updateFeedRules(RuleConfiguration[] calldata rules) external;
