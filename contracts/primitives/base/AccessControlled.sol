@@ -9,7 +9,8 @@ contract AccessControlled {
     using AccessControlLib for address;
 
     event Lens_ResourceId_Available(uint256 indexed resourceId, string name);
-    event Lens_AccessControlSet(address indexed accessControl);
+    event Lens_AccessControlAdded(address indexed accessControl);
+    event Lens_AccessControlUpdated(address indexed accessControl);
 
     uint256 constant SET_ACCESS_CONTROL_RID = uint256(keccak256("SET_ACCESS_CONTROL"));
 
@@ -62,8 +63,13 @@ contract AccessControlled {
     }
 
     function _setAccessControl(address newAccessControl) internal {
+        address oldAccessControl = $accessControlledStorage().accessControl;
         $accessControlledStorage().accessControl = newAccessControl;
-        emit Lens_AccessControlSet(address(newAccessControl));
+        if (oldAccessControl == address(0)) {
+            emit Lens_AccessControlAdded(newAccessControl);
+        } else {
+            emit Lens_AccessControlUpdated(newAccessControl);
+        }
     }
 
     // Getters
