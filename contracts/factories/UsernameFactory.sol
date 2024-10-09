@@ -7,7 +7,7 @@ import {OwnerOnlyAccessControl} from "./../primitives/access-control/OwnerOnlyAc
 import {RuleConfiguration, DataElement} from "./../types/Types.sol";
 
 contract UsernameFactory {
-    event Lens_UsernameFactory_Deployment(address indexed username);
+    event Lens_UsernameFactory_Deployment(address indexed username, string namespace);
 
     IAccessControl internal immutable _factoryOwnedAccessControl;
 
@@ -26,7 +26,7 @@ contract UsernameFactory {
         username.addUsernameRules(rules);
         username.setExtraData(extraData);
         username.setAccessControl(accessControl);
-        emit Lens_UsernameFactory_Deployment(address(username));
+        emit Lens_UsernameFactory_Deployment(address(username), namespace);
         return address(username);
     }
 }

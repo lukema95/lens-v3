@@ -12,6 +12,12 @@
         "internalType": "address",
         "name": "username",
         "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "namespace",
+        "type": "string"
       }
     ],
     "name": "Lens_UsernameFactory_Deployment",
