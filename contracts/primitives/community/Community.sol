@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {ICommunity} from "./ICommunity.sol";
 import {CommunityCore as Core} from "./CommunityCore.sol";
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
-import {RuleConfiguration, RuleExecutionData, DataElement} from "./../../types/Types.sol";
+import {RuleConfiguration, RuleExecutionData, DataElement, DataElementValue} from "./../../types/Types.sol";
 import {RuleBasedCommunity} from "./RuleBasedCommunity.sol";
 import {AccessControlled} from "./../base/AccessControlled.sol";
 import {Events} from "./../../types/Events.sol";
@@ -118,7 +118,7 @@ contract Community is ICommunity, RuleBasedCommunity, AccessControlled {
         return _getCommunityRules(isRequired);
     }
 
-    function getExtraData(bytes32 key) external view override returns (bytes memory) {
+    function getExtraData(bytes32 key) external view override returns (DataElementValue memory) {
         return Core.$storage().extraData[key];
     }
 }

@@ -15,11 +15,11 @@ struct PostStorage {
     uint256 parentPostId;
     uint80 creationTimestamp;
     uint80 lastUpdatedTimestamp;
-    mapping(bytes32 => bytes) extraData;
+    mapping(bytes32 => DataElementValue) extraData;
 }
 
 library FeedCore {
-    using ExtraDataLib for mapping(bytes32 => bytes);
+    using ExtraDataLib for mapping(bytes32 => DataElementValue);
 
     // Storage
 
@@ -27,7 +27,7 @@ library FeedCore {
         string metadataURI;
         uint256 postCount;
         mapping(uint256 => PostStorage) posts;
-        mapping(bytes32 => bytes) extraData;
+        mapping(bytes32 => DataElementValue) extraData;
     }
 
     // keccak256('lens.feed.core.storage')

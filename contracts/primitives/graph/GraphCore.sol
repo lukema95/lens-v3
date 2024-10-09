@@ -5,7 +5,7 @@ import {Follow} from "./IGraph.sol";
 import "../libraries/ExtraDataLib.sol";
 
 library GraphCore {
-    using ExtraDataLib for mapping(bytes32 => bytes);
+    using ExtraDataLib for mapping(bytes32 => DataElementValue);
 
     // Storage
 
@@ -15,7 +15,7 @@ library GraphCore {
         mapping(address => mapping(address => Follow)) follows;
         mapping(address => mapping(uint256 => address)) followers;
         mapping(address => uint256) followersCount;
-        mapping(bytes32 => bytes) extraData;
+        mapping(bytes32 => DataElementValue) extraData;
     }
 
     // keccak256('lens.graph.core.storage')

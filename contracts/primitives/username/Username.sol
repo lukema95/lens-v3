@@ -5,7 +5,7 @@ import {UsernameCore as Core} from "./UsernameCore.sol";
 import {IUsernameRule} from "./IUsernameRule.sol";
 import {IUsername} from "./IUsername.sol";
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
-import {DataElement, RuleExecutionData, RuleConfiguration} from "./../../types/Types.sol";
+import {DataElement, RuleExecutionData, RuleConfiguration, DataElementValue} from "./../../types/Types.sol";
 import {RuleBasedUsername} from "./RuleBasedUsername.sol";
 import {AccessControlled} from "./../base/AccessControlled.sol";
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
@@ -155,7 +155,7 @@ contract Username is IUsername, RuleBasedUsername, AccessControlled {
         return Core.$storage().namespace;
     }
 
-    function getExtraData(bytes32 key) external view override returns (bytes memory) {
+    function getExtraData(bytes32 key) external view override returns (DataElementValue memory) {
         return Core.$storage().extraData[key];
     }
 

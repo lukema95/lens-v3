@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {RuleConfiguration, RuleExecutionData, DataElement} from "./../../types/Types.sol";
+import {RuleConfiguration, RuleExecutionData, DataElement, DataElementValue} from "./../../types/Types.sol";
 import {IMetadataBased} from "./../base/IMetadataBased.sol";
 
 // TODO: Might worth to add extraData to the follow entity
@@ -97,5 +97,5 @@ interface IGraph is IMetadataBased {
 
     function getFollowRules(address account, bool isRequired) external view returns (address[] memory);
 
-    function getExtraData(bytes32 key) external view returns (bytes memory);
+    function getExtraData(bytes32 key) external view returns (DataElementValue memory);
 }

@@ -7,7 +7,7 @@ import {IAccessControl} from "./../access-control/IAccessControl.sol";
 import {DataElement} from "./../../types/Types.sol";
 import {RuleBasedFeed} from "./RuleBasedFeed.sol";
 import {AccessControlled} from "./../base/AccessControlled.sol";
-import {RuleConfiguration, RuleExecutionData} from "./../../types/Types.sol";
+import {RuleConfiguration, RuleExecutionData, DataElementValue} from "./../../types/Types.sol";
 import {Events} from "./../../types/Events.sol";
 
 contract Feed is IFeed, RuleBasedFeed, AccessControlled {
@@ -267,11 +267,11 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         return Core.$storage().metadataURI;
     }
 
-    function getPostExtraData(uint256 postId, bytes32 key) external view override returns (bytes memory) {
+    function getPostExtraData(uint256 postId, bytes32 key) external view override returns (DataElementValue memory) {
         return Core.$storage().posts[postId].extraData[key];
     }
 
-    function getExtraData(bytes32 key) external view override returns (bytes memory) {
+    function getExtraData(bytes32 key) external view override returns (DataElementValue memory) {
         return Core.$storage().extraData[key];
     }
 }

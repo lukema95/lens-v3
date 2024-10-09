@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {DataElement, RuleConfiguration, RuleExecutionData} from "./../../types/Types.sol";
+import {DataElement, RuleConfiguration, RuleExecutionData, DataElementValue} from "./../../types/Types.sol";
 import {IMetadataBased} from "./../base/IMetadataBased.sol";
 
 interface ICommunity is IMetadataBased {
@@ -39,5 +39,5 @@ interface ICommunity is IMetadataBased {
 
     function getCommunityRules(bool isRequired) external view returns (address[] memory);
 
-    function getExtraData(bytes32 key) external view returns (bytes memory);
+    function getExtraData(bytes32 key) external view returns (DataElementValue memory);
 }

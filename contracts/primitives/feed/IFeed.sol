@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {DataElement, RuleConfiguration, RuleExecutionData} from "../../types/Types.sol";
+import {DataElement, RuleConfiguration, RuleExecutionData, DataElementValue} from "../../types/Types.sol";
 import {IMetadataBased} from "./../base/IMetadataBased.sol";
 
 // TODO: Discuss if there's a need for anything else to be added here
@@ -150,7 +150,7 @@ interface IFeed is IMetadataBased {
 
     function getPostCount() external view returns (uint256);
 
-    function getPostExtraData(uint256 postId, bytes32 key) external view returns (bytes memory);
+    function getPostExtraData(uint256 postId, bytes32 key) external view returns (DataElementValue memory);
 
-    function getExtraData(bytes32 key) external view returns (bytes memory);
+    function getExtraData(bytes32 key) external view returns (DataElementValue memory);
 }

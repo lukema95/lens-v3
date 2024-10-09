@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import "../libraries/ExtraDataLib.sol";
 
 library CommunityCore {
-    using ExtraDataLib for mapping(bytes32 => bytes);
+    using ExtraDataLib for mapping(bytes32 => DataElementValue);
 
     struct Membership {
         uint256 id;
@@ -18,7 +18,7 @@ library CommunityCore {
         uint256 lastMemberIdAssigned;
         uint256 numberOfMembers;
         mapping(address => Membership) memberships;
-        mapping(bytes32 => bytes) extraData;
+        mapping(bytes32 => DataElementValue) extraData;
     }
 
     // keccak256('lens.community.core.storage')

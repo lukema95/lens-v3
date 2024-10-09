@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "../libraries/ExtraDataLib.sol";
 
 library UsernameCore {
-    using ExtraDataLib for mapping(bytes32 => bytes);
+    using ExtraDataLib for mapping(bytes32 => DataElementValue);
 
     // Storage
 
@@ -13,7 +13,7 @@ library UsernameCore {
         string metadataURI;
         mapping(string => address) usernameToAccount;
         mapping(address => string) accountToUsername;
-        mapping(bytes32 => bytes) extraData;
+        mapping(bytes32 => DataElementValue) extraData;
     }
 
     // keccak256('lens.username.core.storage')
