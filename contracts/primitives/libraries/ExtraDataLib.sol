@@ -13,6 +13,7 @@ library ExtraDataLib {
 
     function remove(mapping(bytes32 => DataElementValue) storage _extraDataStorage, bytes32 extraDataKeyToRemove)
         internal
+        returns (bool)
     {
         return _removeExtraDataElement(_extraDataStorage, extraDataKeyToRemove);
     }
@@ -27,7 +28,7 @@ library ExtraDataLib {
     function remove(
         mapping(bytes32 => DataElementValue) storage _extraDataStorage,
         bytes32[] calldata extraDataKeysToRemove
-    ) internal {
+    ) internal returns (bool) {
         return _removeExtraData(_extraDataStorage, extraDataKeysToRemove);
     }
 
@@ -55,16 +56,20 @@ library ExtraDataLib {
     function _removeExtraDataElement(
         mapping(bytes32 => DataElementValue) storage _extraDataStorage,
         bytes32 extraDataKeyToRemove
-    ) internal {
+    ) internal returns (bool) {
+        bool wasValueSet = _extraDataStorage[extraDataKeyToRemove].isSet;
         _extraDataStorage[extraDataKeyToRemove] = DataElementValue(false, uint80(block.timestamp), "");
+        return wasValueSet;
     }
 
     function _removeExtraData(
         mapping(bytes32 => DataElementValue) storage _extraDataStorage,
         bytes32[] calldata extraDataKeysToRemove
-    ) internal {
+    ) internal returns (bool) {
+        bool wereAllValuesSet = true;
         for (uint256 i = 0; i < extraDataKeysToRemove.length; i++) {
-            _removeExtraDataElement(_extraDataStorage, extraDataKeysToRemove[i]);
+            wereAllValuesSet = wereAllValuesSet && _removeExtraDataElement(_extraDataStorage, extraDataKeysToRemove[i]);
         }
+        return wereAllValuesSet;
     }
 }

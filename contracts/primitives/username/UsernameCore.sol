@@ -35,6 +35,14 @@ library UsernameCore {
         _unregisterUsername(username);
     }
 
+    function setExtraData(DataElement calldata extraDataToSet) external returns (bool) {
+        return _setExtraData(extraDataToSet);
+    }
+
+    function removeExtraData(bytes32 extraDataKeyToRemove) external {
+        _removeExtraData(extraDataKeyToRemove);
+    }
+
     // Internal functions - Use these functions to be called as an inlined library
 
     function _registerUsername(address account, string memory username) internal {
@@ -52,7 +60,11 @@ library UsernameCore {
         delete $storage().usernameToAccount[username];
     }
 
-    function _setExtraData(DataElement[] calldata extraDataToSet) internal {
-        $storage().extraData.set(extraDataToSet);
+    function _setExtraData(DataElement calldata extraDataToSet) internal returns (bool) {
+        return $storage().extraData.set(extraDataToSet);
+    }
+
+    function _removeExtraData(bytes32 extraDataKeyToRemove) internal {
+        require(!$storage().extraData.remove(extraDataKeyToRemove), "EXTRA_DATA_WAS_NOT_SET");
     }
 }

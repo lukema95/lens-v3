@@ -44,7 +44,9 @@ interface IGraph is IMetadataBased {
         RuleExecutionData graphRulesData
     );
 
-    event Lens_Graph_ExtraDataSet(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+    event Lens_Graph_ExtraDataAdded(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+    event Lens_Graph_ExtraDataUpdated(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+    event Lens_Graph_ExtraDataRemoved(bytes32 indexed key);
 
     event Lens_Graph_MetadataURISet(string metadataURI);
 
@@ -82,6 +84,8 @@ interface IGraph is IMetadataBased {
         returns (uint256);
 
     function setExtraData(DataElement[] calldata extraDataToSet) external;
+
+    function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external;
 
     // Getters
 

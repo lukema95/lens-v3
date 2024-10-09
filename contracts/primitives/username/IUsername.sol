@@ -15,11 +15,15 @@ interface IUsername is IMetadataBased {
 
     event Lens_Username_Unregistered(string username, address indexed previousAccount, RuleExecutionData data);
 
-    event Lens_Username_ExtraDataSet(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+    event Lens_Username_ExtraDataAdded(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+    event Lens_Username_ExtraDataUpdated(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+    event Lens_Username_ExtraDataRemoved(bytes32 indexed key);
 
     event Lens_Username_MetadataURISet(string metadataURI);
 
     function setExtraData(DataElement[] calldata extraDataToSet) external;
+
+    function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external;
 
     function addUsernameRules(RuleConfiguration[] calldata ruleConfigurations) external;
 

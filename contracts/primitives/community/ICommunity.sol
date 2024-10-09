@@ -13,7 +13,9 @@ interface ICommunity is IMetadataBased {
     event Lens_Community_MemberLeft(address indexed account, uint256 indexed membershipId, RuleExecutionData data);
     event Lens_Community_MemberRemoved(address indexed account, uint256 indexed membershipId, RuleExecutionData data);
 
-    event Lens_Community_ExtraDataSet(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+    event Lens_Community_ExtraDataAdded(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+    event Lens_Community_ExtraDataUpdated(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+    event Lens_Community_ExtraDataRemoved(bytes32 indexed key);
 
     event Lens_Community_MetadataURISet(string metadataURI);
 
@@ -24,6 +26,8 @@ interface ICommunity is IMetadataBased {
     function removeCommunityRules(address[] calldata rules) external;
 
     function setExtraData(DataElement[] calldata extraDataToSet) external;
+
+    function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external;
 
     function joinCommunity(address account, RuleExecutionData calldata data) external;
 
