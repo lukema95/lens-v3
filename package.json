@@ -1,17 +1,17 @@
 {
-  "name": "zksync-hardhat-template",
-  "description": "A template for ZKsync smart contracts development with Hardhat",
+  "name": "lens-contracts",
+  "description": "The lens v3 contracts",
   "private": true,
-  "author": "Matter Labs",
+  "author": "avara",
   "license": "MIT",
-  "repository": "https://github.com/matter-labs/zksync-hardhat-template.git",
   "scripts": {
     "deploy": "hardhat deploy-zksync --script deploy.ts",
     "interact": "hardhat deploy-zksync --script interact.ts",
     "compile": "hardhat compile",
     "clean": "hardhat clean",
     "test": "hardhat test --network hardhat",
-    "prepare": "husky"
+    "prepare": "husky",
+    "generate-abis": "rm -r ./abis && ts-node ./extractArtifacts.ts"
   },
   "devDependencies": {
     "@matterlabs/hardhat-zksync": "^1.1.0",
@@ -33,6 +33,6 @@
     "zksync-ethers": "^6.11.0"
   },
   "lint-staged": {
-    "**/*.sol": "forge fmt"
+    "**/*.sol": "forge fmt && npm run generate-abis"
   }
 }
