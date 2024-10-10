@@ -25,16 +25,13 @@ export default async function () {
 
   console.log(`\n✔ FeedFactory deployed at ${await feedFactory.getAddress()}`);
 
-  // community factory
-  const communityFactory_artifactName = 'CommunityFactory';
-  const communityFactory_args: any[] = [];
+  // group factory
+  const groupFactory_artifactName = 'GroupFactory';
+  const groupFactory_args: any[] = [];
 
-  const communityFactory = await deployContract(
-    communityFactory_artifactName,
-    communityFactory_args
-  );
+  const groupFactory = await deployContract(groupFactory_artifactName, groupFactory_args);
 
-  console.log(`\n✔ CommunityFactory deployed at ${await communityFactory.getAddress()}`);
+  console.log(`\n✔ GroupFactory deployed at ${await groupFactory.getAddress()}`);
 
   // app factory
   const appFactory_artifactName = 'AppFactory';
@@ -48,7 +45,7 @@ export default async function () {
   const lensFactory_artifactName = 'LensFactory';
   const lensFactory_args = [
     await appFactory.getAddress(),
-    await communityFactory.getAddress(),
+    await groupFactory.getAddress(),
     await feedFactory.getAddress(),
     await graphFactory.getAddress(),
     await usernameFactory.getAddress(),
@@ -110,5 +107,5 @@ export default async function () {
   console.log('');
   console.log(`LENS_FACTORY=${await lensFactory.getAddress()}`);
   console.log('');
-  console.log(`COMMUNITY_FACTORY=${await communityFactory.getAddress()}`);
+  console.log(`GROUP_FACTORY=${await groupFactory.getAddress()}`);
 }
