@@ -5,19 +5,49 @@ import * as ethers from 'ethers';
 
 describe('Account', function () {
   let accountContract: Contract;
+  let accountFactoryContract: Contract;
   let accessControlContract: Contract;
   let feedContract: Contract;
+  let usernameContract: Contract;
+  let lensFactoryContract: Contract;
   let ownerWallet: Wallet;
   let managerWallet: Wallet;
+  let usernameAccountOwnerWallet: Wallet;
 
   before(async function () {
     ownerWallet = getWallet(LOCAL_RICH_WALLETS[0].privateKey);
     managerWallet = getWallet(LOCAL_RICH_WALLETS[1].privateKey);
+    usernameAccountOwnerWallet = getWallet(LOCAL_RICH_WALLETS[2].privateKey);
 
     accountContract = await deployContract(
       'contracts/primitives/account/Account.sol:Account',
       [await ownerWallet.getAddress(), 'someMetadata', [await managerWallet.getAddress()]],
       { wallet: ownerWallet, silent: true }
+    );
+
+    accountFactoryContract = await deployContract(
+      'contracts/factories/AccountFactory.sol:AccountFactory',
+      [],
+      {
+        wallet: ownerWallet,
+        silent: true,
+      }
+    );
+
+    lensFactoryContract = await deployContract(
+      'LensFactory',
+      [
+        await accountFactoryContract.getAddress(),
+        ethers.ZeroAddress,
+        ethers.ZeroAddress,
+        ethers.ZeroAddress,
+        ethers.ZeroAddress,
+        ethers.ZeroAddress,
+      ],
+      {
+        wallet: ownerWallet,
+        silent: true,
+      }
     );
 
     accessControlContract = await deployContract(
@@ -29,6 +59,12 @@ describe('Account', function () {
     feedContract = await deployContract(
       'Feed',
       ['feedMetadata', await accessControlContract.getAddress()],
+      { wallet: ownerWallet, silent: true }
+    );
+
+    usernameContract = await deployContract(
+      'Username',
+      ['lens', 'usernameMetadata', await accessControlContract.getAddress()],
       { wallet: ownerWallet, silent: true }
     );
   });
@@ -159,5 +195,45 @@ describe('Account', function () {
     const post = await feedContract.getPost(postId);
 
     console.log(`Post: "${post.contentURI}" by ${post.author}`);
+  });
+
+  it.only('Should create an account with a username', async function () {
+    const tx = await lensFactoryContract.createAccountWithUsernameFree(
+      'someMetadata',
+      await usernameAccountOwnerWallet.getAddress(),
+      [await managerWallet.getAddress()],
+      await usernameContract.getAddress(),
+      'testusername',
+      { dataForRequiredRules: [], dataForAnyOfRules: [] }
+    );
+
+    const txReceipt = (await tx.wait()) as ethers.TransactionReceipt;
+
+    const eventInterface = accountFactoryContract.interface;
+
+    // Parse event logs
+    const events = txReceipt.logs.map((log) => {
+      try {
+        // console.log('Log:', log);
+        const decodedLog = eventInterface.decodeEventLog(
+          'Lens_AccountFactory_Deployment',
+          log.data,
+          log.topics
+        );
+        return decodedLog[0];
+      } catch (e) {
+        return null;
+      }
+    });
+
+    const accountAddress = events.filter((e) => e !== null)[0];
+
+    console.log(`Account with username created at: ${accountAddress}`);
+
+    const accountOf = await usernameContract.accountOf('testusername');
+    console.log(`Account of 'testusername': ${accountOf}`);
+
+    const usernameOf = await usernameContract.usernameOf(accountAddress);
+    console.log(`Username of ${accountAddress} account: ${usernameOf}`);
   });
 });

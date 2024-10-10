@@ -6,13 +6,21 @@ import {IAccessControl} from "./../primitives/access-control/IAccessControl.sol"
 import {Group} from "./../primitives/group/Group.sol";
 import {OwnerOnlyAccessControl} from "./../primitives/access-control/OwnerOnlyAccessControl.sol";
 import {RoleBasedAccessControl} from "./../primitives/access-control/RoleBasedAccessControl.sol";
-import {RuleConfiguration, DataElement} from "./../types/Types.sol";
+import {RuleConfiguration, RuleExecutionData, DataElement} from "./../types/Types.sol";
 import {GroupFactory} from "./GroupFactory.sol";
 import {FeedFactory} from "./FeedFactory.sol";
 import {GraphFactory} from "./GraphFactory.sol";
 import {UsernameFactory} from "./UsernameFactory.sol";
 import {AppFactory, AppInitialProperties} from "./AppFactory.sol";
 import {AccountFactory} from "./AccountFactory.sol";
+import {IAccount} from "./../primitives/account/IAccount.sol";
+import {IUsername} from "./../primitives/username/IUsername.sol";
+
+// TODO: Move this some place else or remove
+interface IOwnable {
+    function transferOwnership(address newOwner) external;
+    function owner() external view returns (address);
+}
 
 // struct RoleConfiguration {
 //     uint256 roleId;
@@ -59,6 +67,23 @@ contract LensFactory {
         GRAPH_FACTORY = graphFactory;
         USERNAME_FACTORY = usernameFactory;
         _factoryOwnedAccessControl = new OwnerOnlyAccessControl({owner: address(this)});
+    }
+
+    // TODO: This function belongs to an App probably.
+    function createAccountWithUsernameFree(
+        string calldata metadataURI,
+        address owner,
+        address[] calldata accountManagers,
+        address usernamePrimitiveAddress,
+        string calldata username,
+        RuleExecutionData calldata data
+    ) external returns (address) {
+        address account = ACCOUNT_FACTORY.deployAccount(address(this), metadataURI, accountManagers);
+        IUsername usernamePrimitive = IUsername(usernamePrimitiveAddress);
+        bytes memory txData = abi.encodeCall(usernamePrimitive.registerUsername, (account, username, data));
+        IAccount(payable(account)).executeTransaction(usernamePrimitiveAddress, uint256(0), txData);
+        IOwnable(account).transferOwnership(owner);
+        return account;
     }
 
     function deployAccount(string memory metadataURI, address owner, address[] calldata accountManagers)
