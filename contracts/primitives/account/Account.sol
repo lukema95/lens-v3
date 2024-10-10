@@ -1,43 +1,28 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.12;
 
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {Events} from "./../../types/Events.sol";
 import {IAccount} from "./IAccount.sol";
 
-contract Account is IAccount, Initializable, UUPSUpgradeable {
-    address public owner;
+contract Account is IAccount, Ownable {
     mapping(address => bool) public accountManagers;
     string public metadataURI; // TODO: Add getter/setter/internal etc
 
-    constructor(address _owner, string memory _metadataURI, address[] memory _accountManagers) {
-        initialize(_owner, _metadataURI, _accountManagers);
-    }
-
-    function initialize(address _owner, string memory _metadataURI, address[] memory _accountManagers)
-        public
-        initializer
-    {
-        owner = _owner;
+    constructor(address _owner, string memory _metadataURI, address[] memory _accountManagers) Ownable() {
         metadataURI = _metadataURI;
         for (uint256 i = 0; i < _accountManagers.length; i++) {
             accountManagers[_accountManagers[i]] = true;
             emit Lens_Account_AccountManagerAdded(_accountManagers[i]);
         }
+        _transferOwnership(_owner);
         emit Lens_Account_MetadataURISet(_metadataURI);
-        emit Lens_Account_OwnerSet(_owner);
         emit Events.Lens_Contract_Deployed("account", "lens.account", "account", "lens.account");
     }
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Only owner can call this function");
-        _;
-    }
-
     modifier onlyOwnerOrManager() {
-        require(msg.sender == owner || accountManagers[msg.sender], "Not authorized");
+        require(msg.sender == owner() || accountManagers[msg.sender], "Not authorized");
         _;
     }
 
@@ -71,6 +56,4 @@ contract Account is IAccount, Initializable, UUPSUpgradeable {
     }
 
     receive() external payable override {}
-
-    function _authorizeUpgrade(address) internal override onlyOwner {}
 }
