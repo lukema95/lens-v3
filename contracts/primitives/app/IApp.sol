@@ -29,13 +29,13 @@ interface IApp is IMetadataBased {
     event Lens_App_DefaultUsernameUpdated(address indexed username);
     event Lens_App_DefaultUsernameRemoved(address indexed username);
 
-    // Community
-    event Lens_App_CommunityAdded(address indexed community);
-    event Lens_App_CommunityRemoved(address indexed community);
+    // Group
+    event Lens_App_GroupAdded(address indexed group);
+    event Lens_App_GroupRemoved(address indexed group);
 
-    event Lens_App_DefaultCommunityAdded(address indexed community);
-    event Lens_App_DefaultCommunityUpdated(address indexed community);
-    event Lens_App_DefaultCommunityRemoved(address indexed community);
+    event Lens_App_DefaultGroupAdded(address indexed group);
+    event Lens_App_DefaultGroupUpdated(address indexed group);
+    event Lens_App_DefaultGroupRemoved(address indexed group);
 
     // Paymaster
     event Lens_App_PaymasterAdded(address indexed paymaster);
@@ -60,9 +60,9 @@ interface IApp is IMetadataBased {
     // Treasury
     event Lens_App_TreasurySet(address indexed treasury);
 
-    function addCommunities(address[] memory communities) external;
-    function removeCommunities(address[] memory communities) external;
-    function setDefaultCommunity(address community) external;
+    function addGroups(address[] memory groups) external;
+    function removeGroups(address[] memory groups) external;
+    function setDefaultGroup(address group) external;
 
     function addFeeds(address[] memory feeds) external;
     function removeFeeds(address[] memory feeds) external;
@@ -85,11 +85,11 @@ interface IApp is IMetadataBased {
     function getGraphs() external view returns (address[] memory);
     function getFeeds() external view returns (address[] memory);
     function getUsernames() external view returns (address[] memory);
-    function getCommunities() external view returns (address[] memory);
+    function getGroups() external view returns (address[] memory);
     function getDefaultGraph() external view returns (address);
     function getDefaultFeed() external view returns (address);
     function getDefaultUsername() external view returns (address);
-    function getDefaultCommunity() external view returns (address);
+    function getDefaultGroup() external view returns (address);
     function getSigners() external view returns (address[] memory);
     function getExtraData(bytes32 key) external view returns (DataElementValue memory);
 }

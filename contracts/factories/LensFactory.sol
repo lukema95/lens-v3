@@ -3,11 +3,11 @@ pragma solidity ^0.8.0;
 
 import {IRoleBasedAccessControl} from "./../primitives/access-control/IRoleBasedAccessControl.sol";
 import {IAccessControl} from "./../primitives/access-control/IAccessControl.sol";
-import {Community} from "./../primitives/community/Community.sol";
+import {Group} from "./../primitives/group/Group.sol";
 import {OwnerOnlyAccessControl} from "./../primitives/access-control/OwnerOnlyAccessControl.sol";
 import {RoleBasedAccessControl} from "./../primitives/access-control/RoleBasedAccessControl.sol";
 import {RuleConfiguration, DataElement} from "./../types/Types.sol";
-import {CommunityFactory} from "./CommunityFactory.sol";
+import {GroupFactory} from "./GroupFactory.sol";
 import {FeedFactory} from "./FeedFactory.sol";
 import {GraphFactory} from "./GraphFactory.sol";
 import {UsernameFactory} from "./UsernameFactory.sol";
@@ -36,7 +36,7 @@ struct TokenizationConfiguration {
 contract LensFactory {
     uint256 immutable ADMIN_ROLE_ID = uint256(keccak256("ADMIN"));
     AppFactory internal immutable APP_FACTORY;
-    CommunityFactory internal immutable COMMUNITY_FACTORY;
+    GroupFactory internal immutable GROUP_FACTORY;
     FeedFactory internal immutable FEED_FACTORY;
     GraphFactory internal immutable GRAPH_FACTORY;
     UsernameFactory internal immutable USERNAME_FACTORY;
@@ -44,13 +44,13 @@ contract LensFactory {
 
     constructor(
         AppFactory appFactory,
-        CommunityFactory communityFactory,
+        GroupFactory groupFactory,
         FeedFactory feedFactory,
         GraphFactory graphFactory,
         UsernameFactory usernameFactory
     ) {
         APP_FACTORY = appFactory;
-        COMMUNITY_FACTORY = communityFactory;
+        GROUP_FACTORY = groupFactory;
         FEED_FACTORY = feedFactory;
         GRAPH_FACTORY = graphFactory;
         USERNAME_FACTORY = usernameFactory;
@@ -67,7 +67,7 @@ contract LensFactory {
         return APP_FACTORY.deployApp(metadataURI, _deployAccessControl(owner, admins), initialProperties, extraData);
     }
 
-    function deployCommunity(
+    function deployGroup(
         string memory metadataURI,
         address owner,
         address[] calldata admins,
@@ -78,7 +78,7 @@ contract LensFactory {
         if (tokenizationConfig.tokenizationEnabled) {
             revert("NOT_IMPLEMENTED_YET");
         } else {
-            return COMMUNITY_FACTORY.deployCommunity(metadataURI, _deployAccessControl(owner, admins), rules, extraData);
+            return GROUP_FACTORY.deployGroup(metadataURI, _deployAccessControl(owner, admins), rules, extraData);
         }
     }
 

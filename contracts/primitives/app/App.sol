@@ -12,9 +12,9 @@ struct AppInitialProperties {
     address graph;
     address[] feeds;
     address username;
-    address[] communities;
+    address[] groups;
     address defaultFeed;
-    address defaultCommunity;
+    address defaultGroup;
     address[] signers;
     address paymaster;
     address treasury;
@@ -40,9 +40,9 @@ contract App is IApp, AccessControlled {
         _setGraph(initialProps.graph);
         _addFeeds(initialProps.feeds);
         _setUsername(initialProps.username);
-        _addCommunities(initialProps.communities);
+        _addGroups(initialProps.groups);
         _setDefaultFeed(initialProps.defaultFeed);
-        _setDefaultCommunity(initialProps.defaultCommunity);
+        _setDefaultGroup(initialProps.defaultGroup);
         _addSigners(initialProps.signers);
         _setPaymaster(initialProps.paymaster);
         _setExtraData(extraData);
@@ -167,50 +167,50 @@ contract App is IApp, AccessControlled {
         }
     }
 
-    ///////////////// Community
+    ///////////////// Group
 
-    function addCommunities(address[] memory communities) external {
+    function addGroups(address[] memory groups) external {
         _requireAccess(msg.sender, SET_PRIMITIVES_RID);
-        _addCommunities(communities);
+        _addGroups(groups);
     }
 
-    function removeCommunities(address[] memory communities) external {
+    function removeGroups(address[] memory groups) external {
         _requireAccess(msg.sender, SET_PRIMITIVES_RID);
-        _removeCommunities(communities);
+        _removeGroups(groups);
     }
 
-    function setDefaultCommunity(address community) external {
+    function setDefaultGroup(address group) external {
         _requireAccess(msg.sender, SET_PRIMITIVES_RID);
-        _setDefaultCommunity(community);
+        _setDefaultGroup(group);
     }
 
-    function _addCommunities(address[] memory communities) internal {
-        for (uint256 i = 0; i < communities.length; i++) {
-            Core._addCommunity(communities[i]);
-            emit Lens_App_CommunityAdded(communities[i]);
+    function _addGroups(address[] memory groups) internal {
+        for (uint256 i = 0; i < groups.length; i++) {
+            Core._addGroup(groups[i]);
+            emit Lens_App_GroupAdded(groups[i]);
         }
     }
 
-    function _removeCommunities(address[] memory communities) internal {
-        address defaultCommunity = Core.$storage().defaultCommunity;
-        for (uint256 i = 0; i < communities.length; i++) {
-            if (communities[i] == defaultCommunity) {
-                _setDefaultCommunity(address(0));
+    function _removeGroups(address[] memory groups) internal {
+        address defaultGroup = Core.$storage().defaultGroup;
+        for (uint256 i = 0; i < groups.length; i++) {
+            if (groups[i] == defaultGroup) {
+                _setDefaultGroup(address(0));
             }
-            Core._removeCommunity(communities[i]);
-            emit Lens_App_CommunityRemoved(communities[i]);
+            Core._removeGroup(groups[i]);
+            emit Lens_App_GroupRemoved(groups[i]);
         }
     }
 
-    function _setDefaultCommunity(address community) internal {
-        bool wasAValueAlreadySet = Core._setDefaultCommunity(community);
-        if (community == address(0)) {
+    function _setDefaultGroup(address group) internal {
+        bool wasAValueAlreadySet = Core._setDefaultGroup(group);
+        if (group == address(0)) {
             require(wasAValueAlreadySet, "DEFAULT_ALREADY_UNSET");
-            emit Lens_App_DefaultCommunityRemoved(community);
+            emit Lens_App_DefaultGroupRemoved(group);
         } else if (wasAValueAlreadySet) {
-            emit Lens_App_DefaultCommunityUpdated(community);
+            emit Lens_App_DefaultGroupUpdated(group);
         } else {
-            emit Lens_App_DefaultCommunityAdded(community);
+            emit Lens_App_DefaultGroupAdded(group);
         }
     }
 
@@ -336,8 +336,8 @@ contract App is IApp, AccessControlled {
         return Core.$storage().usernames;
     }
 
-    function getCommunities() public view returns (address[] memory) {
-        return Core.$storage().communities;
+    function getGroups() public view returns (address[] memory) {
+        return Core.$storage().groups;
     }
 
     function getDefaultGraph() public view returns (address) {
@@ -352,8 +352,8 @@ contract App is IApp, AccessControlled {
         return Core.$storage().defaultUsername;
     }
 
-    function getDefaultCommunity() public view returns (address) {
-        return Core.$storage().defaultCommunity;
+    function getDefaultGroup() public view returns (address) {
+        return Core.$storage().defaultGroup;
     }
 
     function getSigners() public view returns (address[] memory) {

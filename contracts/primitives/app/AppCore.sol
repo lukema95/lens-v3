@@ -22,17 +22,17 @@ library AppCore {
         mapping(address => ArrayStorageHelper) graphStorageHelper;
         mapping(address => ArrayStorageHelper) feedStorageHelper;
         mapping(address => ArrayStorageHelper) usernameStorageHelper;
-        mapping(address => ArrayStorageHelper) communityStorageHelper;
+        mapping(address => ArrayStorageHelper) groupStorageHelper;
         address[] signers;
         address[] paymasters;
         address[] graphs;
         address[] feeds;
         address[] usernames;
-        address[] communities;
+        address[] groups;
         address defaultGraph;
         address defaultFeed;
         address defaultUsername;
-        address defaultCommunity;
+        address defaultGroup;
         address defaultPaymaster;
         mapping(bytes32 => DataElementValue) extraData;
     }
@@ -127,23 +127,23 @@ library AppCore {
         return wasAValuePreviouslySet;
     }
 
-    ////////////// Community
+    ////////////// Group
 
-    function _addCommunity(address community) internal {
-        _add(community, $storage().communities, $storage().communityStorageHelper);
+    function _addGroup(address group) internal {
+        _add(group, $storage().groups, $storage().groupStorageHelper);
     }
 
-    function _removeCommunity(address community) internal {
-        _remove(community, $storage().communities, $storage().communityStorageHelper);
+    function _removeGroup(address group) internal {
+        _remove(group, $storage().groups, $storage().groupStorageHelper);
     }
 
-    function _setDefaultCommunity(address community) internal returns (bool) {
-        bool wasAValuePreviouslySet = $storage().defaultCommunity != address(0);
-        if (community != address(0)) {
-            // address(0) allowed as a way to remove the default community
-            require($storage().communityStorageHelper[community].isSet, "NOT_FOUND");
+    function _setDefaultGroup(address group) internal returns (bool) {
+        bool wasAValuePreviouslySet = $storage().defaultGroup != address(0);
+        if (group != address(0)) {
+            // address(0) allowed as a way to remove the default group
+            require($storage().groupStorageHelper[group].isSet, "NOT_FOUND");
         }
-        $storage().defaultCommunity = community;
+        $storage().defaultGroup = group;
         return wasAValuePreviouslySet;
     }
 
