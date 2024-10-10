@@ -116,8 +116,18 @@ contract RoleBasedAccessControl is IRoleBasedAccessControl {
     ) external override {
         require(msg.sender == _owner);
         require(roleId != OWNER_ROLE_ID && roleId != ADMIN_ROLE_ID);
+        AccessPermission previousPermission = _globalAccess[roleId][resourceId];
         _globalAccess[roleId][resourceId] = accessPermission;
-        emit Lens_AccessControl_GlobalAccessSet(roleId, resourceId, accessPermission);
+        if (previousPermission == AccessPermission.UNDEFINED) {
+            require(accessPermission != AccessPermission.UNDEFINED);
+            emit Lens_AccessControl_GlobalAccessAdded(roleId, resourceId, accessPermission == AccessPermission.GRANTED);
+        } else if (accessPermission == AccessPermission.UNDEFINED) {
+            emit Lens_AccessControl_GlobalAccessRemoved(roleId, resourceId);
+        } else {
+            emit Lens_AccessControl_GlobalAccessUpdated(
+                roleId, resourceId, accessPermission == AccessPermission.GRANTED
+            );
+        }
     }
 
     function setScopedAccess(
@@ -129,8 +139,20 @@ contract RoleBasedAccessControl is IRoleBasedAccessControl {
     ) external override {
         require(msg.sender == _owner);
         require(roleId != OWNER_ROLE_ID && roleId != ADMIN_ROLE_ID);
+        AccessPermission previousPermission = _scopedAccess[roleId][resourceLocation][resourceId];
         _scopedAccess[roleId][resourceLocation][resourceId] = accessPermission;
-        emit Lens_AccessControl_ScopedAccessSet(roleId, resourceLocation, resourceId, accessPermission);
+        if (previousPermission == AccessPermission.UNDEFINED) {
+            require(accessPermission != AccessPermission.UNDEFINED);
+            emit Lens_AccessControl_ScopedAccessAdded(
+                roleId, resourceLocation, resourceId, accessPermission == AccessPermission.GRANTED
+            );
+        } else if (accessPermission == AccessPermission.UNDEFINED) {
+            emit Lens_AccessControl_ScopedAccessRemoved(roleId, resourceLocation, resourceId);
+        } else {
+            emit Lens_AccessControl_ScopedAccessUpdated(
+                roleId, resourceLocation, resourceId, accessPermission == AccessPermission.GRANTED
+            );
+        }
     }
 
     function getGlobalAccess(uint256 roleId, uint256 resourceId) external view override returns (AccessPermission) {
