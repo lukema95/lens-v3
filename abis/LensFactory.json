@@ -7,8 +7,8 @@
         "type": "address"
       },
       {
-        "internalType": "contract CommunityFactory",
-        "name": "communityFactory",
+        "internalType": "contract GroupFactory",
+        "name": "groupFactory",
         "type": "address"
       },
       {
@@ -66,7 +66,7 @@
           },
           {
             "internalType": "address[]",
-            "name": "communities",
+            "name": "groups",
             "type": "address[]"
           },
           {
@@ -76,7 +76,7 @@
           },
           {
             "internalType": "address",
-            "name": "defaultCommunity",
+            "name": "defaultGroup",
             "type": "address"
           },
           {
@@ -118,101 +118,6 @@
       }
     ],
     "name": "deployApp",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "string",
-        "name": "metadataURI",
-        "type": "string"
-      },
-      {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "internalType": "address[]",
-        "name": "admins",
-        "type": "address[]"
-      },
-      {
-        "components": [
-          {
-            "internalType": "address",
-            "name": "ruleAddress",
-            "type": "address"
-          },
-          {
-            "internalType": "bytes",
-            "name": "configData",
-            "type": "bytes"
-          },
-          {
-            "internalType": "bool",
-            "name": "isRequired",
-            "type": "bool"
-          }
-        ],
-        "internalType": "struct RuleConfiguration[]",
-        "name": "rules",
-        "type": "tuple[]"
-      },
-      {
-        "components": [
-          {
-            "internalType": "bytes32",
-            "name": "key",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "bytes",
-            "name": "value",
-            "type": "bytes"
-          }
-        ],
-        "internalType": "struct DataElement[]",
-        "name": "extraData",
-        "type": "tuple[]"
-      },
-      {
-        "components": [
-          {
-            "internalType": "bool",
-            "name": "tokenizationEnabled",
-            "type": "bool"
-          },
-          {
-            "internalType": "string",
-            "name": "tokenName",
-            "type": "string"
-          },
-          {
-            "internalType": "string",
-            "name": "tokenSymbol",
-            "type": "string"
-          },
-          {
-            "internalType": "string",
-            "name": "baseURI",
-            "type": "string"
-          }
-        ],
-        "internalType": "struct TokenizationConfiguration",
-        "name": "tokenizationConfig",
-        "type": "tuple"
-      }
-    ],
-    "name": "deployCommunity",
     "outputs": [
       {
         "internalType": "address",
@@ -349,6 +254,101 @@
       }
     ],
     "name": "deployGraph",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "metadataURI",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "internalType": "address[]",
+        "name": "admins",
+        "type": "address[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "ruleAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes",
+            "name": "configData",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isRequired",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct RuleConfiguration[]",
+        "name": "rules",
+        "type": "tuple[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "key",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes",
+            "name": "value",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct DataElement[]",
+        "name": "extraData",
+        "type": "tuple[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bool",
+            "name": "tokenizationEnabled",
+            "type": "bool"
+          },
+          {
+            "internalType": "string",
+            "name": "tokenName",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "tokenSymbol",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "baseURI",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct TokenizationConfiguration",
+        "name": "tokenizationConfig",
+        "type": "tuple"
+      }
+    ],
+    "name": "deployGroup",
     "outputs": [
       {
         "internalType": "address",

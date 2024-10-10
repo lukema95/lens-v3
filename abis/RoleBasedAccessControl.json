@@ -26,13 +26,57 @@
         "type": "uint256"
       },
       {
-        "indexed": true,
-        "internalType": "enum IRoleBasedAccessControl.AccessPermission",
-        "name": "accessPermission",
-        "type": "uint8"
+        "indexed": false,
+        "internalType": "bool",
+        "name": "granted",
+        "type": "bool"
       }
     ],
-    "name": "Lens_AccessControl_GlobalAccessSet",
+    "name": "Lens_AccessControl_GlobalAccessAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "roleId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "resourceId",
+        "type": "uint256"
+      }
+    ],
+    "name": "Lens_AccessControl_GlobalAccessRemoved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "roleId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "resourceId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "granted",
+        "type": "bool"
+      }
+    ],
+    "name": "Lens_AccessControl_GlobalAccessUpdated",
     "type": "event"
   },
   {
@@ -96,12 +140,68 @@
       },
       {
         "indexed": false,
-        "internalType": "enum IRoleBasedAccessControl.AccessPermission",
-        "name": "accessPermission",
-        "type": "uint8"
+        "internalType": "bool",
+        "name": "granted",
+        "type": "bool"
       }
     ],
-    "name": "Lens_AccessControl_ScopedAccessSet",
+    "name": "Lens_AccessControl_ScopedAccessAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "roleId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "resourceLocation",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "resourceId",
+        "type": "uint256"
+      }
+    ],
+    "name": "Lens_AccessControl_ScopedAccessRemoved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "roleId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "resourceLocation",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "resourceId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "granted",
+        "type": "bool"
+      }
+    ],
+    "name": "Lens_AccessControl_ScopedAccessUpdated",
     "type": "event"
   },
   {
