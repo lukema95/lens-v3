@@ -11,8 +11,10 @@
     "clean": "hardhat clean",
     "test": "hardhat test --network hardhat",
     "prepare": "husky",
-    "generate-abis": "rm -r ./abis && ts-node ./extractArtifacts.ts",
-    "rstypings": "forge bind --alloy --skip 'test/**/*.sol'"
+    "format": "forge fmt",
+    "abis": "forge build --out ./out/__ABIS__ --extra-output-files abi",
+    "bind": "forge bind --bindings-path ./out/__BINDINGS__ --alloy --skip 'test/**/*.sol'",
+    "build-and-bind": "npm run bind && npm run abis"
   },
   "devDependencies": {
     "@matterlabs/hardhat-zksync": "^1.1.0",
@@ -34,6 +36,6 @@
     "zksync-ethers": "^6.11.0"
   },
   "lint-staged": {
-    "**/*.sol": "forge fmt && npm run generate-abis"
+    "**/*.sol": "forge fmt"
   }
 }
