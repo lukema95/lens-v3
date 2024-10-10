@@ -15,11 +15,11 @@ struct PostStorage {
     uint256 parentPostId;
     uint80 creationTimestamp;
     uint80 lastUpdatedTimestamp;
-    mapping(bytes32 => bytes) extraData;
+    mapping(bytes32 => DataElementValue) extraData;
 }
 
 library FeedCore {
-    using ExtraDataLib for mapping(bytes32 => bytes);
+    using ExtraDataLib for mapping(bytes32 => DataElementValue);
 
     // Storage
 
@@ -27,7 +27,7 @@ library FeedCore {
         string metadataURI;
         uint256 postCount;
         mapping(uint256 => PostStorage) posts;
-        mapping(bytes32 => bytes) extraData;
+        mapping(bytes32 => DataElementValue) extraData;
     }
 
     // keccak256('lens.feed.core.storage')
@@ -49,19 +49,31 @@ library FeedCore {
         return _createRepost(repostParams);
     }
 
-    function editPost(uint256 postId, EditPostParams calldata postParams) external {
-        _editPost(postId, postParams);
+    function editPost(uint256 postId, EditPostParams calldata postParams) external returns (bool[] memory) {
+        return _editPost(postId, postParams);
     }
 
     function deletePost(uint256 postId, bytes32[] calldata extraDataKeysToDelete) external {
         _deletePost(postId, extraDataKeysToDelete);
     }
 
-    function setExtraData(DataElement[] calldata extraDataToSet) external {
-        $storage().extraData.set(extraDataToSet);
+    function setExtraData(DataElement calldata extraDataToSet) external returns (bool) {
+        return _setExtraData(extraDataToSet);
+    }
+
+    function removeExtraData(bytes32 extraDataKeyToRemove) external {
+        _removeExtraData(extraDataKeyToRemove);
     }
 
     // Internal functions - Use these functions to be called as an inlined library
+
+    function _setExtraData(DataElement calldata extraDataToSet) internal returns (bool) {
+        return $storage().extraData.set(extraDataToSet);
+    }
+
+    function _removeExtraData(bytes32 extraDataKeyToRemove) internal {
+        require(!$storage().extraData.remove(extraDataKeyToRemove), "EXTRA_DATA_WAS_NOT_SET");
+    }
 
     function _generatePostId(uint256 localSequentialId) internal view returns (uint256) {
         return uint256(keccak256(abi.encode("evm:", block.chainid, address(this), localSequentialId)));
@@ -110,7 +122,7 @@ library FeedCore {
         return (postId, localSequentialId, rootPostId);
     }
 
-    function _editPost(uint256 postId, EditPostParams calldata postParams) internal {
+    function _editPost(uint256 postId, EditPostParams calldata postParams) internal returns (bool[] memory) {
         PostStorage storage _post = $storage().posts[postId];
         require(_post.creationTimestamp != 0, "CANNOT_EDIT_NON_EXISTENT_POST"); // Post must exist
         if (_post.isRepost) {
@@ -119,14 +131,12 @@ library FeedCore {
             _post.contentURI = postParams.contentURI;
         }
         _post.lastUpdatedTimestamp = uint80(block.timestamp);
-        ExtraDataLib._setExtraData(_post.extraData, postParams.extraData);
+        return _post.extraData.set(postParams.extraData);
     }
 
     // TODO(by: @donosonaumczuk): We should do soft-delete (disable/enable post feature), keep the storage there.
     function _deletePost(uint256 postId, bytes32[] calldata extraDataKeysToDelete) internal {
-        for (uint256 i = 0; i < extraDataKeysToDelete.length; i++) {
-            delete $storage().posts[postId].extraData[extraDataKeysToDelete[i]];
-        }
+        $storage().posts[postId].extraData.remove(extraDataKeysToDelete);
         delete $storage().posts[postId];
     }
 
@@ -138,8 +148,4 @@ library FeedCore {
     // function _disablePost(uint256 postId) internal {
     //      $storage().posts[postId].disabled = true;
     // }
-
-    function _setExtraData(DataElement[] calldata extraDataToSet) internal {
-        $storage().extraData.set(extraDataToSet);
-    }
 }

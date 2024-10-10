@@ -10,11 +10,11 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "community",
+        "name": "group",
         "type": "address"
       }
     ],
-    "name": "Lens_CommunityFactory_Deployment",
+    "name": "Lens_GroupFactory_Deployment",
     "type": "event"
   },
   {
@@ -69,7 +69,7 @@
         "type": "tuple[]"
       }
     ],
-    "name": "deployCommunity",
+    "name": "deployGroup",
     "outputs": [
       {
         "internalType": "address",

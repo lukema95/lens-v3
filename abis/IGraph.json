@@ -21,7 +21,45 @@
         "type": "bytes"
       }
     ],
-    "name": "Lens_Graph_ExtraDataSet",
+    "name": "Lens_Graph_ExtraDataAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "key",
+        "type": "bytes32"
+      }
+    ],
+    "name": "Lens_Graph_ExtraDataRemoved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "key",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "value",
+        "type": "bytes"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes",
+        "name": "valueIndexed",
+        "type": "bytes"
+      }
+    ],
+    "name": "Lens_Graph_ExtraDataUpdated",
     "type": "event"
   },
   {
@@ -463,9 +501,26 @@
     "name": "getExtraData",
     "outputs": [
       {
-        "internalType": "bytes",
+        "components": [
+          {
+            "internalType": "bool",
+            "name": "isSet",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint80",
+            "name": "lastUpdatedTimestamp",
+            "type": "uint80"
+          },
+          {
+            "internalType": "bytes",
+            "name": "value",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct DataElementValue",
         "name": "",
-        "type": "bytes"
+        "type": "tuple"
       }
     ],
     "stateMutability": "view",
@@ -628,6 +683,19 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "extraDataKeysToRemove",
+        "type": "bytes32[]"
+      }
+    ],
+    "name": "removeExtraData",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

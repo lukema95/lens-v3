@@ -1,31 +1,40 @@
 [
   {
+    "anonymous": false,
     "inputs": [
       {
-        "internalType": "string",
-        "name": "metadataURI",
-        "type": "string"
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "key",
+        "type": "bytes32"
       },
       {
-        "internalType": "contract IAccessControl",
-        "name": "accessControl",
-        "type": "address"
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "value",
+        "type": "bytes"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes",
+        "name": "valueIndexed",
+        "type": "bytes"
       }
     ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
+    "name": "Lens_Group_ExtraDataAdded",
+    "type": "event"
   },
   {
     "anonymous": false,
     "inputs": [
       {
         "indexed": true,
-        "internalType": "address",
-        "name": "accessControl",
-        "type": "address"
+        "internalType": "bytes32",
+        "name": "key",
+        "type": "bytes32"
       }
     ],
-    "name": "Lens_AccessControlSet",
+    "name": "Lens_Group_ExtraDataRemoved",
     "type": "event"
   },
   {
@@ -50,7 +59,7 @@
         "type": "bytes"
       }
     ],
-    "name": "Lens_Community_ExtraDataSet",
+    "name": "Lens_Group_ExtraDataUpdated",
     "type": "event"
   },
   {
@@ -87,7 +96,7 @@
         "type": "tuple"
       }
     ],
-    "name": "Lens_Community_MemberJoined",
+    "name": "Lens_Group_MemberJoined",
     "type": "event"
   },
   {
@@ -124,7 +133,7 @@
         "type": "tuple"
       }
     ],
-    "name": "Lens_Community_MemberLeft",
+    "name": "Lens_Group_MemberLeft",
     "type": "event"
   },
   {
@@ -161,7 +170,7 @@
         "type": "tuple"
       }
     ],
-    "name": "Lens_Community_MemberRemoved",
+    "name": "Lens_Group_MemberRemoved",
     "type": "event"
   },
   {
@@ -174,7 +183,7 @@
         "type": "string"
       }
     ],
-    "name": "Lens_Community_MetadataURISet",
+    "name": "Lens_Group_MetadataURISet",
     "type": "event"
   },
   {
@@ -199,7 +208,7 @@
         "type": "bool"
       }
     ],
-    "name": "Lens_Community_RuleAdded",
+    "name": "Lens_Group_RuleAdded",
     "type": "event"
   },
   {
@@ -212,7 +221,7 @@
         "type": "address"
       }
     ],
-    "name": "Lens_Community_RuleRemoved",
+    "name": "Lens_Group_RuleRemoved",
     "type": "event"
   },
   {
@@ -237,26 +246,7 @@
         "type": "bool"
       }
     ],
-    "name": "Lens_Community_RuleUpdated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "resourceId",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "name",
-        "type": "string"
-      }
-    ],
-    "name": "Lens_ResourceId_Available",
+    "name": "Lens_Group_RuleUpdated",
     "type": "event"
   },
   {
@@ -284,41 +274,9 @@
         "type": "tuple[]"
       }
     ],
-    "name": "addCommunityRules",
+    "name": "addGroupRules",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getAccessControl",
-    "outputs": [
-      {
-        "internalType": "contract IAccessControl",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bool",
-        "name": "isRequired",
-        "type": "bool"
-      }
-    ],
-    "name": "getCommunityRules",
-    "outputs": [
-      {
-        "internalType": "address[]",
-        "name": "",
-        "type": "address[]"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -332,9 +290,45 @@
     "name": "getExtraData",
     "outputs": [
       {
-        "internalType": "bytes",
+        "components": [
+          {
+            "internalType": "bool",
+            "name": "isSet",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint80",
+            "name": "lastUpdatedTimestamp",
+            "type": "uint80"
+          },
+          {
+            "internalType": "bytes",
+            "name": "value",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct DataElementValue",
         "name": "",
-        "type": "bytes"
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bool",
+        "name": "isRequired",
+        "type": "bool"
+      }
+    ],
+    "name": "getGroupRules",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
       }
     ],
     "stateMutability": "view",
@@ -425,11 +419,11 @@
           }
         ],
         "internalType": "struct RuleExecutionData",
-        "name": "communityRulesData",
+        "name": "data",
         "type": "tuple"
       }
     ],
-    "name": "joinCommunity",
+    "name": "joinGroup",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -455,11 +449,24 @@
           }
         ],
         "internalType": "struct RuleExecutionData",
-        "name": "communityRulesData",
+        "name": "data",
         "type": "tuple"
       }
     ],
-    "name": "leaveCommunity",
+    "name": "leaveGroup",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "extraDataKeysToRemove",
+        "type": "bytes32[]"
+      }
+    ],
+    "name": "removeExtraData",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -472,7 +479,7 @@
         "type": "address[]"
       }
     ],
-    "name": "removeCommunityRules",
+    "name": "removeGroupRules",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -498,24 +505,11 @@
           }
         ],
         "internalType": "struct RuleExecutionData",
-        "name": "communityRulesData",
+        "name": "data",
         "type": "tuple"
       }
     ],
     "name": "removeMember",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "contract IAccessControl",
-        "name": "newAccessControl",
-        "type": "address"
-      }
-    ],
-    "name": "setAccessControl",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -549,7 +543,7 @@
     "inputs": [
       {
         "internalType": "string",
-        "name": "metadataURI",
+        "name": "metadata",
         "type": "string"
       }
     ],
@@ -583,7 +577,7 @@
         "type": "tuple[]"
       }
     ],
-    "name": "updateCommunityRules",
+    "name": "updateGroupRules",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

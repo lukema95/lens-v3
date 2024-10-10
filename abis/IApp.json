@@ -3,52 +3,13 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
-        "internalType": "address[]",
-        "name": "communities",
-        "type": "address[]"
-      }
-    ],
-    "name": "Lens_App_CommunitiesSet",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
         "indexed": true,
         "internalType": "address",
-        "name": "community",
+        "name": "feed",
         "type": "address"
       }
     ],
-    "name": "Lens_App_CommunityAdded",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "community",
-        "type": "address"
-      }
-    ],
-    "name": "Lens_App_CommunityRemoved",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "community",
-        "type": "address"
-      }
-    ],
-    "name": "Lens_App_DefaultCommunitySet",
+    "name": "Lens_App_DefaultFeedAdded",
     "type": "event"
   },
   {
@@ -61,7 +22,20 @@
         "type": "address"
       }
     ],
-    "name": "Lens_App_DefaultFeedSet",
+    "name": "Lens_App_DefaultFeedRemoved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "feed",
+        "type": "address"
+      }
+    ],
+    "name": "Lens_App_DefaultFeedUpdated",
     "type": "event"
   },
   {
@@ -74,7 +48,72 @@
         "type": "address"
       }
     ],
-    "name": "Lens_App_DefaultGraphSet",
+    "name": "Lens_App_DefaultGraphAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "graph",
+        "type": "address"
+      }
+    ],
+    "name": "Lens_App_DefaultGraphRemoved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "graph",
+        "type": "address"
+      }
+    ],
+    "name": "Lens_App_DefaultGraphUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "group",
+        "type": "address"
+      }
+    ],
+    "name": "Lens_App_DefaultGroupAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "group",
+        "type": "address"
+      }
+    ],
+    "name": "Lens_App_DefaultGroupRemoved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "group",
+        "type": "address"
+      }
+    ],
+    "name": "Lens_App_DefaultGroupUpdated",
     "type": "event"
   },
   {
@@ -87,7 +126,33 @@
         "type": "address"
       }
     ],
-    "name": "Lens_App_DefaultPaymasterSet",
+    "name": "Lens_App_DefaultPaymasterAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "paymaster",
+        "type": "address"
+      }
+    ],
+    "name": "Lens_App_DefaultPaymasterRemoved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "paymaster",
+        "type": "address"
+      }
+    ],
+    "name": "Lens_App_DefaultPaymasterUpdated",
     "type": "event"
   },
   {
@@ -100,7 +165,33 @@
         "type": "address"
       }
     ],
-    "name": "Lens_App_DefaultUsernameSet",
+    "name": "Lens_App_DefaultUsernameAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "username",
+        "type": "address"
+      }
+    ],
+    "name": "Lens_App_DefaultUsernameRemoved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "username",
+        "type": "address"
+      }
+    ],
+    "name": "Lens_App_DefaultUsernameUpdated",
     "type": "event"
   },
   {
@@ -125,7 +216,45 @@
         "type": "bytes"
       }
     ],
-    "name": "Lens_App_ExtraDataSet",
+    "name": "Lens_App_ExtraDataAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "key",
+        "type": "bytes32"
+      }
+    ],
+    "name": "Lens_App_ExtraDataRemoved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "key",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "value",
+        "type": "bytes"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes",
+        "name": "valueIndexed",
+        "type": "bytes"
+      }
+    ],
+    "name": "Lens_App_ExtraDataUpdated",
     "type": "event"
   },
   {
@@ -158,13 +287,13 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
-        "internalType": "address[]",
-        "name": "feeds",
-        "type": "address[]"
+        "indexed": true,
+        "internalType": "address",
+        "name": "graph",
+        "type": "address"
       }
     ],
-    "name": "Lens_App_FeedsSet",
+    "name": "Lens_App_GraphAdded",
     "type": "event"
   },
   {
@@ -177,7 +306,33 @@
         "type": "address"
       }
     ],
-    "name": "Lens_App_GraphAdded",
+    "name": "Lens_App_GraphRemoved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "group",
+        "type": "address"
+      }
+    ],
+    "name": "Lens_App_GroupAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "group",
+        "type": "address"
+      }
+    ],
+    "name": "Lens_App_GroupRemoved",
     "type": "event"
   },
   {
@@ -210,13 +365,39 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
-        "internalType": "address[]",
-        "name": "signers",
-        "type": "address[]"
+        "indexed": true,
+        "internalType": "address",
+        "name": "paymaster",
+        "type": "address"
       }
     ],
-    "name": "Lens_App_SignersSet",
+    "name": "Lens_App_PaymasterRemoved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "signer",
+        "type": "address"
+      }
+    ],
+    "name": "Lens_App_SignerAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "signer",
+        "type": "address"
+      }
+    ],
+    "name": "Lens_App_SignerRemoved",
     "type": "event"
   },
   {
@@ -246,55 +427,55 @@
     "type": "event"
   },
   {
+    "anonymous": false,
     "inputs": [
       {
+        "indexed": true,
         "internalType": "address",
-        "name": "community",
+        "name": "username",
         "type": "address"
       }
     ],
-    "name": "addCommunity",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    "name": "Lens_App_UsernameRemoved",
+    "type": "event"
   },
   {
     "inputs": [
-      {
-        "internalType": "address",
-        "name": "feed",
-        "type": "address"
-      }
-    ],
-    "name": "addFeed",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getCommunities",
-    "outputs": [
       {
         "internalType": "address[]",
-        "name": "",
+        "name": "feeds",
         "type": "address[]"
       }
     ],
-    "stateMutability": "view",
+    "name": "addFeeds",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "getDefaultCommunity",
-    "outputs": [
+    "inputs": [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
+        "internalType": "address[]",
+        "name": "groups",
+        "type": "address[]"
       }
     ],
-    "stateMutability": "view",
+    "name": "addGroups",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "signers",
+        "type": "address[]"
+      }
+    ],
+    "name": "addSigners",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -313,6 +494,19 @@
   {
     "inputs": [],
     "name": "getDefaultGraph",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getDefaultGroup",
     "outputs": [
       {
         "internalType": "address",
@@ -347,9 +541,26 @@
     "name": "getExtraData",
     "outputs": [
       {
-        "internalType": "bytes",
+        "components": [
+          {
+            "internalType": "bool",
+            "name": "isSet",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint80",
+            "name": "lastUpdatedTimestamp",
+            "type": "uint80"
+          },
+          {
+            "internalType": "bytes",
+            "name": "value",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct DataElementValue",
         "name": "",
-        "type": "bytes"
+        "type": "tuple"
       }
     ],
     "stateMutability": "view",
@@ -371,6 +582,19 @@
   {
     "inputs": [],
     "name": "getGraphs",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getGroups",
     "outputs": [
       {
         "internalType": "address[]",
@@ -423,35 +647,12 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "community",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "index",
-        "type": "uint256"
+        "internalType": "bytes32[]",
+        "name": "extraDataKeysToRemove",
+        "type": "bytes32[]"
       }
     ],
-    "name": "removeCommunity",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "feed",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "index",
-        "type": "uint256"
-      }
-    ],
-    "name": "removeFeed",
+    "name": "removeExtraData",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -460,11 +661,11 @@
     "inputs": [
       {
         "internalType": "address[]",
-        "name": "communities",
+        "name": "feeds",
         "type": "address[]"
       }
     ],
-    "name": "setCommunity",
+    "name": "removeFeeds",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -472,12 +673,25 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "community",
-        "type": "address"
+        "internalType": "address[]",
+        "name": "groups",
+        "type": "address[]"
       }
     ],
-    "name": "setDefaultCommunity",
+    "name": "removeGroups",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "signers",
+        "type": "address[]"
+      }
+    ],
+    "name": "removeSigners",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -491,6 +705,19 @@
       }
     ],
     "name": "setDefaultFeed",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "group",
+        "type": "address"
+      }
+    ],
+    "name": "setDefaultGroup",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -516,19 +743,6 @@
       }
     ],
     "name": "setExtraData",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address[]",
-        "name": "feeds",
-        "type": "address[]"
-      }
-    ],
-    "name": "setFeeds",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -568,19 +782,6 @@
       }
     ],
     "name": "setPaymaster",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address[]",
-        "name": "signers",
-        "type": "address[]"
-      }
-    ],
-    "name": "setSigners",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {RuleConfiguration, RuleExecutionData, DataElement} from "./../../types/Types.sol";
+import {RuleConfiguration, RuleExecutionData, DataElement, DataElementValue} from "./../../types/Types.sol";
 import {IMetadataBased} from "./../base/IMetadataBased.sol";
 
 // TODO: Might worth to add extraData to the follow entity
@@ -44,7 +44,9 @@ interface IGraph is IMetadataBased {
         RuleExecutionData graphRulesData
     );
 
-    event Lens_Graph_ExtraDataSet(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+    event Lens_Graph_ExtraDataAdded(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+    event Lens_Graph_ExtraDataUpdated(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+    event Lens_Graph_ExtraDataRemoved(bytes32 indexed key);
 
     event Lens_Graph_MetadataURISet(string metadataURI);
 
@@ -83,6 +85,8 @@ interface IGraph is IMetadataBased {
 
     function setExtraData(DataElement[] calldata extraDataToSet) external;
 
+    function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external;
+
     // Getters
 
     function isFollowing(address followerAccount, address targetAccount) external view returns (bool);
@@ -97,5 +101,5 @@ interface IGraph is IMetadataBased {
 
     function getFollowRules(address account, bool isRequired) external view returns (address[] memory);
 
-    function getExtraData(bytes32 key) external view returns (bytes memory);
+    function getExtraData(bytes32 key) external view returns (DataElementValue memory);
 }

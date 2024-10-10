@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {DataElement, RuleConfiguration, RuleExecutionData} from "../../types/Types.sol";
+import {DataElement, RuleConfiguration, RuleExecutionData, DataElementValue} from "../../types/Types.sol";
 import {IMetadataBased} from "./../base/IMetadataBased.sol";
 
 // TODO: Discuss if there's a need for anything else to be added here
@@ -72,7 +72,9 @@ interface IFeed is IMetadataBased {
 
     event Lens_Feed_PostDeleted(uint256 indexed postId, address indexed author, RuleExecutionData feedRulesData);
 
-    event Lens_Feed_ExtraDataSet(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+    event Lens_Feed_ExtraDataAdded(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+    event Lens_Feed_ExtraDataUpdated(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+    event Lens_Feed_ExtraDataRemoved(bytes32 indexed key);
 
     event Lens_Feed_RuleAdded(address indexed ruleAddress, bytes configData, bool indexed isRequired);
     event Lens_Feed_RuleUpdated(address indexed ruleAddress, bytes configData, bool indexed isRequired);
@@ -85,6 +87,14 @@ interface IFeed is IMetadataBased {
         uint256 indexed postId, address indexed author, address indexed ruleAddress, bytes configData, bool isRequired
     );
     event Lens_Feed_Post_RuleRemoved(uint256 indexed postId, address indexed author, address indexed ruleAddress);
+
+    event Lens_Feed_Post_ExtraDataAdded(
+        uint256 indexed postId, bytes32 indexed key, bytes value, bytes indexed valueIndexed
+    );
+    event Lens_Feed_Post_ExtraDataUpdated(
+        uint256 indexed postId, bytes32 indexed key, bytes value, bytes indexed valueIndexed
+    );
+    event Lens_Feed_Post_ExtraDataRemoved(uint256 indexed postId, bytes32 indexed key);
 
     event Lens_Feed_MetadataURISet(string metadataURI);
 
@@ -138,6 +148,8 @@ interface IFeed is IMetadataBased {
 
     function setExtraData(DataElement[] calldata extraDataToSet) external;
 
+    function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external;
+
     // Getters
 
     function getPost(uint256 postId) external view returns (Post memory);
@@ -150,7 +162,7 @@ interface IFeed is IMetadataBased {
 
     function getPostCount() external view returns (uint256);
 
-    function getPostExtraData(uint256 postId, bytes32 key) external view returns (bytes memory);
+    function getPostExtraData(uint256 postId, bytes32 key) external view returns (DataElementValue memory);
 
-    function getExtraData(bytes32 key) external view returns (bytes memory);
+    function getExtraData(bytes32 key) external view returns (DataElementValue memory);
 }

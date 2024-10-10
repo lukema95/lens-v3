@@ -43,7 +43,7 @@
           },
           {
             "internalType": "address[]",
-            "name": "communities",
+            "name": "groups",
             "type": "address[]"
           },
           {
@@ -53,7 +53,7 @@
           },
           {
             "internalType": "address",
-            "name": "defaultCommunity",
+            "name": "defaultGroup",
             "type": "address"
           },
           {

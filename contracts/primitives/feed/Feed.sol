@@ -7,7 +7,7 @@ import {IAccessControl} from "./../access-control/IAccessControl.sol";
 import {DataElement} from "./../../types/Types.sol";
 import {RuleBasedFeed} from "./RuleBasedFeed.sol";
 import {AccessControlled} from "./../base/AccessControlled.sol";
-import {RuleConfiguration, RuleExecutionData} from "./../../types/Types.sol";
+import {RuleConfiguration, RuleExecutionData, DataElementValue} from "./../../types/Types.sol";
 import {Events} from "./../../types/Events.sol";
 
 contract Feed is IFeed, RuleBasedFeed, AccessControlled {
@@ -178,6 +178,16 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         );
 
         emit Lens_Feed_PostCreated(postId, createPostParams.author, localSequentialId, createPostParams, rootPostId);
+
+        for (uint256 i = 0; i < createPostParams.extraData.length; i++) {
+            emit Lens_Feed_Post_ExtraDataAdded(
+                postId,
+                createPostParams.extraData[i].key,
+                createPostParams.extraData[i].value,
+                createPostParams.extraData[i].value
+            );
+        }
+
         return postId;
     }
 
@@ -192,6 +202,16 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         emit Lens_Feed_RepostCreated(
             postId, createRepostParams.author, localSequentialId, createRepostParams, rootPostId
         );
+
+        for (uint256 i = 0; i < createRepostParams.extraData.length; i++) {
+            emit Lens_Feed_Post_ExtraDataAdded(
+                postId,
+                createRepostParams.extraData[i].key,
+                createRepostParams.extraData[i].value,
+                createRepostParams.extraData[i].value
+            );
+        }
+
         return postId;
     }
 
@@ -205,8 +225,25 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         // require(msg.sender == author || _hasAccess(msg.sender, EDIT_POST_RID));
         require(msg.sender == author, "MSG_SENDER_NOT_AUTHOR");
         _feedProcessEditPost(postId, newPostParams, editPostFeedRulesData);
-        Core._editPost(postId, newPostParams);
+        bool[] memory wereExtraDataValuesSet = Core._editPost(postId, newPostParams);
         emit Lens_Feed_PostEdited(postId, author, newPostParams, editPostFeedRulesData);
+        for (uint256 i = 0; i < newPostParams.extraData.length; i++) {
+            if (wereExtraDataValuesSet[i]) {
+                emit Lens_Feed_Post_ExtraDataUpdated(
+                    postId,
+                    newPostParams.extraData[i].key,
+                    newPostParams.extraData[i].value,
+                    newPostParams.extraData[i].value
+                );
+            } else {
+                emit Lens_Feed_Post_ExtraDataAdded(
+                    postId,
+                    newPostParams.extraData[i].key,
+                    newPostParams.extraData[i].value,
+                    newPostParams.extraData[i].value
+                );
+            }
+        }
     }
 
     function deletePost(
@@ -222,10 +259,22 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     }
 
     function setExtraData(DataElement[] calldata extraDataToSet) external override {
-        // Core.$storage().accessControl.requireAccess(msg.sender, SET_EXTRA_DATA_RID);
-        Core._setExtraData(extraDataToSet);
+        _requireAccess(msg.sender, SET_EXTRA_DATA_RID);
         for (uint256 i = 0; i < extraDataToSet.length; i++) {
-            emit Lens_Feed_ExtraDataSet(extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value);
+            bool wasExtraDataAlreadySet = Core._setExtraData(extraDataToSet[i]);
+            if (wasExtraDataAlreadySet) {
+                emit Lens_Feed_ExtraDataUpdated(extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value);
+            } else {
+                emit Lens_Feed_ExtraDataAdded(extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value);
+            }
+        }
+    }
+
+    function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external override {
+        _requireAccess(msg.sender, SET_EXTRA_DATA_RID);
+        for (uint256 i = 0; i < extraDataKeysToRemove.length; i++) {
+            Core._removeExtraData(extraDataKeysToRemove[i]);
+            emit Lens_Feed_ExtraDataRemoved(extraDataKeysToRemove[i]);
         }
     }
 
@@ -267,11 +316,11 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         return Core.$storage().metadataURI;
     }
 
-    function getPostExtraData(uint256 postId, bytes32 key) external view override returns (bytes memory) {
+    function getPostExtraData(uint256 postId, bytes32 key) external view override returns (DataElementValue memory) {
         return Core.$storage().posts[postId].extraData[key];
     }
 
-    function getExtraData(bytes32 key) external view override returns (bytes memory) {
+    function getExtraData(bytes32 key) external view override returns (DataElementValue memory) {
         return Core.$storage().extraData[key];
     }
 }

@@ -7,15 +7,20 @@ import {IAccessControl} from "./IAccessControl.sol";
 interface IRoleBasedAccessControl is IAccessControl {
     event Lens_AccessControl_RoleGranted(address indexed account, uint256 indexed roleId);
     event Lens_AccessControl_RoleRevoked(address indexed account, uint256 indexed roleId);
-    event Lens_AccessControl_GlobalAccessSet(
-        uint256 indexed roleId, uint256 indexed resourceId, AccessPermission indexed accessPermission
-    );
+
+    event Lens_AccessControl_GlobalAccessAdded(uint256 indexed roleId, uint256 indexed resourceId, bool granted);
+    event Lens_AccessControl_GlobalAccessUpdated(uint256 indexed roleId, uint256 indexed resourceId, bool granted);
+    event Lens_AccessControl_GlobalAccessRemoved(uint256 indexed roleId, uint256 indexed resourceId);
+
     // TODO: accessPermission param should also be indexed, maybe (resourceLocation, resourceId) should be a tuple type
-    event Lens_AccessControl_ScopedAccessSet(
-        uint256 indexed roleId,
-        address indexed resourceLocation,
-        uint256 indexed resourceId,
-        AccessPermission accessPermission
+    event Lens_AccessControl_ScopedAccessAdded(
+        uint256 indexed roleId, address indexed resourceLocation, uint256 indexed resourceId, bool granted
+    );
+    event Lens_AccessControl_ScopedAccessUpdated(
+        uint256 indexed roleId, address indexed resourceLocation, uint256 indexed resourceId, bool granted
+    );
+    event Lens_AccessControl_ScopedAccessRemoved(
+        uint256 indexed roleId, address indexed resourceLocation, uint256 indexed resourceId
     );
 
     enum AccessPermission {

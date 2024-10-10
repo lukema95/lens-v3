@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {Follow, IGraph} from "./IGraph.sol";
 import {GraphCore as Core} from "./GraphCore.sol";
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
-import {RuleConfiguration, RuleExecutionData, DataElement} from "./../../types/Types.sol";
+import {RuleConfiguration, RuleExecutionData, DataElement, DataElementValue} from "./../../types/Types.sol";
 import {RuleBasedGraph} from "./RuleBasedGraph.sol";
 import {AccessControlled} from "./../base/AccessControlled.sol";
 import {Events} from "./../../types/Events.sol";
@@ -141,9 +141,23 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
 
     function setExtraData(DataElement[] calldata extraDataToSet) external override {
         _requireAccess(msg.sender, SET_EXTRA_DATA_RID);
-        Core._setExtraData(extraDataToSet);
         for (uint256 i = 0; i < extraDataToSet.length; i++) {
-            emit Lens_Graph_ExtraDataSet(extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value);
+            bool wasExtraDataAlreadySet = Core._setExtraData(extraDataToSet[i]);
+            if (wasExtraDataAlreadySet) {
+                emit Lens_Graph_ExtraDataUpdated(
+                    extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value
+                );
+            } else {
+                emit Lens_Graph_ExtraDataAdded(extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value);
+            }
+        }
+    }
+
+    function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external override {
+        _requireAccess(msg.sender, SET_EXTRA_DATA_RID);
+        for (uint256 i = 0; i < extraDataKeysToRemove.length; i++) {
+            Core._removeExtraData(extraDataKeysToRemove[i]);
+            emit Lens_Graph_ExtraDataRemoved(extraDataKeysToRemove[i]);
         }
     }
 
@@ -165,7 +179,7 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
         return Core.$storage().followersCount[account];
     }
 
-    function getExtraData(bytes32 key) external view override returns (bytes memory) {
+    function getExtraData(bytes32 key) external view override returns (DataElementValue memory) {
         return Core.$storage().extraData[key];
     }
 

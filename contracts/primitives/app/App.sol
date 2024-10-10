@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
 import {IApp} from "./IApp.sol";
 import {AppCore as Core} from "./AppCore.sol";
-import {DataElement} from "./../../types/Types.sol";
+import {DataElement, DataElementValue} from "./../../types/Types.sol";
 import {AccessControlled} from "./../base/AccessControlled.sol";
 import {Events} from "./../../types/Events.sol";
 
@@ -12,9 +12,9 @@ struct AppInitialProperties {
     address graph;
     address[] feeds;
     address username;
-    address[] communities;
+    address[] groups;
     address defaultFeed;
-    address defaultCommunity;
+    address defaultGroup;
     address[] signers;
     address paymaster;
     address treasury;
@@ -22,12 +22,12 @@ struct AppInitialProperties {
 
 contract App is IApp, AccessControlled {
     // Resource IDs involved in the contract
-    uint256 constant SET_PRIMITIVES = uint256(keccak256("SET_PRIMITIVES"));
-    uint256 constant SET_SIGNERS = uint256(keccak256("SET_SIGNERS"));
-    uint256 constant SET_TREASURY = uint256(keccak256("SET_TREASURY"));
-    uint256 constant SET_PAYMASTER = uint256(keccak256("SET_PAYMASTER"));
-    uint256 constant SET_EXTRA_DATA = uint256(keccak256("SET_EXTRA_DATA"));
-    uint256 constant SET_METADATA = uint256(keccak256("SET_METADATA"));
+    uint256 constant SET_PRIMITIVES_RID = uint256(keccak256("SET_PRIMITIVES"));
+    uint256 constant SET_SIGNERS_RID = uint256(keccak256("SET_SIGNERS"));
+    uint256 constant SET_TREASURY_RID = uint256(keccak256("SET_TREASURY"));
+    uint256 constant SET_PAYMASTER_RID = uint256(keccak256("SET_PAYMASTER"));
+    uint256 constant SET_EXTRA_DATA_RID = uint256(keccak256("SET_EXTRA_DATA"));
+    uint256 constant SET_METADATA_RID = uint256(keccak256("SET_METADATA"));
 
     constructor(
         string memory metadataURI,
@@ -38,12 +38,12 @@ contract App is IApp, AccessControlled {
         _setMetadataURI(metadataURI);
         _setTreasury(initialProps.treasury);
         _setGraph(initialProps.graph);
-        _setFeeds(initialProps.feeds);
+        _addFeeds(initialProps.feeds);
         _setUsername(initialProps.username);
-        _setCommunity(initialProps.communities);
+        _addGroups(initialProps.groups);
         _setDefaultFeed(initialProps.defaultFeed);
-        _setDefaultCommunity(initialProps.defaultCommunity);
-        _setSigners(initialProps.signers);
+        _setDefaultGroup(initialProps.defaultGroup);
+        _addSigners(initialProps.signers);
         _setPaymaster(initialProps.paymaster);
         _setExtraData(extraData);
 
@@ -54,143 +54,225 @@ contract App is IApp, AccessControlled {
 
     function _emitRIDs() internal override {
         super._emitRIDs();
-        emit Lens_ResourceId_Available(SET_PRIMITIVES, "SET_PRIMITIVES");
-        emit Lens_ResourceId_Available(SET_SIGNERS, "SET_SIGNERS");
-        emit Lens_ResourceId_Available(SET_TREASURY, "SET_TREASURY");
-        emit Lens_ResourceId_Available(SET_PAYMASTER, "SET_PAYMASTER");
-        emit Lens_ResourceId_Available(SET_EXTRA_DATA, "SET_EXTRA_DATA");
-        emit Lens_ResourceId_Available(SET_METADATA, "SET_METADATA");
+        emit Lens_ResourceId_Available(SET_PRIMITIVES_RID, "SET_PRIMITIVES");
+        emit Lens_ResourceId_Available(SET_SIGNERS_RID, "SET_SIGNERS");
+        emit Lens_ResourceId_Available(SET_TREASURY_RID, "SET_TREASURY");
+        emit Lens_ResourceId_Available(SET_PAYMASTER_RID, "SET_PAYMASTER");
+        emit Lens_ResourceId_Available(SET_EXTRA_DATA_RID, "SET_EXTRA_DATA");
+        emit Lens_ResourceId_Available(SET_METADATA_RID, "SET_METADATA");
     }
 
-    // TODO:
-    // In this implementation we assume you can only have one graph.
+    ///////////////// Graph
 
     function setGraph(address graph) public {
-        _requireAccess(msg.sender, SET_PRIMITIVES);
+        _requireAccess(msg.sender, SET_PRIMITIVES_RID);
         _setGraph(graph);
     }
 
+    // In this implementation we allow to have a single graph only.
     function _setGraph(address graph) internal {
-        Core._setGraph(graph);
-        emit Lens_App_GraphAdded(graph);
-        emit Lens_App_DefaultGraphSet(graph);
+        if (graph == address(0)) {
+            Core._removeGraph(Core.$storage().defaultGraph); // Will fail if no graph was set
+            Core._setDefaultGraph(address(0));
+            emit Lens_App_DefaultGraphRemoved(graph);
+            emit Lens_App_GraphRemoved(graph);
+        } else {
+            address graphPreviouslySet = Core.$storage().defaultGraph;
+            bool wasAValueAlreadySet = Core._setDefaultGraph(graph);
+            if (wasAValueAlreadySet) {
+                Core._removeGraph(graphPreviouslySet);
+                emit Lens_App_GraphRemoved(graphPreviouslySet);
+                emit Lens_App_GraphAdded(graph);
+                emit Lens_App_DefaultGraphUpdated(graph);
+            } else {
+                emit Lens_App_DefaultGraphAdded(graph);
+            }
+            Core._addGraph(graph);
+        }
     }
 
-    // function setDefaultGraph(address graph) public {
-    //     _requireAccess(msg.sender, SET_PRIMITIVES);
-    //     Core._setDefaultGraph(graph);
-    // }
+    ///////////////// Feed
 
-    function setFeeds(address[] calldata feeds) public {
-        _requireAccess(msg.sender, SET_PRIMITIVES);
-        _setFeeds(feeds);
+    function addFeeds(address[] memory feeds) external override {
+        _requireAccess(msg.sender, SET_PRIMITIVES_RID);
+        _addFeeds(feeds);
     }
 
-    function _setFeeds(address[] memory feeds) internal {
-        address defaultFeedSet = Core._setFeeds(feeds);
-        emit Lens_App_DefaultFeedSet(defaultFeedSet);
-        emit Lens_App_FeedsSet(feeds);
+    function removeFeeds(address[] memory feeds) external override {
+        _requireAccess(msg.sender, SET_PRIMITIVES_RID);
+        _removeFeeds(feeds);
     }
 
-    function setDefaultFeed(address feed) public {
-        _requireAccess(msg.sender, SET_PRIMITIVES);
+    function setDefaultFeed(address feed) external override {
+        _requireAccess(msg.sender, SET_PRIMITIVES_RID);
         _setDefaultFeed(feed);
     }
 
+    function _addFeeds(address[] memory feeds) internal {
+        for (uint256 i = 0; i < feeds.length; i++) {
+            Core._addFeed(feeds[i]);
+            emit Lens_App_FeedAdded(feeds[i]);
+        }
+    }
+
+    function _removeFeeds(address[] memory feeds) internal {
+        address defaultFeed = Core.$storage().defaultFeed;
+        for (uint256 i = 0; i < feeds.length; i++) {
+            if (feeds[i] == defaultFeed) {
+                _setDefaultFeed(address(0));
+            }
+            Core._removeFeed(feeds[i]);
+            emit Lens_App_FeedRemoved(feeds[i]);
+        }
+    }
+
     function _setDefaultFeed(address feed) internal {
-        Core._setDefaultFeed(feed);
-        emit Lens_App_DefaultFeedSet(feed);
+        bool wasAValueAlreadySet = Core._setDefaultFeed(feed);
+        if (feed == address(0)) {
+            require(wasAValueAlreadySet, "DEFAULT_ALREADY_UNSET");
+            emit Lens_App_DefaultFeedRemoved(feed);
+        } else if (wasAValueAlreadySet) {
+            emit Lens_App_DefaultFeedUpdated(feed);
+        } else {
+            emit Lens_App_DefaultFeedAdded(feed);
+        }
     }
 
-    function addFeed(address feed) public {
-        _requireAccess(msg.sender, SET_PRIMITIVES);
-        // TODO: Add check for duplicate, or use a mapping.
-        Core._addFeed(feed);
-        emit Lens_App_FeedAdded(feed);
-    }
-
-    function removeFeed(address feed, uint256 index) public {
-        _requireAccess(msg.sender, SET_PRIMITIVES);
-        Core._removeFeed(feed, index);
-        emit Lens_App_FeedRemoved(feed);
-    }
-
-    // TODO:
-    // In this implementation we assume you can only have one username.
+    ///////////////// Username
 
     function setUsername(address username) public {
-        _requireAccess(msg.sender, SET_PRIMITIVES);
+        _requireAccess(msg.sender, SET_PRIMITIVES_RID);
         _setUsername(username);
     }
 
+    // In this implementation we allow to have a single graph only.
     function _setUsername(address username) internal {
-        Core._setUsername(username);
-        emit Lens_App_UsernameAdded(username);
-        emit Lens_App_DefaultUsernameSet(username);
+        if (username == address(0)) {
+            Core._removeUsername(Core.$storage().defaultUsername); // Will fail if no username was set
+            Core._setDefaultUsername(address(0));
+            emit Lens_App_DefaultUsernameRemoved(username);
+            emit Lens_App_UsernameRemoved(username);
+        } else {
+            address usernamePreviouslySet = Core.$storage().defaultUsername;
+            bool wasAValueAlreadySet = Core._setDefaultUsername(username);
+            if (wasAValueAlreadySet) {
+                Core._removeUsername(usernamePreviouslySet);
+                emit Lens_App_UsernameRemoved(usernamePreviouslySet);
+                emit Lens_App_UsernameAdded(username);
+                emit Lens_App_DefaultUsernameUpdated(username);
+            } else {
+                emit Lens_App_DefaultUsernameAdded(username);
+            }
+            Core._addUsername(username);
+        }
     }
 
-    // function setDefaultUsername(address username) public {
-    //     _requireAccess(msg.sender, SET_PRIMITIVES);
-    //     Core._setDefaultUsername(username);
-    // }
+    ///////////////// Group
 
-    function setCommunity(address[] calldata communities) public {
-        _requireAccess(msg.sender, SET_PRIMITIVES);
-        _setCommunity(communities);
+    function addGroups(address[] memory groups) external {
+        _requireAccess(msg.sender, SET_PRIMITIVES_RID);
+        _addGroups(groups);
     }
 
-    function _setCommunity(address[] memory communities) internal {
-        address defaultCommunitySet = Core._setCommunity(communities);
-        emit Lens_App_DefaultCommunitySet(defaultCommunitySet);
-        emit Lens_App_CommunitiesSet(communities);
+    function removeGroups(address[] memory groups) external {
+        _requireAccess(msg.sender, SET_PRIMITIVES_RID);
+        _removeGroups(groups);
     }
 
-    function setDefaultCommunity(address community) public {
-        _requireAccess(msg.sender, SET_PRIMITIVES);
-        _setDefaultCommunity(community);
+    function setDefaultGroup(address group) external {
+        _requireAccess(msg.sender, SET_PRIMITIVES_RID);
+        _setDefaultGroup(group);
     }
 
-    function _setDefaultCommunity(address community) internal {
-        Core._setDefaultCommunity(community);
-        emit Lens_App_DefaultCommunitySet(community);
+    function _addGroups(address[] memory groups) internal {
+        for (uint256 i = 0; i < groups.length; i++) {
+            Core._addGroup(groups[i]);
+            emit Lens_App_GroupAdded(groups[i]);
+        }
     }
 
-    function addCommunity(address community) public {
-        _requireAccess(msg.sender, SET_PRIMITIVES);
-        // TODO: Add check for duplicate, or use a mapping.
-        Core._addCommunity(community);
-        emit Lens_App_CommunityAdded(community);
+    function _removeGroups(address[] memory groups) internal {
+        address defaultGroup = Core.$storage().defaultGroup;
+        for (uint256 i = 0; i < groups.length; i++) {
+            if (groups[i] == defaultGroup) {
+                _setDefaultGroup(address(0));
+            }
+            Core._removeGroup(groups[i]);
+            emit Lens_App_GroupRemoved(groups[i]);
+        }
     }
 
-    function removeCommunity(address community, uint256 index) public {
-        _requireAccess(msg.sender, SET_PRIMITIVES);
-        Core._removeCommunity(community, index);
-        emit Lens_App_CommunityRemoved(community);
+    function _setDefaultGroup(address group) internal {
+        bool wasAValueAlreadySet = Core._setDefaultGroup(group);
+        if (group == address(0)) {
+            require(wasAValueAlreadySet, "DEFAULT_ALREADY_UNSET");
+            emit Lens_App_DefaultGroupRemoved(group);
+        } else if (wasAValueAlreadySet) {
+            emit Lens_App_DefaultGroupUpdated(group);
+        } else {
+            emit Lens_App_DefaultGroupAdded(group);
+        }
     }
 
-    function setSigners(address[] calldata signers) public {
-        _requireAccess(msg.sender, SET_SIGNERS);
-        _setSigners(signers);
+    ///////////////// Signers
+
+    function addSigners(address[] memory signers) external {
+        _requireAccess(msg.sender, SET_SIGNERS_RID);
+        _addSigners(signers);
     }
 
-    function _setSigners(address[] memory signers) internal {
-        Core._setSigners(signers);
-        emit Lens_App_SignersSet(signers);
+    function removeSigners(address[] memory signers) external {
+        _requireAccess(msg.sender, SET_SIGNERS_RID);
+        _removeSigners(signers);
     }
+
+    function _addSigners(address[] memory signers) internal {
+        for (uint256 i = 0; i < signers.length; i++) {
+            Core._addSigner(signers[i]);
+            emit Lens_App_SignerAdded(signers[i]);
+        }
+    }
+
+    function _removeSigners(address[] memory signers) internal {
+        for (uint256 i = 0; i < signers.length; i++) {
+            Core._removeSigner(signers[i]);
+            emit Lens_App_SignerRemoved(signers[i]);
+        }
+    }
+
+    ///////////////// Paymaster
 
     function setPaymaster(address paymaster) public {
-        _requireAccess(msg.sender, SET_PAYMASTER);
+        _requireAccess(msg.sender, SET_PRIMITIVES_RID);
         _setPaymaster(paymaster);
     }
 
+    // In this implementation we allow to have a single paymaster only.
     function _setPaymaster(address paymaster) internal {
-        Core._setPaymaster(paymaster);
-        emit Lens_App_PaymasterAdded(paymaster);
-        emit Lens_App_DefaultPaymasterSet(paymaster);
+        if (paymaster == address(0)) {
+            Core._removePaymaster(Core.$storage().defaultPaymaster); // Will fail if no paymaster was set
+            Core._setDefaultPaymaster(address(0));
+            emit Lens_App_DefaultPaymasterRemoved(paymaster);
+            emit Lens_App_PaymasterRemoved(paymaster);
+        } else {
+            address paymasterPreviouslySet = Core.$storage().defaultPaymaster;
+            bool wasAValueAlreadySet = Core._setDefaultPaymaster(paymaster);
+            if (wasAValueAlreadySet) {
+                Core._removePaymaster(paymasterPreviouslySet);
+                emit Lens_App_PaymasterRemoved(paymasterPreviouslySet);
+                emit Lens_App_PaymasterAdded(paymaster);
+                emit Lens_App_DefaultPaymasterUpdated(paymaster);
+            } else {
+                emit Lens_App_DefaultPaymasterAdded(paymaster);
+            }
+            Core._addPaymaster(paymaster);
+        }
     }
 
+    ///////////////// Treasury
+
     function setTreasury(address treasury) public {
-        _requireAccess(msg.sender, SET_TREASURY);
+        _requireAccess(msg.sender, SET_TREASURY_RID);
         _setTreasury(treasury);
     }
 
@@ -199,8 +281,10 @@ contract App is IApp, AccessControlled {
         emit Lens_App_TreasurySet(treasury);
     }
 
+    ///////////////// Metadata URI
+
     function setMetadataURI(string calldata metadataURI) public override {
-        _requireAccess(msg.sender, SET_METADATA);
+        _requireAccess(msg.sender, SET_METADATA_RID);
         _setMetadataURI(metadataURI);
     }
 
@@ -209,15 +293,30 @@ contract App is IApp, AccessControlled {
         emit Lens_App_MetadataURISet(metadataURI);
     }
 
-    function setExtraData(DataElement[] calldata extraDataToSet) public override {
-        _requireAccess(msg.sender, SET_EXTRA_DATA);
+    ///////////////// Extra Data
+
+    function setExtraData(DataElement[] calldata extraDataToSet) external override {
+        _requireAccess(msg.sender, SET_EXTRA_DATA_RID);
         _setExtraData(extraDataToSet);
     }
 
     function _setExtraData(DataElement[] memory extraDataToSet) internal {
-        Core._setExtraData(extraDataToSet);
+        _requireAccess(msg.sender, SET_EXTRA_DATA_RID);
         for (uint256 i = 0; i < extraDataToSet.length; i++) {
-            emit Lens_App_ExtraDataSet(extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value);
+            bool wasExtraDataAlreadySet = Core._setExtraData(extraDataToSet[i]);
+            if (wasExtraDataAlreadySet) {
+                emit Lens_App_ExtraDataUpdated(extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value);
+            } else {
+                emit Lens_App_ExtraDataAdded(extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value);
+            }
+        }
+    }
+
+    function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external override {
+        _requireAccess(msg.sender, SET_EXTRA_DATA_RID);
+        for (uint256 i = 0; i < extraDataKeysToRemove.length; i++) {
+            Core._removeExtraData(extraDataKeysToRemove[i]);
+            emit Lens_App_ExtraDataRemoved(extraDataKeysToRemove[i]);
         }
     }
 
@@ -237,8 +336,8 @@ contract App is IApp, AccessControlled {
         return Core.$storage().usernames;
     }
 
-    function getCommunities() public view returns (address[] memory) {
-        return Core.$storage().communities;
+    function getGroups() public view returns (address[] memory) {
+        return Core.$storage().groups;
     }
 
     function getDefaultGraph() public view returns (address) {
@@ -253,15 +352,15 @@ contract App is IApp, AccessControlled {
         return Core.$storage().defaultUsername;
     }
 
-    function getDefaultCommunity() public view returns (address) {
-        return Core.$storage().defaultCommunity;
+    function getDefaultGroup() public view returns (address) {
+        return Core.$storage().defaultGroup;
     }
 
     function getSigners() public view returns (address[] memory) {
         return Core.$storage().signers;
     }
 
-    function getExtraData(bytes32 key) external view override returns (bytes memory) {
+    function getExtraData(bytes32 key) external view override returns (DataElementValue memory) {
         return Core.$storage().extraData[key];
     }
 

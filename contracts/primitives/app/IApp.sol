@@ -2,60 +2,94 @@
 pragma solidity ^0.8.0;
 
 import {IMetadataBased} from "./../base/IMetadataBased.sol";
-import {DataElement} from "./../../types/Types.sol";
+import {DataElement, DataElementValue} from "./../../types/Types.sol";
 
 interface IApp is IMetadataBased {
+    // Graph
     event Lens_App_GraphAdded(address indexed graph);
-    event Lens_App_DefaultGraphSet(address indexed graph);
+    event Lens_App_GraphRemoved(address indexed graph);
+
+    event Lens_App_DefaultGraphAdded(address indexed graph);
+    event Lens_App_DefaultGraphUpdated(address indexed graph);
+    event Lens_App_DefaultGraphRemoved(address indexed graph);
+
+    // Feed
     event Lens_App_FeedAdded(address indexed feed);
     event Lens_App_FeedRemoved(address indexed feed);
-    event Lens_App_FeedsSet(address[] feeds);
-    event Lens_App_DefaultFeedSet(address indexed feed);
+
+    event Lens_App_DefaultFeedAdded(address indexed feed);
+    event Lens_App_DefaultFeedUpdated(address indexed feed);
+    event Lens_App_DefaultFeedRemoved(address indexed feed);
+
+    // Username
     event Lens_App_UsernameAdded(address indexed username);
-    event Lens_App_DefaultUsernameSet(address indexed username);
-    event Lens_App_CommunityAdded(address indexed community);
-    event Lens_App_CommunityRemoved(address indexed community);
-    event Lens_App_CommunitiesSet(address[] communities);
-    event Lens_App_DefaultCommunitySet(address indexed community);
+    event Lens_App_UsernameRemoved(address indexed username);
+
+    event Lens_App_DefaultUsernameAdded(address indexed username);
+    event Lens_App_DefaultUsernameUpdated(address indexed username);
+    event Lens_App_DefaultUsernameRemoved(address indexed username);
+
+    // Group
+    event Lens_App_GroupAdded(address indexed group);
+    event Lens_App_GroupRemoved(address indexed group);
+
+    event Lens_App_DefaultGroupAdded(address indexed group);
+    event Lens_App_DefaultGroupUpdated(address indexed group);
+    event Lens_App_DefaultGroupRemoved(address indexed group);
+
+    // Paymaster
     event Lens_App_PaymasterAdded(address indexed paymaster);
-    event Lens_App_DefaultPaymasterSet(address indexed paymaster);
+    event Lens_App_PaymasterRemoved(address indexed paymaster);
+
+    event Lens_App_DefaultPaymasterAdded(address indexed paymaster);
+    event Lens_App_DefaultPaymasterUpdated(address indexed paymaster);
+    event Lens_App_DefaultPaymasterRemoved(address indexed paymaster);
+
+    // Signer
+    event Lens_App_SignerAdded(address indexed signer);
+    event Lens_App_SignerRemoved(address indexed signer);
+
+    // Extra Data
+    event Lens_App_ExtraDataAdded(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+    event Lens_App_ExtraDataUpdated(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+    event Lens_App_ExtraDataRemoved(bytes32 indexed key);
+
+    // Medatada URI
     event Lens_App_MetadataURISet(string metadataURI);
-    event Lens_App_SignersSet(address[] signers);
-    event Lens_App_ExtraDataSet(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
+
+    // Treasury
     event Lens_App_TreasurySet(address indexed treasury);
 
-    // Primitive-based setters
+    function addGroups(address[] memory groups) external;
+    function removeGroups(address[] memory groups) external;
+    function setDefaultGroup(address group) external;
 
-    function setCommunity(address[] memory communities) external;
-    function setDefaultCommunity(address community) external;
-    function addCommunity(address community) external;
-    function removeCommunity(address community, uint256 index) external;
+    function addFeeds(address[] memory feeds) external;
+    function removeFeeds(address[] memory feeds) external;
+    function setDefaultFeed(address feed) external;
 
     function setGraph(address graph) external;
 
-    function setFeeds(address[] memory feeds) external;
-    function setDefaultFeed(address feed) external;
-    function addFeed(address feed) external;
-    function removeFeed(address feed, uint256 index) external;
-
     function setUsername(address username) external;
 
-    // App Specific setters
+    function addSigners(address[] memory signers) external;
+    function removeSigners(address[] memory signers) external;
 
-    function setSigners(address[] memory signers) external;
     function setPaymaster(address paymaster) external;
+
     function setExtraData(DataElement[] calldata extraDataToSet) external;
+    function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external;
 
     // Getters
 
     function getGraphs() external view returns (address[] memory);
     function getFeeds() external view returns (address[] memory);
     function getUsernames() external view returns (address[] memory);
-    function getCommunities() external view returns (address[] memory);
+    function getGroups() external view returns (address[] memory);
     function getDefaultGraph() external view returns (address);
     function getDefaultFeed() external view returns (address);
     function getDefaultUsername() external view returns (address);
-    function getDefaultCommunity() external view returns (address);
+    function getDefaultGroup() external view returns (address);
     function getSigners() external view returns (address[] memory);
-    function getExtraData(bytes32 key) external view returns (bytes memory);
+    function getExtraData(bytes32 key) external view returns (DataElementValue memory);
 }

@@ -21,7 +21,45 @@
         "type": "bytes"
       }
     ],
-    "name": "Lens_Feed_ExtraDataSet",
+    "name": "Lens_Feed_ExtraDataAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "key",
+        "type": "bytes32"
+      }
+    ],
+    "name": "Lens_Feed_ExtraDataRemoved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "key",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "value",
+        "type": "bytes"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes",
+        "name": "valueIndexed",
+        "type": "bytes"
+      }
+    ],
+    "name": "Lens_Feed_ExtraDataUpdated",
     "type": "event"
   },
   {
@@ -327,6 +365,87 @@
       }
     ],
     "name": "Lens_Feed_PostEdited",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "postId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "key",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "value",
+        "type": "bytes"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes",
+        "name": "valueIndexed",
+        "type": "bytes"
+      }
+    ],
+    "name": "Lens_Feed_Post_ExtraDataAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "postId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "key",
+        "type": "bytes32"
+      }
+    ],
+    "name": "Lens_Feed_Post_ExtraDataRemoved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "postId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "key",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "value",
+        "type": "bytes"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes",
+        "name": "valueIndexed",
+        "type": "bytes"
+      }
+    ],
+    "name": "Lens_Feed_Post_ExtraDataUpdated",
     "type": "event"
   },
   {
@@ -1074,9 +1193,26 @@
     "name": "getExtraData",
     "outputs": [
       {
-        "internalType": "bytes",
+        "components": [
+          {
+            "internalType": "bool",
+            "name": "isSet",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint80",
+            "name": "lastUpdatedTimestamp",
+            "type": "uint80"
+          },
+          {
+            "internalType": "bytes",
+            "name": "value",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct DataElementValue",
         "name": "",
-        "type": "bytes"
+        "type": "tuple"
       }
     ],
     "stateMutability": "view",
@@ -1238,9 +1374,26 @@
     "name": "getPostExtraData",
     "outputs": [
       {
-        "internalType": "bytes",
+        "components": [
+          {
+            "internalType": "bool",
+            "name": "isSet",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint80",
+            "name": "lastUpdatedTimestamp",
+            "type": "uint80"
+          },
+          {
+            "internalType": "bytes",
+            "name": "value",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct DataElementValue",
         "name": "",
-        "type": "bytes"
+        "type": "tuple"
       }
     ],
     "stateMutability": "view",
@@ -1268,6 +1421,19 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "extraDataKeysToRemove",
+        "type": "bytes32[]"
+      }
+    ],
+    "name": "removeExtraData",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
