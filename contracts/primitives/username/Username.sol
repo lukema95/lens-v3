@@ -159,10 +159,12 @@ contract Username is IUsername, RuleBasedUsername, AccessControlled {
 
     // Getters
 
+    // TODO: getUsernameOf?
     function usernameOf(address user) external view returns (string memory) {
         return Core.$storage().accountToUsername[user];
     }
 
+    // TODO: getAccountOf?
     function accountOf(string memory name) external view returns (address) {
         return Core.$storage().usernameToAccount[name];
     }
