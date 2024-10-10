@@ -197,7 +197,7 @@ describe('Account', function () {
     console.log(`Post: "${post.contentURI}" by ${post.author}`);
   });
 
-  it.only('Should create an account with a username', async function () {
+  it('Should create an account with a username', async function () {
     const tx = await lensFactoryContract.createAccountWithUsernameFree(
       'someMetadata',
       await usernameAccountOwnerWallet.getAddress(),
