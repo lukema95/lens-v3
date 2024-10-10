@@ -25,12 +25,6 @@ import {AppFactory, AppInitialProperties} from "./AppFactory.sol";
 //     IRoleBasedAccessControl.AccessPermission accessPermission;
 // }
 
-struct TokenizationConfiguration {
-    bool tokenizationEnabled;
-    string tokenName;
-    string tokenSymbol;
-    string baseURI;
-}
 // uint8 decimals; TODO ???
 
 contract LensFactory {
@@ -72,14 +66,9 @@ contract LensFactory {
         address owner,
         address[] calldata admins,
         RuleConfiguration[] calldata rules,
-        DataElement[] calldata extraData,
-        TokenizationConfiguration calldata tokenizationConfig
+        DataElement[] calldata extraData
     ) external returns (address) {
-        if (tokenizationConfig.tokenizationEnabled) {
-            revert("NOT_IMPLEMENTED_YET");
-        } else {
-            return GROUP_FACTORY.deployGroup(metadataURI, _deployAccessControl(owner, admins), rules, extraData);
-        }
+        return GROUP_FACTORY.deployGroup(metadataURI, _deployAccessControl(owner, admins), rules, extraData);
     }
 
     function deployFeed(
@@ -108,16 +97,11 @@ contract LensFactory {
         address owner,
         address[] calldata admins,
         RuleConfiguration[] calldata rules,
-        DataElement[] calldata extraData,
-        TokenizationConfiguration calldata tokenizationConfig
+        DataElement[] calldata extraData
     ) external returns (address) {
-        if (tokenizationConfig.tokenizationEnabled) {
-            revert("NOT_IMPLEMENTED_YET");
-        } else {
-            return USERNAME_FACTORY.deployUsername(
-                namespace, metadataURI, _deployAccessControl(owner, admins), rules, extraData
-            );
-        }
+        return USERNAME_FACTORY.deployUsername(
+            namespace, metadataURI, _deployAccessControl(owner, admins), rules, extraData
+        );
     }
 
     // function deployRoleBasedAccessControl(
