@@ -2,6 +2,11 @@
   {
     "inputs": [
       {
+        "internalType": "contract AccountFactory",
+        "name": "accountFactory",
+        "type": "address"
+      },
+      {
         "internalType": "contract AppFactory",
         "name": "appFactory",
         "type": "address"
@@ -29,6 +34,91 @@
     ],
     "stateMutability": "nonpayable",
     "type": "constructor"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "metadataURI",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "internalType": "address[]",
+        "name": "accountManagers",
+        "type": "address[]"
+      },
+      {
+        "internalType": "address",
+        "name": "usernamePrimitiveAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "username",
+        "type": "string"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes[]",
+            "name": "dataForRequiredRules",
+            "type": "bytes[]"
+          },
+          {
+            "internalType": "bytes[]",
+            "name": "dataForAnyOfRules",
+            "type": "bytes[]"
+          }
+        ],
+        "internalType": "struct RuleExecutionData",
+        "name": "data",
+        "type": "tuple"
+      }
+    ],
+    "name": "createAccountWithUsernameFree",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "metadataURI",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "internalType": "address[]",
+        "name": "accountManagers",
+        "type": "address[]"
+      }
+    ],
+    "name": "deployAccount",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
     "inputs": [
