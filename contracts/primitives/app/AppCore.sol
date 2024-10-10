@@ -1,26 +1,40 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {DataElement} from "../../types/Types.sol";
+import "../libraries/ExtraDataLib.sol";
+import {DataElement, DataElementValue} from "../../types/Types.sol";
+
+struct ArrayStorageHelper {
+    uint8 index;
+    bool isSet;
+}
 
 library AppCore {
+    using ExtraDataLib for mapping(bytes32 => DataElementValue);
+
     // Storage
 
     struct Storage {
         string metadataURI; // Name, description, logo, other attribiutes like category/topic, etc.
         address treasury; // Can also be defined as a permission in the AC... and allow multiple revenue recipients!
-        address[] graphs; // Graphs that this App uses.
-        address[] feeds; // Feeds that this App uses
-        address[] usernames; // Usernames that this App uses.
-        address[] communities; // Communities that this App uses.
+        mapping(address => ArrayStorageHelper) signerStorageHelper;
+        mapping(address => ArrayStorageHelper) paymasterStorageHelper;
+        mapping(address => ArrayStorageHelper) graphStorageHelper;
+        mapping(address => ArrayStorageHelper) feedStorageHelper;
+        mapping(address => ArrayStorageHelper) usernameStorageHelper;
+        mapping(address => ArrayStorageHelper) communityStorageHelper;
+        address[] signers;
+        address[] paymasters;
+        address[] graphs;
+        address[] feeds;
+        address[] usernames;
+        address[] communities;
         address defaultGraph;
         address defaultFeed;
         address defaultUsername;
         address defaultCommunity;
         address defaultPaymaster;
-        address[] signers; // Signers that belong to this App.
-        address[] paymasters;
-        mapping(bytes32 => bytes) extraData;
+        mapping(bytes32 => DataElementValue) extraData;
     }
 
     // keccak256('lens.app.core.storage')
@@ -32,115 +46,164 @@ library AppCore {
         }
     }
 
-    function _setGraph(address graph) internal {
-        // TODO: Check for graph == 0x0, or add a add/remove function.
-        if ($storage().graphs.length == 0) {
-            $storage().graphs.push(graph);
-            $storage().defaultGraph = graph;
-        } else {
-            $storage().graphs[0] = graph;
-            $storage().defaultGraph = graph;
+    function _add(address element, address[] storage array, mapping(address => ArrayStorageHelper) storage arrayHelper)
+        internal
+    {
+        require(!arrayHelper[element].isSet, "ALREADY_ADDED");
+        array.push(element);
+        arrayHelper[element] = ArrayStorageHelper({index: uint8(array.length - 1), isSet: true});
+    }
+
+    function _remove(
+        address element,
+        address[] storage array,
+        mapping(address => ArrayStorageHelper) storage arrayHelper
+    ) internal {
+        require(arrayHelper[element].isSet, "NOT_FOUND");
+        uint256 index = arrayHelper[element].index;
+        array[index] = array[array.length - 1];
+        arrayHelper[array[index]].index = uint8(index);
+        array.pop();
+        delete arrayHelper[element];
+    }
+
+    ////////////// Graph
+
+    function _addGraph(address graph) internal {
+        _add(graph, $storage().graphs, $storage().graphStorageHelper);
+    }
+
+    function _removeGraph(address graph) internal {
+        _remove(graph, $storage().graphs, $storage().graphStorageHelper);
+    }
+
+    function _setDefaultGraph(address graph) internal returns (bool) {
+        bool wasAValuePreviouslySet = $storage().defaultGraph != address(0);
+        if (graph != address(0)) {
+            // address(0) allowed as a way to remove the default graph
+            require($storage().graphStorageHelper[graph].isSet, "NOT_FOUND");
         }
+        $storage().defaultGraph = graph;
+        return wasAValuePreviouslySet;
     }
 
-    // function setDefaultGraph(address graph) public {
-    //     $storage().defaultGraph = graph;
-    // }
-
-    function _setFeeds(address[] memory feeds) internal returns (address) {
-        $storage().feeds = feeds;
-        if (feeds.length == 0) {
-            delete $storage().defaultFeed;
-            return address(0);
-        } else {
-            $storage().defaultFeed = feeds[0];
-            return feeds[0];
-        }
-    }
-
-    function _setDefaultFeed(address feed) internal {
-        $storage().defaultFeed = feed;
-    }
+    ////////////// Feed
 
     function _addFeed(address feed) internal {
-        // TODO: Add check for duplicate, or use a mapping.
-        $storage().feeds.push(feed);
+        _add(feed, $storage().feeds, $storage().feedStorageHelper);
     }
 
-    function _removeFeed(address feed, uint256 index) internal {
-        if ($storage().feeds[index] == feed) {
-            delete $storage().feeds[index];
+    function _removeFeed(address feed) internal {
+        _remove(feed, $storage().feeds, $storage().feedStorageHelper);
+    }
+
+    function _setDefaultFeed(address feed) internal returns (bool) {
+        bool wasAValuePreviouslySet = $storage().defaultFeed != address(0);
+        if (feed != address(0)) {
+            // address(0) allowed as a way to remove the default feed
+            require($storage().feedStorageHelper[feed].isSet, "NOT_FOUND");
         }
+        $storage().defaultFeed = feed;
+        return wasAValuePreviouslySet;
     }
 
-    // TODO:
-    // In this implementation we assume you can only have one username.
+    ////////////// Username
 
-    function _setUsername(address username) internal {
-        if ($storage().usernames.length == 0) {
-            $storage().usernames.push(username);
-            $storage().defaultUsername = username;
-        } else {
-            $storage().usernames[0] = username;
-            $storage().defaultUsername = username;
+    function _addUsername(address username) internal {
+        _add(username, $storage().usernames, $storage().usernameStorageHelper);
+    }
+
+    function _removeUsername(address username) internal {
+        _remove(username, $storage().usernames, $storage().usernameStorageHelper);
+    }
+
+    function _setDefaultUsername(address username) internal returns (bool) {
+        bool wasAValuePreviouslySet = $storage().defaultUsername != address(0);
+        if (username != address(0)) {
+            // address(0) allowed as a way to remove the default username
+            require($storage().usernameStorageHelper[username].isSet, "NOT_FOUND");
         }
+        $storage().defaultUsername = username;
+        return wasAValuePreviouslySet;
     }
 
-    // function _setDefaultUsername(address username) internal {
-    //     $storage().defaultUsername = username;
-    // }
-
-    function _setCommunity(address[] memory communities) internal returns (address) {
-        $storage().communities = communities;
-        if (communities.length == 0) {
-            delete $storage().defaultCommunity;
-            return address(0);
-        } else {
-            $storage().defaultCommunity = communities[0];
-            return communities[0];
-        }
-    }
-
-    function _setDefaultCommunity(address community) internal {
-        $storage().defaultCommunity = community;
-    }
+    ////////////// Community
 
     function _addCommunity(address community) internal {
-        // TODO: Add check for duplicate, or use a mapping.
-        $storage().communities.push(community);
+        _add(community, $storage().communities, $storage().communityStorageHelper);
     }
 
-    function _removeCommunity(address community, uint256 index) internal {
-        if ($storage().communities[index] == community) {
-            delete $storage().communities[index];
+    function _removeCommunity(address community) internal {
+        _remove(community, $storage().communities, $storage().communityStorageHelper);
+    }
+
+    function _setDefaultCommunity(address community) internal returns (bool) {
+        bool wasAValuePreviouslySet = $storage().defaultCommunity != address(0);
+        if (community != address(0)) {
+            // address(0) allowed as a way to remove the default community
+            require($storage().communityStorageHelper[community].isSet, "NOT_FOUND");
         }
+        $storage().defaultCommunity = community;
+        return wasAValuePreviouslySet;
     }
 
-    function _setSigners(address[] memory signers) internal {
-        $storage().signers = signers;
+    ////////////// Paymaster
+
+    function _addPaymaster(address paymaster) internal {
+        _add(paymaster, $storage().paymasters, $storage().paymasterStorageHelper);
     }
 
-    function _setPaymaster(address paymaster) internal {
-        if ($storage().paymasters.length == 0) {
-            $storage().paymasters.push(paymaster);
-            $storage().defaultPaymaster = paymaster;
-        } else {
-            $storage().paymasters[0] = paymaster;
-            $storage().defaultPaymaster = paymaster;
+    function _removePaymaster(address paymaster) internal {
+        _remove(paymaster, $storage().paymasters, $storage().paymasterStorageHelper);
+    }
+
+    function _setDefaultPaymaster(address paymaster) internal returns (bool) {
+        bool wasAValuePreviouslySet = $storage().defaultPaymaster != address(0);
+        if (paymaster != address(0)) {
+            // address(0) allowed as a way to remove the default paymaster
+            require($storage().paymasterStorageHelper[paymaster].isSet, "NOT_FOUND");
         }
+        $storage().defaultPaymaster = paymaster;
+        return wasAValuePreviouslySet;
     }
+
+    ////////////// Signer
+
+    function _addSigner(address signer) internal {
+        _add(signer, $storage().signers, $storage().signerStorageHelper);
+    }
+
+    function _removeSigner(address signer) internal {
+        _remove(signer, $storage().signers, $storage().signerStorageHelper);
+    }
+
+    ////////////// Treasury
 
     function _setTreasury(address treasury) internal {
         $storage().treasury = treasury;
     }
 
+    ////////////// Metadata URI
+
     function _setMetadataURI(string memory metadataURI) internal {
         $storage().metadataURI = metadataURI;
     }
 
-    function _setExtraData(DataElement[] memory extraDataToSet) internal {
-        for (uint256 i = 0; i < extraDataToSet.length; i++) {
-            $storage().extraData[extraDataToSet[i].key] = extraDataToSet[i].value;
-        }
+    ////////////// Extra Data
+
+    function setExtraData(DataElement memory extraDataToSet) external returns (bool) {
+        return _setExtraData(extraDataToSet);
+    }
+
+    function removeExtraData(bytes32 extraDataKeyToRemove) external {
+        _removeExtraData(extraDataKeyToRemove);
+    }
+
+    function _setExtraData(DataElement memory extraDataToSet) internal returns (bool) {
+        return $storage().extraData.set(extraDataToSet);
+    }
+
+    function _removeExtraData(bytes32 extraDataKeyToRemove) internal {
+        require(!$storage().extraData.remove(extraDataKeyToRemove), "EXTRA_DATA_WAS_NOT_SET");
     }
 }
