@@ -11,7 +11,8 @@
     "clean": "hardhat clean",
     "test": "hardhat test --network hardhat",
     "prepare": "husky",
-    "generate-abis": "rm -r ./abis && ts-node ./extractArtifacts.ts"
+    "generate-abis": "rm -r ./abis && ts-node ./extractArtifacts.ts",
+    "rstypings": "forge bind --alloy --skip 'test/**/*.sol'"
   },
   "devDependencies": {
     "@matterlabs/hardhat-zksync": "^1.1.0",
