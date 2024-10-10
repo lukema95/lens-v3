@@ -12,6 +12,7 @@ contract AccountFactory {
         external
         returns (address)
     {
+        // TODO: Make it a proxy
         Account account = new Account(owner, metadataURI, accountManagers);
         emit Lens_AccountFactory_Deployment(address(account), owner, metadataURI, accountManagers);
         return address(account);

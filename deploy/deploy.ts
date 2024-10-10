@@ -33,6 +33,14 @@ export default async function () {
 
   console.log(`\n✔ GroupFactory deployed at ${await groupFactory.getAddress()}`);
 
+  // account factory
+  const accountFactory_artifactName = 'AccountFactory';
+  const accountFactory_args: any[] = [];
+
+  const accountFactory = await deployContract(accountFactory_artifactName, accountFactory_args);
+
+  console.log(`\n✔ AccountFactory deployed at ${await accountFactory.getAddress()}`);
+
   // app factory
   const appFactory_artifactName = 'AppFactory';
   const appFactory_args: any[] = [];
@@ -44,6 +52,7 @@ export default async function () {
   // lens factory
   const lensFactory_artifactName = 'LensFactory';
   const lensFactory_args = [
+    await accountFactory.getAddress(),
     await appFactory.getAddress(),
     await groupFactory.getAddress(),
     await feedFactory.getAddress(),
@@ -96,7 +105,7 @@ export default async function () {
   console.log(`GRAPH_FACTORY=${await graphFactory.getAddress()}`);
   console.log(`GLOBAL_GRAPH=${globalGraphAddress}`);
   console.log('');
-  console.log(`ACCOUNT_FACTORY=0x0000000000000000000000000000000000000000`); // TODO
+  console.log(`ACCOUNT_FACTORY=${await accountFactory.getAddress()}`);
   console.log('');
   console.log(`APP_FACTORY=${await appFactory.getAddress()}`);
   console.log('');
