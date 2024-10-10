@@ -6,7 +6,7 @@ import {DataElement, DataElementValue} from "../../types/Types.sol";
 library ExtraDataLib {
     function set(
         mapping(bytes32 => DataElementValue) storage _extraDataStorage,
-        DataElement calldata extraDataElementToSet
+        DataElement memory extraDataElementToSet
     ) internal returns (bool) {
         return _setExtraDataElement(_extraDataStorage, extraDataElementToSet);
     }
@@ -34,7 +34,7 @@ library ExtraDataLib {
 
     function _setExtraDataElement(
         mapping(bytes32 => DataElementValue) storage _extraDataStorage,
-        DataElement calldata extraDataElementToSet
+        DataElement memory extraDataElementToSet
     ) internal returns (bool) {
         bool wasPreviousValueSet = _extraDataStorage[extraDataElementToSet.key].isSet;
         _extraDataStorage[extraDataElementToSet.key] =
