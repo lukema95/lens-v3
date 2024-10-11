@@ -41,10 +41,6 @@ interface IApp is IMetadataBased {
     event Lens_App_PaymasterAdded(address indexed paymaster);
     event Lens_App_PaymasterRemoved(address indexed paymaster);
 
-    event Lens_App_DefaultPaymasterAdded(address indexed paymaster);
-    event Lens_App_DefaultPaymasterUpdated(address indexed paymaster);
-    event Lens_App_DefaultPaymasterRemoved(address indexed paymaster);
-
     // Signer
     event Lens_App_SignerAdded(address indexed signer);
     event Lens_App_SignerRemoved(address indexed signer);

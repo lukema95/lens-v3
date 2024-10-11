@@ -252,7 +252,6 @@ contract App is IApp, AccessControlled {
         if (paymaster == address(0)) {
             Core._removePaymaster(Core.$storage().defaultPaymaster); // Will fail if no paymaster was set
             Core._setDefaultPaymaster(address(0));
-            emit Lens_App_DefaultPaymasterRemoved(paymaster);
             emit Lens_App_PaymasterRemoved(paymaster);
         } else {
             address paymasterPreviouslySet = Core.$storage().defaultPaymaster;
@@ -260,11 +259,8 @@ contract App is IApp, AccessControlled {
             if (wasAValueAlreadySet) {
                 Core._removePaymaster(paymasterPreviouslySet);
                 emit Lens_App_PaymasterRemoved(paymasterPreviouslySet);
-                emit Lens_App_PaymasterAdded(paymaster);
-                emit Lens_App_DefaultPaymasterUpdated(paymaster);
-            } else {
-                emit Lens_App_DefaultPaymasterAdded(paymaster);
             }
+            emit Lens_App_PaymasterAdded(paymaster);
             Core._addPaymaster(paymaster);
         }
     }
