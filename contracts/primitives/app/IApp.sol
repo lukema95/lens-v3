@@ -9,10 +9,6 @@ interface IApp is IMetadataBased {
     event Lens_App_GraphAdded(address indexed graph);
     event Lens_App_GraphRemoved(address indexed graph);
 
-    event Lens_App_DefaultGraphAdded(address indexed graph);
-    event Lens_App_DefaultGraphUpdated(address indexed graph);
-    event Lens_App_DefaultGraphRemoved(address indexed graph);
-
     // Feed
     event Lens_App_FeedAdded(address indexed feed);
     event Lens_App_FeedRemoved(address indexed feed);
