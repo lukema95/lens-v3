@@ -11,6 +11,7 @@ library UsernameCore {
     struct Storage {
         string namespace;
         string metadataURI;
+        mapping(string => bool) usernameExists; // TODO: Should this store the owner instead???
         mapping(string => address) usernameToAccount;
         mapping(address => string) accountToUsername;
         mapping(bytes32 => DataElementValue) extraData;
@@ -27,12 +28,20 @@ library UsernameCore {
 
     // External functions - Use these functions to be called through DELEGATECALL
 
-    function registerUsername(address account, string memory username) external {
-        _registerUsername(account, username);
+    function createUsername(string memory username) external {
+        _createUsername(username);
     }
 
-    function unregisterUsername(string memory username) external {
-        _unregisterUsername(username);
+    function removeUsername(string memory username) external {
+        _removeUsername(username);
+    }
+
+    function linkUsername(address account, string memory username) external {
+        _linkUsername(account, username);
+    }
+
+    function unlinkUsername(string memory username) external {
+        _unlinkUsername(username);
     }
 
     function setExtraData(DataElement calldata extraDataToSet) external returns (bool) {
@@ -45,17 +54,29 @@ library UsernameCore {
 
     // Internal functions - Use these functions to be called as an inlined library
 
-    function _registerUsername(address account, string memory username) internal {
+    function _createUsername(string memory username) internal {
+        require(!$storage().usernameExists[username]); // Username must not exist yet
         require(bytes(username).length > 0); // Username must not be empty
-        require($storage().usernameToAccount[username] == address(0)); // Username must not be registered yet
+        $storage().usernameExists[username] = true;
+    }
+
+    function _removeUsername(string memory username) internal {
+        require($storage().usernameExists[username]); // Username must exist
+        require($storage().usernameToAccount[username] == address(0)); // Username must not be linked
+        $storage().usernameExists[username] = false;
+    }
+
+    function _linkUsername(address account, string memory username) internal {
+        require($storage().usernameExists[username]); // Username must exist
+        require($storage().usernameToAccount[username] == address(0)); // Username must not be linked yet
         require(bytes($storage().accountToUsername[account]).length == 0); // Account must not have a username yet
         $storage().usernameToAccount[username] = account;
         $storage().accountToUsername[account] = username;
     }
 
-    function _unregisterUsername(string memory username) internal {
+    function _unlinkUsername(string memory username) internal {
         address account = $storage().usernameToAccount[username];
-        require(account != address(0)); // Username must be registered
+        require(account != address(0)); // Username must be linked
         delete $storage().accountToUsername[account];
         delete $storage().usernameToAccount[username];
     }

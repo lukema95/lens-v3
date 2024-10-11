@@ -11,9 +11,13 @@ interface IUsername is IMetadataBased {
 
     event Lens_Username_RuleRemoved(address indexed ruleAddress);
 
-    event Lens_Username_Registered(string username, address indexed account, RuleExecutionData data);
+    event Lens_Username_Created(string username, address indexed account, RuleExecutionData data);
 
-    event Lens_Username_Unregistered(string username, address indexed previousAccount, RuleExecutionData data);
+    event Lens_Username_Removed(string username, address indexed account, RuleExecutionData data);
+
+    event Lens_Username_Linked(string username, address indexed account, RuleExecutionData data);
+
+    event Lens_Username_Unlinked(string username, address indexed previousAccount, RuleExecutionData data);
 
     event Lens_Username_ExtraDataAdded(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
     event Lens_Username_ExtraDataUpdated(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
@@ -31,9 +35,9 @@ interface IUsername is IMetadataBased {
 
     function removeUsernameRules(address[] calldata rules) external;
 
-    function registerUsername(address account, string memory username, RuleExecutionData calldata data) external;
+    function linkUsername(address account, string memory username, RuleExecutionData calldata data) external;
 
-    function unregisterUsername(string memory username, RuleExecutionData calldata data) external;
+    function unlinkUsername(string memory username, RuleExecutionData calldata data) external;
 
     function usernameOf(address user) external view returns (string memory);
 

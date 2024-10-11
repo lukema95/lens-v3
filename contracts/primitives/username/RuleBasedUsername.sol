@@ -42,12 +42,20 @@ contract RuleBasedUsername {
         $usernameRulesStorage().removeRule(rule);
     }
 
-    function _processRegistering(address account, string memory username, RuleExecutionData calldata data) internal {
-        _processUsernameRule(IUsernameRule.processRegistering.selector, account, username, data);
+    function _processCreation(address account, string memory username, RuleExecutionData calldata data) internal {
+        _processUsernameRule(IUsernameRule.processCreation.selector, account, username, data);
     }
 
-    function _processUnregistering(address account, string memory username, RuleExecutionData calldata data) internal {
-        _processUsernameRule(IUsernameRule.processUnregistering.selector, account, username, data);
+    function _processRemoval(address account, string memory username, RuleExecutionData calldata data) internal {
+        _processUsernameRule(IUsernameRule.processRemoval.selector, account, username, data);
+    }
+
+    function _processLinking(address account, string memory username, RuleExecutionData calldata data) internal {
+        _processUsernameRule(IUsernameRule.processLinking.selector, account, username, data);
+    }
+
+    function _processUnlinking(address account, string memory username, RuleExecutionData calldata data) internal {
+        _processUsernameRule(IUsernameRule.processUnlinking.selector, account, username, data);
     }
 
     function _processUsernameRule(

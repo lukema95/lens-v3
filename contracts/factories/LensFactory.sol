@@ -115,7 +115,13 @@ contract LensFactory {
             revert("NOT_IMPLEMENTED_YET");
         } else {
             return USERNAME_FACTORY.deployUsername(
-                namespace, metadataURI, _deployAccessControl(owner, admins), rules, extraData
+                namespace,
+                metadataURI,
+                _deployAccessControl(owner, admins),
+                rules,
+                extraData,
+                tokenizationConfig.tokenName,
+                tokenizationConfig.tokenSymbol
             );
         }
     }

@@ -20,9 +20,11 @@ contract UsernameFactory {
         string memory metadataURI,
         IAccessControl accessControl,
         RuleConfiguration[] calldata rules,
-        DataElement[] calldata extraData
+        DataElement[] calldata extraData,
+        string memory nftName,
+        string memory nftSymbol
     ) external returns (address) {
-        Username username = new Username(namespace, metadataURI, _factoryOwnedAccessControl);
+        Username username = new Username(namespace, metadataURI, _factoryOwnedAccessControl, nftName, nftSymbol);
         username.addUsernameRules(rules);
         username.setExtraData(extraData);
         username.setAccessControl(accessControl);
