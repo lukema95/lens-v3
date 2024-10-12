@@ -9,10 +9,6 @@ interface IApp is IMetadataBased {
     event Lens_App_GraphAdded(address indexed graph);
     event Lens_App_GraphRemoved(address indexed graph);
 
-    event Lens_App_DefaultGraphAdded(address indexed graph);
-    event Lens_App_DefaultGraphUpdated(address indexed graph);
-    event Lens_App_DefaultGraphRemoved(address indexed graph);
-
     // Feed
     event Lens_App_FeedAdded(address indexed feed);
     event Lens_App_FeedRemoved(address indexed feed);
@@ -40,10 +36,6 @@ interface IApp is IMetadataBased {
     // Paymaster
     event Lens_App_PaymasterAdded(address indexed paymaster);
     event Lens_App_PaymasterRemoved(address indexed paymaster);
-
-    event Lens_App_DefaultPaymasterAdded(address indexed paymaster);
-    event Lens_App_DefaultPaymasterUpdated(address indexed paymaster);
-    event Lens_App_DefaultPaymasterRemoved(address indexed paymaster);
 
     // Signer
     event Lens_App_SignerAdded(address indexed signer);

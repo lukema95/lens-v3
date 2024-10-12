@@ -74,7 +74,6 @@ contract App is IApp, AccessControlled {
         if (graph == address(0)) {
             Core._removeGraph(Core.$storage().defaultGraph); // Will fail if no graph was set
             Core._setDefaultGraph(address(0));
-            emit Lens_App_DefaultGraphRemoved(graph);
             emit Lens_App_GraphRemoved(graph);
         } else {
             address graphPreviouslySet = Core.$storage().defaultGraph;
@@ -82,11 +81,8 @@ contract App is IApp, AccessControlled {
             if (wasAValueAlreadySet) {
                 Core._removeGraph(graphPreviouslySet);
                 emit Lens_App_GraphRemoved(graphPreviouslySet);
-                emit Lens_App_GraphAdded(graph);
-                emit Lens_App_DefaultGraphUpdated(graph);
-            } else {
-                emit Lens_App_DefaultGraphAdded(graph);
             }
+            emit Lens_App_GraphAdded(graph);
             Core._addGraph(graph);
         }
     }
@@ -252,7 +248,6 @@ contract App is IApp, AccessControlled {
         if (paymaster == address(0)) {
             Core._removePaymaster(Core.$storage().defaultPaymaster); // Will fail if no paymaster was set
             Core._setDefaultPaymaster(address(0));
-            emit Lens_App_DefaultPaymasterRemoved(paymaster);
             emit Lens_App_PaymasterRemoved(paymaster);
         } else {
             address paymasterPreviouslySet = Core.$storage().defaultPaymaster;
@@ -260,11 +255,8 @@ contract App is IApp, AccessControlled {
             if (wasAValueAlreadySet) {
                 Core._removePaymaster(paymasterPreviouslySet);
                 emit Lens_App_PaymasterRemoved(paymasterPreviouslySet);
-                emit Lens_App_PaymasterAdded(paymaster);
-                emit Lens_App_DefaultPaymasterUpdated(paymaster);
-            } else {
-                emit Lens_App_DefaultPaymasterAdded(paymaster);
             }
+            emit Lens_App_PaymasterAdded(paymaster);
             Core._addPaymaster(paymaster);
         }
     }
