@@ -70,11 +70,14 @@ contract LensFactory {
         address[] calldata accountManagers,
         address usernamePrimitiveAddress,
         string calldata username,
-        RuleExecutionData calldata data
+        RuleExecutionData calldata createUsernameData,
+        RuleExecutionData calldata linkUsernameData
     ) external returns (address) {
         address account = ACCOUNT_FACTORY.deployAccount(address(this), metadataURI, accountManagers);
         IUsername usernamePrimitive = IUsername(usernamePrimitiveAddress);
-        bytes memory txData = abi.encodeCall(usernamePrimitive.registerUsername, (account, username, data));
+        bytes memory txData = abi.encodeCall(usernamePrimitive.createUsername, (account, username, createUsernameData));
+        IAccount(payable(account)).executeTransaction(usernamePrimitiveAddress, uint256(0), txData);
+        txData = abi.encodeCall(usernamePrimitive.linkUsername, (account, username, linkUsernameData));
         IAccount(payable(account)).executeTransaction(usernamePrimitiveAddress, uint256(0), txData);
         IOwnable(account).transferOwnership(owner);
         return account;
@@ -133,10 +136,12 @@ contract LensFactory {
         address owner,
         address[] calldata admins,
         RuleConfiguration[] calldata rules,
-        DataElement[] calldata extraData
+        DataElement[] calldata extraData,
+        string memory nftName,
+        string memory nftSymbol
     ) external returns (address) {
         return USERNAME_FACTORY.deployUsername(
-            namespace, metadataURI, _deployAccessControl(owner, admins), rules, extraData
+            namespace, metadataURI, _deployAccessControl(owner, admins), rules, extraData, nftName, nftSymbol
         );
     }
 
