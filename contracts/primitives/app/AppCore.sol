@@ -97,14 +97,8 @@ library AppCore {
         _remove(feed, $storage().feeds, $storage().feedStorageHelper);
     }
 
-    function _setDefaultFeed(address feed) internal returns (bool) {
-        bool wasAValuePreviouslySet = $storage().defaultFeed != address(0);
-        if (feed != address(0)) {
-            // address(0) allowed as a way to remove the default feed
-            require($storage().feedStorageHelper[feed].isSet, "NOT_FOUND");
-        }
+    function _setDefaultFeed(address feed) internal {
         $storage().defaultFeed = feed;
-        return wasAValuePreviouslySet;
     }
 
     ////////////// Username
@@ -137,14 +131,12 @@ library AppCore {
         _remove(group, $storage().groups, $storage().groupStorageHelper);
     }
 
-    function _setDefaultGroup(address group) internal returns (bool) {
-        bool wasAValuePreviouslySet = $storage().defaultGroup != address(0);
+    function _setDefaultGroup(address group) internal {
         if (group != address(0)) {
             // address(0) allowed as a way to remove the default group
             require($storage().groupStorageHelper[group].isSet, "NOT_FOUND");
         }
         $storage().defaultGroup = group;
-        return wasAValuePreviouslySet;
     }
 
     ////////////// Paymaster

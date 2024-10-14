@@ -123,15 +123,8 @@ contract App is IApp, AccessControlled {
     }
 
     function _setDefaultFeed(address feed) internal {
-        bool wasAValueAlreadySet = Core._setDefaultFeed(feed);
-        if (feed == address(0)) {
-            require(wasAValueAlreadySet, "DEFAULT_ALREADY_UNSET");
-            emit Lens_App_DefaultFeedRemoved(feed);
-        } else if (wasAValueAlreadySet) {
-            emit Lens_App_DefaultFeedUpdated(feed);
-        } else {
-            emit Lens_App_DefaultFeedAdded(feed);
-        }
+        Core._setDefaultFeed(feed);
+        emit Lens_App_DefaultFeedSet(feed);
     }
 
     ///////////////// Username
@@ -145,8 +138,6 @@ contract App is IApp, AccessControlled {
     function _setUsername(address username) internal {
         if (username == address(0)) {
             Core._removeUsername(Core.$storage().defaultUsername); // Will fail if no username was set
-            Core._setDefaultUsername(address(0));
-            emit Lens_App_DefaultUsernameRemoved(username);
             emit Lens_App_UsernameRemoved(username);
         } else {
             address usernamePreviouslySet = Core.$storage().defaultUsername;
@@ -155,9 +146,6 @@ contract App is IApp, AccessControlled {
                 Core._removeUsername(usernamePreviouslySet);
                 emit Lens_App_UsernameRemoved(usernamePreviouslySet);
                 emit Lens_App_UsernameAdded(username);
-                emit Lens_App_DefaultUsernameUpdated(username);
-            } else {
-                emit Lens_App_DefaultUsernameAdded(username);
             }
             Core._addUsername(username);
         }
@@ -199,15 +187,8 @@ contract App is IApp, AccessControlled {
     }
 
     function _setDefaultGroup(address group) internal {
-        bool wasAValueAlreadySet = Core._setDefaultGroup(group);
-        if (group == address(0)) {
-            require(wasAValueAlreadySet, "DEFAULT_ALREADY_UNSET");
-            emit Lens_App_DefaultGroupRemoved(group);
-        } else if (wasAValueAlreadySet) {
-            emit Lens_App_DefaultGroupUpdated(group);
-        } else {
-            emit Lens_App_DefaultGroupAdded(group);
-        }
+        Core._setDefaultGroup(group);
+        emit Lens_App_DefaultGroupSet(group);
     }
 
     ///////////////// Signers

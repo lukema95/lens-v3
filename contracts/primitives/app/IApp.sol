@@ -12,26 +12,16 @@ interface IApp is IMetadataBased {
     // Feed
     event Lens_App_FeedAdded(address indexed feed);
     event Lens_App_FeedRemoved(address indexed feed);
-
-    event Lens_App_DefaultFeedAdded(address indexed feed);
-    event Lens_App_DefaultFeedUpdated(address indexed feed);
-    event Lens_App_DefaultFeedRemoved(address indexed feed);
+    event Lens_App_DefaultFeedSet(address indexed feed);
 
     // Username
     event Lens_App_UsernameAdded(address indexed username);
     event Lens_App_UsernameRemoved(address indexed username);
 
-    event Lens_App_DefaultUsernameAdded(address indexed username);
-    event Lens_App_DefaultUsernameUpdated(address indexed username);
-    event Lens_App_DefaultUsernameRemoved(address indexed username);
-
     // Group
     event Lens_App_GroupAdded(address indexed group);
     event Lens_App_GroupRemoved(address indexed group);
-
-    event Lens_App_DefaultGroupAdded(address indexed group);
-    event Lens_App_DefaultGroupUpdated(address indexed group);
-    event Lens_App_DefaultGroupRemoved(address indexed group);
+    event Lens_App_DefaultGroupSet(address indexed group);
 
     // Paymaster
     event Lens_App_PaymasterAdded(address indexed paymaster);
