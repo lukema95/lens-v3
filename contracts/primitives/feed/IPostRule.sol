@@ -1,22 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {RuleConfiguration} from "./../../types/Types.sol";
-
 // TODO: We do not have native referrals here, shoud we add them?
 interface IPostRule {
     function configure(uint256 postId, bytes calldata data) external;
 
-    function processQuote(uint256 quotedPostId, uint256 childPostId, bytes calldata data) external;
+    function processQuote(uint256 rootPostId, uint256 quotedPostId, uint256 postId, bytes calldata data) external;
 
-    function processParent(uint256 parentPostId, uint256 childPostId, bytes calldata data) external;
-
-    function processChildPostRulesChanged(
-        uint256 parentPostId,
-        uint256 postId,
-        RuleConfiguration[] calldata newChildPostRulesData,
-        bytes calldata data
-    ) external;
+    function processParent(uint256 rootPostId, uint256 parentPostId, uint256 postId, bytes calldata data) external;
 }
 
 /*

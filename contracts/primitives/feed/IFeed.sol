@@ -18,10 +18,8 @@ struct CreatePostParams {
     uint256 parentPostId;
     RuleConfiguration[] rules;
     RuleExecutionData feedRulesData;
-    RuleExecutionData changeRulesQuotePostRulesData;
-    RuleExecutionData changeRulesParentPostRulesData;
-    RuleExecutionData quotesPostRulesData;
-    RuleExecutionData parentsPostRulesData;
+    RuleExecutionData quotedPostRulesData;
+    RuleExecutionData parentPostRulesData;
     DataElement[] extraData;
 }
 
@@ -30,7 +28,7 @@ struct CreateRepostParams {
     address source;
     uint256 parentPostId;
     RuleExecutionData feedRulesData;
-    RuleExecutionData parentsPostRulesData;
+    RuleExecutionData parentPostRulesData;
     DataElement[] extraData;
 }
 
@@ -122,28 +120,19 @@ interface IFeed is IMetadataBased {
         RuleExecutionData calldata feedRulesData
     ) external;
 
-    function addPostRules(
-        uint256 postId,
-        RuleConfiguration[] calldata rules,
-        RuleExecutionData calldata feedRulesData,
-        RuleExecutionData calldata quotePostRulesData,
-        RuleExecutionData calldata parentPostRulesData
-    ) external;
+    function addPostRules(uint256 postId, RuleConfiguration[] calldata rules, RuleExecutionData calldata feedRulesData)
+        external;
 
     function updatePostRules(
         uint256 postId,
         RuleConfiguration[] calldata rules,
-        RuleExecutionData calldata feedRulesData,
-        RuleExecutionData calldata quotePostRulesData,
-        RuleExecutionData calldata parentPostRulesData
+        RuleExecutionData calldata feedRulesData
     ) external;
 
     function removePostRules(
         uint256 postId,
         RuleConfiguration[] calldata rules,
-        RuleExecutionData calldata feedRulesData,
-        RuleExecutionData calldata quotePostRulesData,
-        RuleExecutionData calldata parentPostRulesData
+        RuleExecutionData calldata feedRulesData
     ) external;
 
     function setExtraData(DataElement[] calldata extraDataToSet) external;
