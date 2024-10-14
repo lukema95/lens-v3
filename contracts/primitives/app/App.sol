@@ -14,7 +14,6 @@ struct AppInitialProperties {
     address username;
     address[] groups;
     address defaultFeed;
-    address defaultGroup;
     address[] signers;
     address paymaster;
     address treasury;
@@ -42,7 +41,6 @@ contract App is IApp, AccessControlled {
         _setUsername(initialProps.username);
         _addGroups(initialProps.groups);
         _setDefaultFeed(initialProps.defaultFeed);
-        _setDefaultGroup(initialProps.defaultGroup);
         _addSigners(initialProps.signers);
         _setPaymaster(initialProps.paymaster);
         _setExtraData(extraData);
@@ -163,11 +161,6 @@ contract App is IApp, AccessControlled {
         _removeGroups(groups);
     }
 
-    function setDefaultGroup(address group) external {
-        _requireAccess(msg.sender, SET_PRIMITIVES_RID);
-        _setDefaultGroup(group);
-    }
-
     function _addGroups(address[] memory groups) internal {
         for (uint256 i = 0; i < groups.length; i++) {
             Core._addGroup(groups[i]);
@@ -176,19 +169,10 @@ contract App is IApp, AccessControlled {
     }
 
     function _removeGroups(address[] memory groups) internal {
-        address defaultGroup = Core.$storage().defaultGroup;
         for (uint256 i = 0; i < groups.length; i++) {
-            if (groups[i] == defaultGroup) {
-                _setDefaultGroup(address(0));
-            }
             Core._removeGroup(groups[i]);
             emit Lens_App_GroupRemoved(groups[i]);
         }
-    }
-
-    function _setDefaultGroup(address group) internal {
-        Core._setDefaultGroup(group);
-        emit Lens_App_DefaultGroupSet(group);
     }
 
     ///////////////// Signers
