@@ -35,6 +35,10 @@ interface IUsername is IMetadataBased {
 
     function removeUsernameRules(address[] calldata rules) external;
 
+    function createUsername(address account, string memory username, RuleExecutionData calldata data) external;
+
+    function removeUsername(string memory username, RuleExecutionData calldata data) external;
+
     function linkUsername(address account, string memory username, RuleExecutionData calldata data) external;
 
     function unlinkUsername(string memory username, RuleExecutionData calldata data) external;

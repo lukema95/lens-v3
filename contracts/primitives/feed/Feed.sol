@@ -281,6 +281,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     // Getters
 
     function getPost(uint256 postId) external view override returns (Post memory) {
+        // TODO: Should fail if post doesn't exist
         return Post({
             author: Core.$storage().posts[postId].author,
             localSequentialId: Core.$storage().posts[postId].localSequentialId,
@@ -297,6 +298,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     }
 
     function getPostAuthor(uint256 postId) external view override returns (address) {
+        // TODO: Should fail if post doesn't exist
         return Core.$storage().posts[postId].author;
     }
 

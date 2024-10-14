@@ -127,3 +127,7 @@ dist
 # TernJS port file
 .tern-port
 .DS_Store
+
+deployment-zk/*
+!deployment-zk/lensSepoliaTestnet/
+cache_forge/solidity-files-cache.json

@@ -86,7 +86,10 @@ contract Username is IUsername, ERC721, RuleBasedUsername, AccessControlled {
 
     // Permissionless functions
 
-    function createUsername(address account, string memory username, RuleExecutionData calldata data) external {
+    function createUsername(address account, string memory username, RuleExecutionData calldata data)
+        external
+        override
+    {
         require(msg.sender == account); // msg.sender must be the account
         uint256 id = _computeId(username);
         _safeMint(account, id);
@@ -96,7 +99,7 @@ contract Username is IUsername, ERC721, RuleBasedUsername, AccessControlled {
         emit Lens_Username_Created(username, account, data);
     }
 
-    function removeUsername(string memory username, RuleExecutionData calldata data) external {
+    function removeUsername(string memory username, RuleExecutionData calldata data) external override {
         address account = _ownerOf(_computeId(username));
         require(msg.sender == account); // msg.sender must be the owner of the username
         Core._removeUsername(username);
@@ -104,14 +107,14 @@ contract Username is IUsername, ERC721, RuleBasedUsername, AccessControlled {
         emit Lens_Username_Removed(username, account, data);
     }
 
-    function linkUsername(address account, string memory username, RuleExecutionData calldata data) external {
+    function linkUsername(address account, string memory username, RuleExecutionData calldata data) external override {
         require(msg.sender == account); // msg.sender must be the account
         Core._linkUsername(account, username);
         _processLinking(account, username, data);
         emit Lens_Username_Linked(username, account, data);
     }
 
-    function unlinkUsername(string memory username, RuleExecutionData calldata data) external {
+    function unlinkUsername(string memory username, RuleExecutionData calldata data) external override {
         address account = Core.$storage().usernameToAccount[username];
         require(msg.sender == account); // msg.sender must be the account
         Core._unlinkUsername(username);
@@ -186,10 +189,12 @@ contract Username is IUsername, ERC721, RuleBasedUsername, AccessControlled {
 
     // Getters
 
+    // TODO: getUsernameOf?
     function usernameOf(address user) external view returns (string memory) {
         return Core.$storage().accountToUsername[user];
     }
 
+    // TODO: getAccountOf?
     function accountOf(string memory name) external view returns (address) {
         return Core.$storage().usernameToAccount[name];
     }
