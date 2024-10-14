@@ -102,19 +102,19 @@ export default async function () {
   // TODO: Make this to be written into a file
   console.log('\n\n--- Indexer file ---\n\n');
   console.log('# CONTRACTS');
-  console.log(`GRAPH_FACTORY=${await graphFactory.getAddress()}`);
-  console.log(`GLOBAL_GRAPH=${globalGraphAddress}`);
+  console.log(`GRAPH_FACTORY="${await graphFactory.getAddress()}"`);
+  console.log(`GLOBAL_GRAPH="${globalGraphAddress}"`);
   console.log('');
-  console.log(`ACCOUNT_FACTORY=${await accountFactory.getAddress()}`);
+  console.log(`ACCOUNT_FACTORY="${await accountFactory.getAddress()}"`);
   console.log('');
-  console.log(`APP_FACTORY=${await appFactory.getAddress()}`);
+  console.log(`APP_FACTORY="${await appFactory.getAddress()}"`);
   console.log('');
-  console.log(`USERNAME_FACTORY=${await usernameFactory.getAddress()}`);
+  console.log(`USERNAME_FACTORY="${await usernameFactory.getAddress()}"`);
   console.log('');
-  console.log(`FEED_FACTORY=${await feedFactory.getAddress()}`);
-  console.log(`GLOBAL_FEED=${globalFeedAddress}`);
+  console.log(`FEED_FACTORY="${await feedFactory.getAddress()}"`);
+  console.log(`GLOBAL_FEED="${globalFeedAddress}"`);
   console.log('');
-  console.log(`LENS_FACTORY=${await lensFactory.getAddress()}`);
+  console.log(`LENS_FACTORY="${await lensFactory.getAddress()}"`);
   console.log('');
-  console.log(`GROUP_FACTORY=${await groupFactory.getAddress()}`);
+  console.log(`GROUP_FACTORY="${await groupFactory.getAddress()}"`);
 }
