@@ -8,7 +8,7 @@ interface IUsernameRule {
 
     function processRemoval(address account, string memory username, bytes calldata data) external;
 
-    function processLinking(address account, string memory username, bytes calldata data) external;
+    function processAssigning(address account, string memory username, bytes calldata data) external;
 
-    function processUnlinking(address account, string memory username, bytes calldata data) external;
+    function processUnassigning(address account, string memory username, bytes calldata data) external;
 }

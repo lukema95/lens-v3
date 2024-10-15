@@ -50,12 +50,12 @@ contract RuleBasedUsername {
         _processUsernameRule(IUsernameRule.processRemoval.selector, account, username, data);
     }
 
-    function _processLinking(address account, string memory username, RuleExecutionData calldata data) internal {
-        _processUsernameRule(IUsernameRule.processLinking.selector, account, username, data);
+    function _processAssigning(address account, string memory username, RuleExecutionData calldata data) internal {
+        _processUsernameRule(IUsernameRule.processAssigning.selector, account, username, data);
     }
 
-    function _processUnlinking(address account, string memory username, RuleExecutionData calldata data) internal {
-        _processUsernameRule(IUsernameRule.processUnlinking.selector, account, username, data);
+    function _processUnassigning(address account, string memory username, RuleExecutionData calldata data) internal {
+        _processUsernameRule(IUsernameRule.processUnassigning.selector, account, username, data);
     }
 
     function _processUsernameRule(
