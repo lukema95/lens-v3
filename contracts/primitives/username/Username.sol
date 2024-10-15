@@ -122,7 +122,7 @@ contract Username is IUsername, ERC721, RuleBasedUsername, AccessControlled {
         require(msg.sender == account); // msg.sender must be the account
         Core._unassignUsername(username);
         _processUnassigning(account, username, data);
-        emit Lens_Username_Unassign(username, account, data);
+        emit Lens_Username_Unassigned(username, account, data);
     }
 
     // TODO: Decide if it worth to have a "before/after" hook for the rules, or if we are covered just with the "before"

@@ -17,7 +17,7 @@ interface IUsername is IMetadataBased {
 
     event Lens_Username_Assigned(string username, address indexed account, RuleExecutionData data);
 
-    event Lens_Username_Unassign(string username, address indexed previousAccount, RuleExecutionData data);
+    event Lens_Username_Unassigned(string username, address indexed previousAccount, RuleExecutionData data);
 
     event Lens_Username_ExtraDataAdded(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
     event Lens_Username_ExtraDataUpdated(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
