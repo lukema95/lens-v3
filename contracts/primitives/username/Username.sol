@@ -15,9 +15,9 @@ import {ERC721} from "../base/ERC721.sol";
 
 contract Username is IUsername, ERC721, RuleBasedUsername, AccessControlled {
     // TODO: Do we want more granular resources here? Like add/update/remove RIDs? Or are we OK with the multi-purpose?
-    uint256 constant SET_RULES_RID = uint256(keccak256("SET_RULES"));
-    uint256 constant SET_METADATA_RID = uint256(keccak256("SET_METADATA"));
-    uint256 constant SET_EXTRA_DATA_RID = uint256(keccak256("SET_EXTRA_DATA"));
+    uint256 constant SET_RULES_PID = uint256(keccak256("SET_RULES"));
+    uint256 constant SET_METADATA_PID = uint256(keccak256("SET_METADATA"));
+    uint256 constant SET_EXTRA_DATA_PID = uint256(keccak256("SET_EXTRA_DATA"));
 
     // TODO: This will be a mandatory rule now
     // // Storage fields and structs
@@ -43,21 +43,21 @@ contract Username is IUsername, ERC721, RuleBasedUsername, AccessControlled {
 
     function _emitRIDs() internal override {
         super._emitRIDs();
-        emit Lens_ResourceId_Available(SET_RULES_RID, "SET_RULES");
-        emit Lens_ResourceId_Available(SET_METADATA_RID, "SET_METADATA");
-        emit Lens_ResourceId_Available(SET_EXTRA_DATA_RID, "SET_EXTRA_DATA");
+        emit Lens_PermissonId_Available(SET_RULES_PID, "SET_RULES");
+        emit Lens_PermissonId_Available(SET_METADATA_PID, "SET_METADATA");
+        emit Lens_PermissonId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
     }
 
     // Access Controlled functions
 
     function setMetadataURI(string calldata metadataURI) external override {
-        _requireAccess(msg.sender, SET_METADATA_RID);
+        _requireAccess(msg.sender, SET_METADATA_PID);
         Core.$storage().metadataURI = metadataURI;
         emit Lens_Username_MetadataURISet(metadataURI);
     }
 
     function addUsernameRules(RuleConfiguration[] calldata ruleConfigurations) external {
-        _requireAccess(msg.sender, SET_RULES_RID);
+        _requireAccess(msg.sender, SET_RULES_PID);
         for (uint256 i = 0; i < ruleConfigurations.length; i++) {
             _addUsernameRule(ruleConfigurations[i]);
             emit Lens_Username_RuleAdded(
@@ -67,7 +67,7 @@ contract Username is IUsername, ERC721, RuleBasedUsername, AccessControlled {
     }
 
     function updateUsernameRules(RuleConfiguration[] calldata ruleConfigurations) external {
-        _requireAccess(msg.sender, SET_RULES_RID);
+        _requireAccess(msg.sender, SET_RULES_PID);
         for (uint256 i = 0; i < ruleConfigurations.length; i++) {
             _updateUsernameRule(ruleConfigurations[i]);
             emit Lens_Username_RuleUpdated(
@@ -77,7 +77,7 @@ contract Username is IUsername, ERC721, RuleBasedUsername, AccessControlled {
     }
 
     function removeUsernameRules(address[] calldata rules) external {
-        _requireAccess(msg.sender, SET_RULES_RID);
+        _requireAccess(msg.sender, SET_RULES_PID);
         for (uint256 i = 0; i < rules.length; i++) {
             _removeUsernameRule(rules[i]);
             emit Lens_Username_RuleRemoved(rules[i]);
@@ -133,7 +133,7 @@ contract Username is IUsername, ERC721, RuleBasedUsername, AccessControlled {
     // }
 
     function setExtraData(DataElement[] calldata extraDataToSet) external override {
-        _requireAccess(msg.sender, SET_EXTRA_DATA_RID);
+        _requireAccess(msg.sender, SET_EXTRA_DATA_PID);
         for (uint256 i = 0; i < extraDataToSet.length; i++) {
             bool wasExtraDataAlreadySet = Core._setExtraData(extraDataToSet[i]);
             if (wasExtraDataAlreadySet) {
@@ -149,7 +149,7 @@ contract Username is IUsername, ERC721, RuleBasedUsername, AccessControlled {
     }
 
     function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external override {
-        _requireAccess(msg.sender, SET_EXTRA_DATA_RID);
+        _requireAccess(msg.sender, SET_EXTRA_DATA_PID);
         for (uint256 i = 0; i < extraDataKeysToRemove.length; i++) {
             Core._removeExtraData(extraDataKeysToRemove[i]);
             emit Lens_Username_ExtraDataRemoved(extraDataKeysToRemove[i]);

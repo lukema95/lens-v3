@@ -8,11 +8,11 @@ contract AccessControlled {
     using AccessControlLib for IAccessControl;
     using AccessControlLib for address;
 
-    event Lens_ResourceId_Available(uint256 indexed resourceId, string name);
+    event Lens_PermissonId_Available(uint256 indexed permissionId, string name);
     event Lens_AccessControlAdded(address indexed accessControl);
     event Lens_AccessControlUpdated(address indexed accessControl);
 
-    uint256 constant SET_ACCESS_CONTROL_RID = uint256(keccak256("SET_ACCESS_CONTROL"));
+    uint256 constant SET_ACCESS_CONTROL_PID = uint256(keccak256("SET_ACCESS_CONTROL"));
 
     struct AccessControlledStorage {
         address accessControl;
@@ -32,26 +32,26 @@ contract AccessControlled {
         _setAccessControl(address(accessControl));
     }
 
-    modifier requireAccess(uint256 resourceId) {
-        _requireAccess(msg.sender, resourceId);
+    modifier requireAccess(uint256 permissionId) {
+        _requireAccess(msg.sender, permissionId);
         _;
     }
 
     function _emitRIDs() internal virtual {
-        emit Lens_ResourceId_Available(SET_ACCESS_CONTROL_RID, "SET_ACCESS_CONTROL");
+        emit Lens_PermissonId_Available(SET_ACCESS_CONTROL_PID, "SET_ACCESS_CONTROL");
     }
 
-    function _requireAccess(address account, uint256 resourceId) internal view {
-        _accessControl().requireAccess(account, resourceId);
+    function _requireAccess(address account, uint256 permissionId) internal view {
+        _accessControl().requireAccess(account, permissionId);
     }
 
-    function _hasAccess(address account, uint256 resourceId) internal view returns (bool) {
-        return _accessControl().hasAccess(account, resourceId);
+    function _hasAccess(address account, uint256 permissionId) internal view returns (bool) {
+        return _accessControl().hasAccess(account, permissionId);
     }
 
     // Access Controlled Functions
     function setAccessControl(IAccessControl newAccessControl) external {
-        _accessControl().requireAccess(msg.sender, SET_ACCESS_CONTROL_RID);
+        _accessControl().requireAccess(msg.sender, SET_ACCESS_CONTROL_PID);
         newAccessControl.verifyHasAccessFunction();
         _setAccessControl(address(newAccessControl));
     }

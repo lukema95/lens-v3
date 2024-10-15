@@ -23,8 +23,8 @@ contract RoleBasedAccessControl is IRoleBasedAccessControl {
     address internal _owner;
     mapping(address => bool) internal _isAdmin;
     mapping(address => uint256[]) internal _roles;
-    mapping(uint256 => mapping(address => mapping(uint256 => AccessPermission))) internal _scopedAccess;
-    mapping(uint256 => mapping(uint256 => AccessPermission)) internal _globalAccess;
+    mapping(uint256 => mapping(address => mapping(uint256 => Access))) internal _scopedAccess;
+    mapping(uint256 => mapping(uint256 => Access)) internal _globalAccess;
 
     constructor(address owner) {
         emit Events.Lens_Contract_Deployed(
@@ -41,21 +41,21 @@ contract RoleBasedAccessControl is IRoleBasedAccessControl {
         emit OwnershipTransferred(oldOwner, newOwner);
     }
 
-    function hasAccess(address account, address resourceLocation, uint256 resourceId)
+    function hasAccess(address account, address contractAddress, uint256 permissionId)
         external
         view
         override
         returns (bool)
     {
-        // `_getScopedAccess` always returns AccessPermission.GRANTED for Owner and Admins.
-        AccessPermission scopedAccess = _getScopedAccess(account, resourceLocation, resourceId);
-        if (scopedAccess == AccessPermission.GRANTED) {
+        // `_getScopedAccess` always returns Access.GRANTED for Owner and Admins.
+        Access scopedAccess = _getScopedAccess(account, contractAddress, permissionId);
+        if (scopedAccess == Access.GRANTED) {
             return true;
-        } else if (scopedAccess == AccessPermission.DENIED) {
+        } else if (scopedAccess == Access.DENIED) {
             return false;
         } else {
-            // scopedAccess == AccessPermission.UNDEFINED, so it depends exclusively on the global access.
-            return _getGlobalAccess(account, resourceId) == AccessPermission.GRANTED;
+            // scopedAccess == Access.UNDEFINED, so it depends exclusively on the global access.
+            return _getGlobalAccess(account, permissionId) == Access.GRANTED;
         }
     }
 
@@ -108,77 +108,69 @@ contract RoleBasedAccessControl is IRoleBasedAccessControl {
         }
     }
 
-    function setGlobalAccess(
-        uint256 roleId,
-        uint256 resourceId,
-        AccessPermission accessPermission,
-        bytes calldata /* data */
-    ) external override {
+    function setGlobalAccess(uint256 roleId, uint256 permissionId, Access access, bytes calldata /* data */ )
+        external
+        override
+    {
         require(msg.sender == _owner);
         require(roleId != OWNER_ROLE_ID && roleId != ADMIN_ROLE_ID);
-        AccessPermission previousPermission = _globalAccess[roleId][resourceId];
-        _globalAccess[roleId][resourceId] = accessPermission;
-        if (previousPermission == AccessPermission.UNDEFINED) {
-            require(accessPermission != AccessPermission.UNDEFINED);
-            emit Lens_AccessControl_GlobalAccessAdded(roleId, resourceId, accessPermission == AccessPermission.GRANTED);
-        } else if (accessPermission == AccessPermission.UNDEFINED) {
-            emit Lens_AccessControl_GlobalAccessRemoved(roleId, resourceId);
+        Access previousPermission = _globalAccess[roleId][permissionId];
+        _globalAccess[roleId][permissionId] = access;
+        if (previousPermission == Access.UNDEFINED) {
+            require(access != Access.UNDEFINED);
+            emit Lens_AccessControl_GlobalAccessAdded(roleId, permissionId, access == Access.GRANTED);
+        } else if (access == Access.UNDEFINED) {
+            emit Lens_AccessControl_GlobalAccessRemoved(roleId, permissionId);
         } else {
-            emit Lens_AccessControl_GlobalAccessUpdated(
-                roleId, resourceId, accessPermission == AccessPermission.GRANTED
-            );
+            emit Lens_AccessControl_GlobalAccessUpdated(roleId, permissionId, access == Access.GRANTED);
         }
     }
 
     function setScopedAccess(
         uint256 roleId,
-        address resourceLocation,
-        uint256 resourceId,
-        AccessPermission accessPermission,
+        address contractAddress,
+        uint256 permissionId,
+        Access access,
         bytes calldata /* data */
     ) external override {
         require(msg.sender == _owner);
         require(roleId != OWNER_ROLE_ID && roleId != ADMIN_ROLE_ID);
-        AccessPermission previousPermission = _scopedAccess[roleId][resourceLocation][resourceId];
-        _scopedAccess[roleId][resourceLocation][resourceId] = accessPermission;
-        if (previousPermission == AccessPermission.UNDEFINED) {
-            require(accessPermission != AccessPermission.UNDEFINED);
-            emit Lens_AccessControl_ScopedAccessAdded(
-                roleId, resourceLocation, resourceId, accessPermission == AccessPermission.GRANTED
-            );
-        } else if (accessPermission == AccessPermission.UNDEFINED) {
-            emit Lens_AccessControl_ScopedAccessRemoved(roleId, resourceLocation, resourceId);
+        Access previousPermission = _scopedAccess[roleId][contractAddress][permissionId];
+        _scopedAccess[roleId][contractAddress][permissionId] = access;
+        if (previousPermission == Access.UNDEFINED) {
+            require(access != Access.UNDEFINED);
+            emit Lens_AccessControl_ScopedAccessAdded(roleId, contractAddress, permissionId, access == Access.GRANTED);
+        } else if (access == Access.UNDEFINED) {
+            emit Lens_AccessControl_ScopedAccessRemoved(roleId, contractAddress, permissionId);
         } else {
-            emit Lens_AccessControl_ScopedAccessUpdated(
-                roleId, resourceLocation, resourceId, accessPermission == AccessPermission.GRANTED
-            );
+            emit Lens_AccessControl_ScopedAccessUpdated(roleId, contractAddress, permissionId, access == Access.GRANTED);
         }
     }
 
-    function getGlobalAccess(uint256 roleId, uint256 resourceId) external view override returns (AccessPermission) {
-        return _globalAccess[roleId][resourceId];
+    function getGlobalAccess(uint256 roleId, uint256 permissionId) external view override returns (Access) {
+        return _globalAccess[roleId][permissionId];
     }
 
-    function getGlobalAccess(address account, uint256 resourceId) external view override returns (AccessPermission) {
-        return _getGlobalAccess(account, resourceId);
+    function getGlobalAccess(address account, uint256 permissionId) external view override returns (Access) {
+        return _getGlobalAccess(account, permissionId);
     }
 
-    function getScopedAccess(uint256 roleId, address resourceLocation, uint256 resourceId)
+    function getScopedAccess(uint256 roleId, address contractAddress, uint256 permissionId)
         external
         view
         override
-        returns (AccessPermission)
+        returns (Access)
     {
-        return _scopedAccess[roleId][resourceLocation][resourceId];
+        return _scopedAccess[roleId][contractAddress][permissionId];
     }
 
-    function getScopedAccess(address account, address resourceLocation, uint256 resourceId)
+    function getScopedAccess(address account, address contractAddress, uint256 permissionId)
         external
         view
         override
-        returns (AccessPermission)
+        returns (Access)
     {
-        return _getScopedAccess(account, resourceLocation, resourceId);
+        return _getScopedAccess(account, contractAddress, permissionId);
     }
 
     function _hasCustomRole(address account, uint256 roleId) internal view returns (bool) {
@@ -190,40 +182,39 @@ contract RoleBasedAccessControl is IRoleBasedAccessControl {
         return false;
     }
 
-    function _getScopedAccess(address account, address resourceLocation, uint256 resourceId)
+    function _getScopedAccess(address account, address contractAddress, uint256 permissionId)
         internal
         view
-        returns (AccessPermission)
+        returns (Access)
     {
         if (_owner == account || _isAdmin[account]) {
-            return AccessPermission.GRANTED;
+            return Access.GRANTED;
         } else {
-            AccessPermission accessPermission = AccessPermission.UNDEFINED;
+            Access access = Access.UNDEFINED;
             for (uint256 i = 0; i < _roles[account].length; i++) {
-                if (_scopedAccess[_roles[account][i]][resourceLocation][resourceId] == AccessPermission.DENIED) {
-                    accessPermission = AccessPermission.DENIED;
-                } else if (_scopedAccess[_roles[account][i]][resourceLocation][resourceId] == AccessPermission.GRANTED)
-                {
-                    return AccessPermission.GRANTED;
+                if (_scopedAccess[_roles[account][i]][contractAddress][permissionId] == Access.DENIED) {
+                    access = Access.DENIED;
+                } else if (_scopedAccess[_roles[account][i]][contractAddress][permissionId] == Access.GRANTED) {
+                    return Access.GRANTED;
                 }
             }
-            return accessPermission;
+            return access;
         }
     }
 
-    function _getGlobalAccess(address account, uint256 resourceId) internal view returns (AccessPermission) {
+    function _getGlobalAccess(address account, uint256 permissionId) internal view returns (Access) {
         if (_owner == account || _isAdmin[account]) {
-            return AccessPermission.GRANTED;
+            return Access.GRANTED;
         } else {
-            AccessPermission accessPermission = AccessPermission.UNDEFINED;
+            Access access = Access.UNDEFINED;
             for (uint256 i = 0; i < _roles[account].length; i++) {
-                if (_globalAccess[_roles[account][i]][resourceId] == AccessPermission.DENIED) {
-                    accessPermission = AccessPermission.DENIED;
-                } else if (_globalAccess[_roles[account][i]][resourceId] == AccessPermission.GRANTED) {
-                    return AccessPermission.GRANTED;
+                if (_globalAccess[_roles[account][i]][permissionId] == Access.DENIED) {
+                    access = Access.DENIED;
+                } else if (_globalAccess[_roles[account][i]][permissionId] == Access.GRANTED) {
+                    return Access.GRANTED;
                 }
             }
-            return accessPermission;
+            return access;
         }
     }
 }

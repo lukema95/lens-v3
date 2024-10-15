@@ -10,8 +10,8 @@
 
 //     IAccessControl internal _accessControl; // "lens.username.accessControl"
 
-//     uint256 constant SKIP_MIN_LENGTH_RID = uint256(keccak256("SKIP_MIN_LENGTH"));
-//     uint256 constant SKIP_MAX_LENGTH_RID = uint256(keccak256("SKIP_MAX_LENGTH"));
+//     uint256 constant SKIP_MIN_LENGTH_PID = uint256(keccak256("SKIP_MIN_LENGTH"));
+//     uint256 constant SKIP_MAX_LENGTH_PID = uint256(keccak256("SKIP_MAX_LENGTH"));
 
 //     address immutable IMPLEMENTATION;
 
@@ -40,8 +40,8 @@
 //             require(
 //                 _accessControl.hasAccess({
 //                     account: originalMsgSender,
-//                     resourceLocation: address(this),
-//                     resourceId: SKIP_MIN_LENGTH_RID
+//                     contractAddress: address(this),
+//                     permissionId: SKIP_MIN_LENGTH_PID
 //                 }),
 //                 "UsernameLengthRule: cannot skip min length restriction"
 //             );
@@ -50,8 +50,8 @@
 //             require(
 //                 _accessControl.hasAccess({
 //                     account: originalMsgSender,
-//                     resourceLocation: address(this),
-//                     resourceId: SKIP_MAX_LENGTH_RID
+//                     contractAddress: address(this),
+//                     permissionId: SKIP_MAX_LENGTH_PID
 //                 }),
 //                 "UsernameLengthRule: cannot skip max length restriction"
 //             );

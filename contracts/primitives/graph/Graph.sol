@@ -11,11 +11,11 @@ import {Events} from "./../../types/Events.sol";
 
 contract Graph is IGraph, RuleBasedGraph, AccessControlled {
     // Resource IDs involved in the contract
-    uint256 constant SET_RULES_RID = uint256(keccak256("SET_RULES"));
-    uint256 constant SET_METADATA_RID = uint256(keccak256("SET_METADATA"));
-    uint256 constant SET_EXTRA_DATA_RID = uint256(keccak256("SET_EXTRA_DATA"));
+    uint256 constant SET_RULES_PID = uint256(keccak256("SET_RULES"));
+    uint256 constant SET_METADATA_PID = uint256(keccak256("SET_METADATA"));
+    uint256 constant SET_EXTRA_DATA_PID = uint256(keccak256("SET_EXTRA_DATA"));
 
-    // uint256 constant SKIP_FOLLOW_RULES_CHECKS_RID = uint256(keccak256("SKIP_FOLLOW_RULES_CHECKS"));
+    // uint256 constant SKIP_FOLLOW_RULES_CHECKS_PID = uint256(keccak256("SKIP_FOLLOW_RULES_CHECKS"));
 
     constructor(string memory metadataURI, IAccessControl accessControl) AccessControlled(accessControl) {
         Core.$storage().metadataURI = metadataURI;
@@ -26,21 +26,21 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
 
     function _emitRIDs() internal override {
         super._emitRIDs();
-        emit Lens_ResourceId_Available(SET_RULES_RID, "SET_RULES");
-        emit Lens_ResourceId_Available(SET_METADATA_RID, "SET_METADATA");
-        emit Lens_ResourceId_Available(SET_EXTRA_DATA_RID, "SET_EXTRA_DATA");
+        emit Lens_PermissonId_Available(SET_RULES_PID, "SET_RULES");
+        emit Lens_PermissonId_Available(SET_METADATA_PID, "SET_METADATA");
+        emit Lens_PermissonId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
     }
 
     // Access Controlled functions
 
     function setMetadataURI(string calldata metadataURI) external override {
-        _requireAccess(msg.sender, SET_METADATA_RID);
+        _requireAccess(msg.sender, SET_METADATA_PID);
         Core.$storage().metadataURI = metadataURI;
         emit Lens_Graph_MetadataURISet(metadataURI);
     }
 
     function addGraphRules(RuleConfiguration[] calldata rules) external override {
-        _requireAccess(msg.sender, SET_RULES_RID);
+        _requireAccess(msg.sender, SET_RULES_PID);
         for (uint256 i = 0; i < rules.length; i++) {
             _addGraphRule(rules[i]);
             emit Lens_Graph_RuleAdded(rules[i].ruleAddress, rules[i].configData, rules[i].isRequired);
@@ -48,7 +48,7 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
     }
 
     function updateGraphRules(RuleConfiguration[] calldata rules) external override {
-        _requireAccess(msg.sender, SET_RULES_RID);
+        _requireAccess(msg.sender, SET_RULES_PID);
         for (uint256 i = 0; i < rules.length; i++) {
             _updateGraphRule(rules[i]);
             emit Lens_Graph_RuleUpdated(rules[i].ruleAddress, rules[i].configData, rules[i].isRequired);
@@ -56,7 +56,7 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
     }
 
     function removeGraphRules(address[] calldata rules) external override {
-        _requireAccess(msg.sender, SET_RULES_RID);
+        _requireAccess(msg.sender, SET_RULES_PID);
         for (uint256 i = 0; i < rules.length; i++) {
             _removeGraphRule(rules[i]);
             emit Lens_Graph_RuleRemoved(rules[i]);
@@ -71,7 +71,7 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
         RuleExecutionData calldata graphRulesData
     ) external override {
         // TODO: Decide if we want a RID to skip checks for owners/admins
-        // require(msg.sender == account || _hasAccess(SKIP_FOLLOW_RULES_CHECKS_RID));
+        // require(msg.sender == account || _hasAccess(SKIP_FOLLOW_RULES_CHECKS_PID));
         require(msg.sender == account);
         address[] memory ruleAddresses = new address[](rules.length);
         for (uint256 i = 0; i < rules.length; i++) {
@@ -79,7 +79,7 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
             ruleAddresses[i] = rules[i].ruleAddress;
             emit Lens_Graph_Follow_RuleAdded(account, rules[i].ruleAddress, rules[i]);
         }
-        // if (_hasAccess(SKIP_FOLLOW_RULES_CHECKS_RID)) {
+        // if (_hasAccess(SKIP_FOLLOW_RULES_CHECKS_PID)) {
         //     return; // Skip processing the graph rules if you have the right access
         // }
         _graphProcessFollowRulesChange(account, ruleAddresses, graphRulesData);
@@ -140,7 +140,7 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
     }
 
     function setExtraData(DataElement[] calldata extraDataToSet) external override {
-        _requireAccess(msg.sender, SET_EXTRA_DATA_RID);
+        _requireAccess(msg.sender, SET_EXTRA_DATA_PID);
         for (uint256 i = 0; i < extraDataToSet.length; i++) {
             bool wasExtraDataAlreadySet = Core._setExtraData(extraDataToSet[i]);
             if (wasExtraDataAlreadySet) {
@@ -154,7 +154,7 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
     }
 
     function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external override {
-        _requireAccess(msg.sender, SET_EXTRA_DATA_RID);
+        _requireAccess(msg.sender, SET_EXTRA_DATA_PID);
         for (uint256 i = 0; i < extraDataKeysToRemove.length; i++) {
             Core._removeExtraData(extraDataKeysToRemove[i]);
             emit Lens_Graph_ExtraDataRemoved(extraDataKeysToRemove[i]);

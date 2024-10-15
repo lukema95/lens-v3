@@ -31,22 +31,22 @@ interface IAccessControl_WithoutScaryTrooleans {
     function getRole(address account) external view returns (uint256);
 
     // Resource access permissions functions - Global
-    function clearAccess(uint256 roleId, uint256 resourceId) external;
+    function clearAccess(uint256 roleId, uint256 permissionId) external;
 
-    function grantAccess(uint256 roleId, uint256 resourceId) external;
+    function grantAccess(uint256 roleId, uint256 permissionId) external;
 
-    function denyAccess(uint256 roleId, uint256 resourceId) external;
+    function denyAccess(uint256 roleId, uint256 permissionId) external;
 
     // Resource access permissions functions - Local (location is address based)
-    function clearAccess(uint256 roleId, address resourceLocation, uint256 resourceId) external;
+    function clearAccess(uint256 roleId, address contractAddress, uint256 permissionId) external;
 
-    function grantAccess(uint256 roleId, address resourceLocation, uint256 resourceId) external;
+    function grantAccess(uint256 roleId, address contractAddress, uint256 permissionId) external;
 
-    function denyAccess(uint256 roleId, address resourceLocation, uint256 resourceId) external;
+    function denyAccess(uint256 roleId, address contractAddress, uint256 permissionId) external;
 
-    function hasAccess(uint256 roleId, address resourceLocation, uint256 resource) external view returns (bool);
+    function hasAccess(uint256 roleId, address contractAddress, uint256 resource) external view returns (bool);
 
-    function hasAccess(address account, address resourceLocation, uint256 resource) external view returns (bool);
+    function hasAccess(address account, address contractAddress, uint256 resource) external view returns (bool);
 
     function hasAccess(uint256 roleId, uint256 resource) external view returns (bool);
 
@@ -84,7 +84,7 @@ contract InterfaceVersioning {
 }
 
 interface IAccessControl {
-    enum AccessPermission {
+    enum Access {
         UNDEFINED,
         GRANTED,
         DENIED
@@ -98,36 +98,31 @@ interface IAccessControl {
     function getRole(address account) external view returns (uint256);
 
     // Resource access permissions functions - Global
-    function setAccess(uint256 roleId, uint256 resourceId, AccessPermission accessPermission) external;
+    function setAccess(uint256 roleId, uint256 permissionId, Access access) external;
 
     // Resource access permissions functions - Local (location is address based)
-    function setAccess(
-        uint256 roleId,
-        address resourceLocation,
-        uint256 resourceId,
-        AccessPermission accessPermission
-    ) external;
+    function setAccess(uint256 roleId, address contractAddress, uint256 permissionId, Access access) external;
 
-    function hasAccess(uint256 roleId, address resourceLocation, uint256 resourceId) external view returns (bool);
+    function hasAccess(uint256 roleId, address contractAddress, uint256 permissionId) external view returns (bool);
 
-    function hasAccess(address account, address resourceLocation, uint256 resourceId) external view returns (bool);
+    function hasAccess(address account, address contractAddress, uint256 permissionId) external view returns (bool);
 
     // Internal state views can be added to implementation if needed:
-    // function _queryGlobalAccessStorage(uint256 roleId, uint256 resourceId) external view returns (AccessPermission);
+    // function _queryGlobalAccessStorage(uint256 roleId, uint256 permissionId) external view returns (Access);
 
-    // function getAccess(address account, uint256 resourceId) external view returns (AccessPermission);
+    // function getAccess(address account, uint256 permissionId) external view returns (Access);
 
     // function getLocalAccessState(
     //     uint256 roleId,
-    //     address resourceLocation,
-    //     uint256 resourceId
-    // ) external view returns (AccessPermission);
+    //     address contractAddress,
+    //     uint256 permissionId
+    // ) external view returns (Access);
 
     // function getAccess(
     //     address account,
-    //     address resourceLocation,
-    //     uint256 resourceId
-    // ) external view returns (AccessPermission);
+    //     address contractAddress,
+    //     uint256 permissionId
+    // ) external view returns (Access);
 }
 
 // TODO: Add custom bytes data param to set role and permission functions!
@@ -139,25 +134,25 @@ interface IAccessControl_Simplified {
 
     function getRole(address account) external view returns (uint256);
 
-    function hasAccess(uint256 roleId, address resourceLocation, uint256 resourceId) external view returns (bool);
+    function hasAccess(uint256 roleId, address contractAddress, uint256 permissionId) external view returns (bool);
 
-    function hasAccess(address account, address resourceLocation, uint256 resourceId) external view returns (bool);
+    function hasAccess(address account, address contractAddress, uint256 permissionId) external view returns (bool);
 }
 
 // contract SomeRule {
-//     bytes32 _canSkipPaymentResourceId; // It can be equals to `keccack(address(this), 'CAN_SKIP_PAYMENT')` or `keccak('CAN_SKIP_PAYMENT')`
+//     bytes32 _canSkipPaymentPermissonId; // It can be equals to `keccack(address(this), 'CAN_SKIP_PAYMENT')` or `keccak('CAN_SKIP_PAYMENT')`
 
 //     // Say we have both, stored at AccessControl contract:
 //     // keccak(CAN_SKIP_PAYMENT) is global one
 //     // keccak(address+CANSKIP_PAYMENT) is a local rule one
 
-//     function configure(bytes32 canSkipPaymentResourceId) {
-//         _canSkipPaymentResourceId = canSkipPaymentResourceId;
+//     function configure(bytes32 canSkipPaymentPermissonId) {
+//         _canSkipPaymentPermissonId = canSkipPaymentPermissonId;
 //     }
 
 //     function doSomeStuffThatHasAPaymentRestrictionRule() internal {
-//         // resourceId = keccak256(address(this), 'CAN_SKIP_PAYMENT');
-//         // resourceId = uint256(keccak256('CAN_SKIP_PAYMENT');
+//         // permissionId = keccak256(address(this), 'CAN_SKIP_PAYMENT');
+//         // permissionId = uint256(keccak256('CAN_SKIP_PAYMENT');
 
 //         if (ac.hasAccess(LOCAL_ONE).isSet()) {
 //             // check this
@@ -165,11 +160,11 @@ interface IAccessControl_Simplified {
 //             // check this
 //         }
 
-//         resourceId = _canSkipPaymentResourceId;
+//         permissionId = _canSkipPaymentPermissonId;
 
 //         // ac.setAccess(roleId, uint256(keccak256('CAN_SKIP_PAYMENT')), true);
 
-//         if (ac.hasAccess(msg.sender, resourceId)) {
+//         if (ac.hasAccess(msg.sender, permissionId)) {
 //             // do something
 //         }
 //     }

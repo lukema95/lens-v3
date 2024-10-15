@@ -8,22 +8,22 @@ interface IRoleBasedAccessControl is IAccessControl {
     event Lens_AccessControl_RoleGranted(address indexed account, uint256 indexed roleId);
     event Lens_AccessControl_RoleRevoked(address indexed account, uint256 indexed roleId);
 
-    event Lens_AccessControl_GlobalAccessAdded(uint256 indexed roleId, uint256 indexed resourceId, bool granted);
-    event Lens_AccessControl_GlobalAccessUpdated(uint256 indexed roleId, uint256 indexed resourceId, bool granted);
-    event Lens_AccessControl_GlobalAccessRemoved(uint256 indexed roleId, uint256 indexed resourceId);
+    event Lens_AccessControl_GlobalAccessAdded(uint256 indexed roleId, uint256 indexed permissionId, bool granted);
+    event Lens_AccessControl_GlobalAccessUpdated(uint256 indexed roleId, uint256 indexed permissionId, bool granted);
+    event Lens_AccessControl_GlobalAccessRemoved(uint256 indexed roleId, uint256 indexed permissionId);
 
-    // TODO: accessPermission param should also be indexed, maybe (resourceLocation, resourceId) should be a tuple type
+    // TODO: access param should also be indexed, maybe (contractAddress, permissionId) should be a tuple type
     event Lens_AccessControl_ScopedAccessAdded(
-        uint256 indexed roleId, address indexed resourceLocation, uint256 indexed resourceId, bool granted
+        uint256 indexed roleId, address indexed contractAddress, uint256 indexed permissionId, bool granted
     );
     event Lens_AccessControl_ScopedAccessUpdated(
-        uint256 indexed roleId, address indexed resourceLocation, uint256 indexed resourceId, bool granted
+        uint256 indexed roleId, address indexed contractAddress, uint256 indexed permissionId, bool granted
     );
     event Lens_AccessControl_ScopedAccessRemoved(
-        uint256 indexed roleId, address indexed resourceLocation, uint256 indexed resourceId
+        uint256 indexed roleId, address indexed contractAddress, uint256 indexed permissionId
     );
 
-    enum AccessPermission {
+    enum Access {
         UNDEFINED,
         GRANTED,
         DENIED
@@ -37,30 +37,29 @@ interface IRoleBasedAccessControl is IAccessControl {
     function hasRole(address account, uint256 roleId) external view returns (bool);
 
     // Resource access permissions functions - Global
-    function setGlobalAccess(uint256 roleId, uint256 resourceId, AccessPermission accessPermission, bytes calldata data)
-        external;
+    function setGlobalAccess(uint256 roleId, uint256 permissionId, Access access, bytes calldata data) external;
 
     // Resource access permissions functions - Scoped (location is address based)
     function setScopedAccess(
         uint256 roleId,
-        address resourceLocation,
-        uint256 resourceId,
-        AccessPermission accessPermission,
+        address contractAddress,
+        uint256 permissionId,
+        Access access,
         bytes calldata data
     ) external;
 
     // These are not meant to be used to check access, but to query internal configuration state instead.
-    function getGlobalAccess(uint256 roleId, uint256 resourceId) external view returns (AccessPermission);
+    function getGlobalAccess(uint256 roleId, uint256 permissionId) external view returns (Access);
 
-    function getGlobalAccess(address account, uint256 resourceId) external view returns (AccessPermission);
+    function getGlobalAccess(address account, uint256 permissionId) external view returns (Access);
 
-    function getScopedAccess(uint256 roleId, address resourceLocation, uint256 resourceId)
+    function getScopedAccess(uint256 roleId, address contractAddress, uint256 permissionId)
         external
         view
-        returns (AccessPermission);
+        returns (Access);
 
-    function getScopedAccess(address account, address resourceLocation, uint256 resourceId)
+    function getScopedAccess(address account, address contractAddress, uint256 permissionId)
         external
         view
-        returns (AccessPermission);
+        returns (Access);
 }
