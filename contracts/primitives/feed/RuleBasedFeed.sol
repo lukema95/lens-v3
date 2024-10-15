@@ -63,50 +63,31 @@ contract RuleBasedFeed {
         $postRulesStorage(postId).removeRule(rule);
     }
 
-    function _processAllParentsPostsRules(
-        uint256 parentPostId,
-        uint256 childPostId,
-        RuleExecutionData calldata parentPostRulesData
-    ) internal {
-        _postProcessParent(parentPostId, childPostId, parentPostRulesData);
-    }
-
-    function _processAllParentsAndQuotedPostsRules(
+    function _processQuotedPostRules(
         uint256 quotedPostId,
-        uint256 parentPostId,
-        uint256 childPostId,
-        RuleExecutionData calldata quotedPostRulesData,
-        RuleExecutionData calldata parentPostRulesData
-    ) internal {
-        _postProcessQuote(quotedPostId, childPostId, quotedPostRulesData);
-        _postProcessParent(parentPostId, childPostId, parentPostRulesData);
-    }
-
-    function _postProcessQuote(
-        uint256 quotedPostId,
-        uint256 childPostId,
+        uint256 postId,
         RuleExecutionData calldata quotedPostRulesData
     ) internal {
+        uint256 rootPostId = Core.$storage().posts[quotedPostId].rootPostId;
+        RulesStorage storage rulesToProcess = $postRulesStorage(rootPostId);
+
         // Check required rules (AND-combined rules)
-        for (uint256 i = 0; i < $postRulesStorage(quotedPostId).requiredRules.length; i++) {
-            (bool callNotReverted,) = $postRulesStorage(quotedPostId).requiredRules[i].call(
+        for (uint256 i = 0; i < rulesToProcess.requiredRules.length; i++) {
+            (bool callNotReverted,) = rulesToProcess.requiredRules[i].call(
                 abi.encodeWithSelector(
-                    IPostRule.processQuote.selector,
-                    quotedPostId,
-                    childPostId,
-                    quotedPostRulesData.dataForRequiredRules[i]
+                    IPostRule.processQuote.selector, quotedPostId, postId, quotedPostRulesData.dataForRequiredRules[i]
                 )
             );
             require(callNotReverted, "Some required rule failed");
         }
         // Check any-of rules (OR-combined rules)
-        if ($postRulesStorage(quotedPostId).anyOfRules.length == 0) {
+        if (rulesToProcess.anyOfRules.length == 0) {
             return; // If there are no OR-combined rules, we can return
         }
-        for (uint256 i = 0; i < $postRulesStorage(quotedPostId).anyOfRules.length; i++) {
-            (bool callNotReverted, bytes memory returnData) = $postRulesStorage(quotedPostId).anyOfRules[i].call(
+        for (uint256 i = 0; i < rulesToProcess.anyOfRules.length; i++) {
+            (bool callNotReverted, bytes memory returnData) = rulesToProcess.anyOfRules[i].call(
                 abi.encodeWithSelector(
-                    IPostRule.processQuote.selector, quotedPostId, childPostId, quotedPostRulesData.dataForAnyOfRules[i]
+                    IPostRule.processQuote.selector, quotedPostId, postId, quotedPostRulesData.dataForAnyOfRules[i]
                 )
             );
             if (callNotReverted && abi.decode(returnData, (bool))) {
@@ -117,33 +98,38 @@ contract RuleBasedFeed {
         revert("All of the OR rules failed");
     }
 
-    function _postProcessParent(
+    function _processParentPostRules(
         uint256 parentPostId,
-        uint256 childPostId,
+        uint256 postId,
         RuleExecutionData calldata parentPostRulesData
     ) internal {
+        uint256 rootPostId = Core.$storage().posts[parentPostId].rootPostId;
+        RulesStorage storage rulesToProcess = $postRulesStorage(rootPostId);
+
         // Check required rules (AND-combined rules)
-        for (uint256 i = 0; i < $postRulesStorage(parentPostId).requiredRules.length; i++) {
-            (bool callNotReverted,) = $postRulesStorage(parentPostId).requiredRules[i].call(
+        for (uint256 i = 0; i < rulesToProcess.requiredRules.length; i++) {
+            (bool callNotReverted,) = rulesToProcess.requiredRules[i].call(
                 abi.encodeWithSelector(
                     IPostRule.processParent.selector,
+                    rootPostId,
                     parentPostId,
-                    childPostId,
+                    postId,
                     parentPostRulesData.dataForRequiredRules[i]
                 )
             );
             require(callNotReverted, "Some required rule failed");
         }
         // Check any-of rules (OR-combined rules)
-        if ($postRulesStorage(parentPostId).anyOfRules.length == 0) {
+        if (rulesToProcess.anyOfRules.length == 0) {
             return; // If there are no OR-combined rules, we can return
         }
-        for (uint256 i = 0; i < $postRulesStorage(parentPostId).anyOfRules.length; i++) {
-            (bool callNotReverted, bytes memory returnData) = $postRulesStorage(parentPostId).anyOfRules[i].call(
+        for (uint256 i = 0; i < rulesToProcess.anyOfRules.length; i++) {
+            (bool callNotReverted, bytes memory returnData) = rulesToProcess.anyOfRules[i].call(
                 abi.encodeWithSelector(
                     IPostRule.processParent.selector,
+                    rootPostId,
                     parentPostId,
-                    childPostId,
+                    postId,
                     parentPostRulesData.dataForAnyOfRules[i]
                 )
             );
@@ -155,7 +141,7 @@ contract RuleBasedFeed {
         revert("All of the OR rules failed");
     }
 
-    function _feedProcessCreatePost(uint256 postId, uint256 localSequentialId, CreatePostParams calldata postParams)
+    function _processPostCreation(uint256 postId, uint256 localSequentialId, CreatePostParams calldata postParams)
         internal
     {
         // Check required rules (AND-combined rules)
@@ -181,6 +167,7 @@ contract RuleBasedFeed {
         revert("All of the OR rules failed");
     }
 
+    // TODO: FIX THIS!!!
     function _feedProcessCreateRepost(
         uint256 postId,
         uint256 localSequentialId,
@@ -241,61 +228,6 @@ contract RuleBasedFeed {
         revert("All of the OR rules failed");
     }
 
-    function _processAllParentsRulesChildPostRulesChanged(
-        uint256 postId,
-        RuleConfiguration[] calldata childRules,
-        RuleExecutionData calldata quotePostRulesData,
-        RuleExecutionData calldata parentPostRulesData
-    ) internal {
-        _processChildPostRulesChanged(
-            Core.$storage().posts[postId].quotedPostId, postId, childRules, quotePostRulesData
-        );
-        _processChildPostRulesChanged(
-            Core.$storage().posts[postId].parentPostId, postId, childRules, parentPostRulesData
-        );
-    }
-
-    function _processChildPostRulesChanged(
-        uint256 parentPostId,
-        uint256 childPostId,
-        RuleConfiguration[] calldata newChildPostRulesData,
-        RuleExecutionData calldata parentPostRulesData
-    ) internal {
-        // Check required rules (AND-combined rules)
-        for (uint256 i = 0; i < $postRulesStorage(parentPostId).requiredRules.length; i++) {
-            (bool callNotReverted,) = $postRulesStorage(parentPostId).requiredRules[i].call(
-                abi.encodeWithSelector(
-                    IPostRule.processChildPostRulesChanged.selector,
-                    parentPostId,
-                    childPostId,
-                    newChildPostRulesData,
-                    parentPostRulesData.dataForRequiredRules[i]
-                )
-            );
-            require(callNotReverted, "Some required rule failed");
-        }
-        // Check any-of rules (OR-combined rules)
-        if ($postRulesStorage(parentPostId).anyOfRules.length == 0) {
-            return; // If there are no OR-combined rules, we can return
-        }
-        for (uint256 i = 0; i < $postRulesStorage(parentPostId).anyOfRules.length; i++) {
-            (bool callNotReverted, bytes memory returnData) = $postRulesStorage(parentPostId).anyOfRules[i].call(
-                abi.encodeWithSelector(
-                    IPostRule.processChildPostRulesChanged.selector,
-                    parentPostId,
-                    childPostId,
-                    newChildPostRulesData,
-                    parentPostRulesData.dataForAnyOfRules[i]
-                )
-            );
-            if (callNotReverted && abi.decode(returnData, (bool))) {
-                // Note: abi.decode would fail if call reverted, so don't put this out of the brackets!
-                return; // If any of the OR-combined rules passed, it means they succeed and we can return
-            }
-        }
-        revert("All of the OR rules failed");
-    }
-
     function _feedProcessDeletePost(uint256 postId, RuleExecutionData calldata feedRulesData) internal {
         // Check required rules (AND-combined rules)
         for (uint256 i = 0; i < $feedRulesStorage().requiredRules.length; i++) {
@@ -322,7 +254,7 @@ contract RuleBasedFeed {
         revert("All of the OR rules failed");
     }
 
-    function _feedProcessPostRulesChanged(
+    function _processChangesOnPostRules(
         address author,
         uint256 postId,
         RuleConfiguration[] calldata newPostRules,
