@@ -21,12 +21,12 @@ struct AppInitialProperties {
 
 contract App is IApp, AccessControlled {
     // Resource IDs involved in the contract
-    uint256 constant SET_PRIMITIVES_RID = uint256(keccak256("SET_PRIMITIVES"));
-    uint256 constant SET_SIGNERS_RID = uint256(keccak256("SET_SIGNERS"));
-    uint256 constant SET_TREASURY_RID = uint256(keccak256("SET_TREASURY"));
-    uint256 constant SET_PAYMASTER_RID = uint256(keccak256("SET_PAYMASTER"));
-    uint256 constant SET_EXTRA_DATA_RID = uint256(keccak256("SET_EXTRA_DATA"));
-    uint256 constant SET_METADATA_RID = uint256(keccak256("SET_METADATA"));
+    uint256 constant SET_PRIMITIVES_PID = uint256(keccak256("SET_PRIMITIVES"));
+    uint256 constant SET_SIGNERS_PID = uint256(keccak256("SET_SIGNERS"));
+    uint256 constant SET_TREASURY_PID = uint256(keccak256("SET_TREASURY"));
+    uint256 constant SET_PAYMASTER_PID = uint256(keccak256("SET_PAYMASTER"));
+    uint256 constant SET_EXTRA_DATA_PID = uint256(keccak256("SET_EXTRA_DATA"));
+    uint256 constant SET_METADATA_PID = uint256(keccak256("SET_METADATA"));
 
     constructor(
         string memory metadataURI,
@@ -52,18 +52,18 @@ contract App is IApp, AccessControlled {
 
     function _emitRIDs() internal override {
         super._emitRIDs();
-        emit Lens_ResourceId_Available(SET_PRIMITIVES_RID, "SET_PRIMITIVES");
-        emit Lens_ResourceId_Available(SET_SIGNERS_RID, "SET_SIGNERS");
-        emit Lens_ResourceId_Available(SET_TREASURY_RID, "SET_TREASURY");
-        emit Lens_ResourceId_Available(SET_PAYMASTER_RID, "SET_PAYMASTER");
-        emit Lens_ResourceId_Available(SET_EXTRA_DATA_RID, "SET_EXTRA_DATA");
-        emit Lens_ResourceId_Available(SET_METADATA_RID, "SET_METADATA");
+        emit Lens_PermissonId_Available(SET_PRIMITIVES_PID, "SET_PRIMITIVES");
+        emit Lens_PermissonId_Available(SET_SIGNERS_PID, "SET_SIGNERS");
+        emit Lens_PermissonId_Available(SET_TREASURY_PID, "SET_TREASURY");
+        emit Lens_PermissonId_Available(SET_PAYMASTER_PID, "SET_PAYMASTER");
+        emit Lens_PermissonId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
+        emit Lens_PermissonId_Available(SET_METADATA_PID, "SET_METADATA");
     }
 
     ///////////////// Graph
 
     function setGraph(address graph) public {
-        _requireAccess(msg.sender, SET_PRIMITIVES_RID);
+        _requireAccess(msg.sender, SET_PRIMITIVES_PID);
         _setGraph(graph);
     }
 
@@ -88,17 +88,17 @@ contract App is IApp, AccessControlled {
     ///////////////// Feed
 
     function addFeeds(address[] memory feeds) external override {
-        _requireAccess(msg.sender, SET_PRIMITIVES_RID);
+        _requireAccess(msg.sender, SET_PRIMITIVES_PID);
         _addFeeds(feeds);
     }
 
     function removeFeeds(address[] memory feeds) external override {
-        _requireAccess(msg.sender, SET_PRIMITIVES_RID);
+        _requireAccess(msg.sender, SET_PRIMITIVES_PID);
         _removeFeeds(feeds);
     }
 
     function setDefaultFeed(address feed) external override {
-        _requireAccess(msg.sender, SET_PRIMITIVES_RID);
+        _requireAccess(msg.sender, SET_PRIMITIVES_PID);
         _setDefaultFeed(feed);
     }
 
@@ -128,7 +128,7 @@ contract App is IApp, AccessControlled {
     ///////////////// Username
 
     function setUsername(address username) public {
-        _requireAccess(msg.sender, SET_PRIMITIVES_RID);
+        _requireAccess(msg.sender, SET_PRIMITIVES_PID);
         _setUsername(username);
     }
 
@@ -152,12 +152,12 @@ contract App is IApp, AccessControlled {
     ///////////////// Group
 
     function addGroups(address[] memory groups) external {
-        _requireAccess(msg.sender, SET_PRIMITIVES_RID);
+        _requireAccess(msg.sender, SET_PRIMITIVES_PID);
         _addGroups(groups);
     }
 
     function removeGroups(address[] memory groups) external {
-        _requireAccess(msg.sender, SET_PRIMITIVES_RID);
+        _requireAccess(msg.sender, SET_PRIMITIVES_PID);
         _removeGroups(groups);
     }
 
@@ -178,12 +178,12 @@ contract App is IApp, AccessControlled {
     ///////////////// Signers
 
     function addSigners(address[] memory signers) external {
-        _requireAccess(msg.sender, SET_SIGNERS_RID);
+        _requireAccess(msg.sender, SET_SIGNERS_PID);
         _addSigners(signers);
     }
 
     function removeSigners(address[] memory signers) external {
-        _requireAccess(msg.sender, SET_SIGNERS_RID);
+        _requireAccess(msg.sender, SET_SIGNERS_PID);
         _removeSigners(signers);
     }
 
@@ -204,7 +204,7 @@ contract App is IApp, AccessControlled {
     ///////////////// Paymaster
 
     function setPaymaster(address paymaster) public {
-        _requireAccess(msg.sender, SET_PRIMITIVES_RID);
+        _requireAccess(msg.sender, SET_PRIMITIVES_PID);
         _setPaymaster(paymaster);
     }
 
@@ -229,7 +229,7 @@ contract App is IApp, AccessControlled {
     ///////////////// Treasury
 
     function setTreasury(address treasury) public {
-        _requireAccess(msg.sender, SET_TREASURY_RID);
+        _requireAccess(msg.sender, SET_TREASURY_PID);
         _setTreasury(treasury);
     }
 
@@ -241,7 +241,7 @@ contract App is IApp, AccessControlled {
     ///////////////// Metadata URI
 
     function setMetadataURI(string calldata metadataURI) public override {
-        _requireAccess(msg.sender, SET_METADATA_RID);
+        _requireAccess(msg.sender, SET_METADATA_PID);
         _setMetadataURI(metadataURI);
     }
 
@@ -253,12 +253,12 @@ contract App is IApp, AccessControlled {
     ///////////////// Extra Data
 
     function setExtraData(DataElement[] calldata extraDataToSet) external override {
-        _requireAccess(msg.sender, SET_EXTRA_DATA_RID);
+        _requireAccess(msg.sender, SET_EXTRA_DATA_PID);
         _setExtraData(extraDataToSet);
     }
 
     function _setExtraData(DataElement[] memory extraDataToSet) internal {
-        _requireAccess(msg.sender, SET_EXTRA_DATA_RID);
+        _requireAccess(msg.sender, SET_EXTRA_DATA_PID);
         for (uint256 i = 0; i < extraDataToSet.length; i++) {
             bool wasExtraDataAlreadySet = Core._setExtraData(extraDataToSet[i]);
             if (wasExtraDataAlreadySet) {
@@ -270,7 +270,7 @@ contract App is IApp, AccessControlled {
     }
 
     function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external override {
-        _requireAccess(msg.sender, SET_EXTRA_DATA_RID);
+        _requireAccess(msg.sender, SET_EXTRA_DATA_PID);
         for (uint256 i = 0; i < extraDataKeysToRemove.length; i++) {
             Core._removeExtraData(extraDataKeysToRemove[i]);
             emit Lens_App_ExtraDataRemoved(extraDataKeysToRemove[i]);

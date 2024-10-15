@@ -10,8 +10,8 @@ interface IAccessControl {
      * This function MUST NOT revert. Instead, return false.
      *
      * @param account The account to check if has access to a resource.
-     * @param resourceLocation The address where the resource is located.
-     * @param resourceId The ID of the resource.
+     * @param contractAddress The address where the resource is located.
+     * @param permissionId The ID of the resource.
      */
-    function hasAccess(address account, address resourceLocation, uint256 resourceId) external view returns (bool);
+    function hasAccess(address account, address contractAddress, uint256 permissionId) external view returns (bool);
 }

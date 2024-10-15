@@ -12,10 +12,10 @@ import {Events} from "./../../types/Events.sol";
 
 contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     // Resource IDs involved in the contract
-    uint256 constant SET_RULES_RID = uint256(keccak256("SET_RULES"));
-    uint256 constant SET_METADATA_RID = uint256(keccak256("SET_METADATA"));
-    uint256 constant SET_EXTRA_DATA_RID = uint256(keccak256("SET_EXTRA_DATA"));
-    uint256 constant DELETE_POST_RID = uint256(keccak256("DELETE_POST"));
+    uint256 constant SET_RULES_PID = uint256(keccak256("SET_RULES"));
+    uint256 constant SET_METADATA_PID = uint256(keccak256("SET_METADATA"));
+    uint256 constant SET_EXTRA_DATA_PID = uint256(keccak256("SET_EXTRA_DATA"));
+    uint256 constant DELETE_POST_PID = uint256(keccak256("DELETE_POST"));
 
     constructor(string memory metadataURI, IAccessControl accessControl) AccessControlled(accessControl) {
         Core.$storage().metadataURI = metadataURI;
@@ -26,22 +26,22 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
 
     function _emitRIDs() internal override {
         super._emitRIDs();
-        emit Lens_ResourceId_Available(SET_RULES_RID, "SET_RULES");
-        emit Lens_ResourceId_Available(SET_METADATA_RID, "SET_METADATA");
-        emit Lens_ResourceId_Available(SET_EXTRA_DATA_RID, "SET_EXTRA_DATA");
-        emit Lens_ResourceId_Available(DELETE_POST_RID, "DELETE_POST");
+        emit Lens_PermissonId_Available(SET_RULES_PID, "SET_RULES");
+        emit Lens_PermissonId_Available(SET_METADATA_PID, "SET_METADATA");
+        emit Lens_PermissonId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
+        emit Lens_PermissonId_Available(DELETE_POST_PID, "DELETE_POST");
     }
 
     // Access Controlled functions
 
     function setMetadataURI(string calldata metadataURI) external override {
-        _requireAccess(msg.sender, SET_METADATA_RID);
+        _requireAccess(msg.sender, SET_METADATA_PID);
         Core.$storage().metadataURI = metadataURI;
         emit Lens_Feed_MetadataURISet(metadataURI);
     }
 
     function addFeedRules(RuleConfiguration[] calldata rules) external override {
-        _requireAccess(msg.sender, SET_RULES_RID);
+        _requireAccess(msg.sender, SET_RULES_PID);
         for (uint256 i = 0; i < rules.length; i++) {
             _addFeedRule(rules[i]);
             emit Lens_Feed_RuleAdded(rules[i].ruleAddress, rules[i].configData, rules[i].isRequired);
@@ -49,7 +49,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     }
 
     function updateFeedRules(RuleConfiguration[] calldata rules) external override {
-        _requireAccess(msg.sender, SET_RULES_RID);
+        _requireAccess(msg.sender, SET_RULES_PID);
         for (uint256 i = 0; i < rules.length; i++) {
             _updateFeedRule(rules[i]);
             emit Lens_Feed_RuleUpdated(rules[i].ruleAddress, rules[i].configData, rules[i].isRequired);
@@ -57,7 +57,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     }
 
     function removeFeedRules(address[] calldata rules) external override {
-        _requireAccess(msg.sender, SET_RULES_RID);
+        _requireAccess(msg.sender, SET_RULES_PID);
         for (uint256 i = 0; i < rules.length; i++) {
             _removeFeedRule(rules[i]);
             emit Lens_Feed_RuleRemoved(rules[i]);
@@ -222,7 +222,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     ) external override {
         address author = Core.$storage().posts[postId].author;
         // TODO: We can have this for moderators:
-        // require(msg.sender == author || _hasAccess(msg.sender, EDIT_POST_RID));
+        // require(msg.sender == author || _hasAccess(msg.sender, EDIT_POST_PID));
         require(msg.sender == author, "MSG_SENDER_NOT_AUTHOR");
         _feedProcessEditPost(postId, newPostParams, editPostFeedRulesData);
         bool[] memory wereExtraDataValuesSet = Core._editPost(postId, newPostParams);
@@ -252,14 +252,14 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         RuleExecutionData calldata feedRulesData
     ) external override {
         address author = Core.$storage().posts[postId].author;
-        require(msg.sender == author || _hasAccess(msg.sender, DELETE_POST_RID), "MSG_SENDER_NOT_AUTHOR_NOR_HAS_ACCESS");
+        require(msg.sender == author || _hasAccess(msg.sender, DELETE_POST_PID), "MSG_SENDER_NOT_AUTHOR_NOR_HAS_ACCESS");
         _feedProcessDeletePost(postId, feedRulesData);
         Core._deletePost(postId, extraDataKeysToDelete);
         emit Lens_Feed_PostDeleted(postId, author, feedRulesData);
     }
 
     function setExtraData(DataElement[] calldata extraDataToSet) external override {
-        _requireAccess(msg.sender, SET_EXTRA_DATA_RID);
+        _requireAccess(msg.sender, SET_EXTRA_DATA_PID);
         for (uint256 i = 0; i < extraDataToSet.length; i++) {
             bool wasExtraDataAlreadySet = Core._setExtraData(extraDataToSet[i]);
             if (wasExtraDataAlreadySet) {
@@ -271,7 +271,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     }
 
     function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external override {
-        _requireAccess(msg.sender, SET_EXTRA_DATA_RID);
+        _requireAccess(msg.sender, SET_EXTRA_DATA_PID);
         for (uint256 i = 0; i < extraDataKeysToRemove.length; i++) {
             Core._removeExtraData(extraDataKeysToRemove[i]);
             emit Lens_Feed_ExtraDataRemoved(extraDataKeysToRemove[i]);

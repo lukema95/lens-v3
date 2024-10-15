@@ -11,8 +11,8 @@
 
 // contract UsernamePayToRegisterRule is IUsernameRule {
 //     // Resource IDs involved in the contract
-//     uint256 constant SKIP_PAYMENT_RID = uint256(keccak256("SKIP_PAYMENT"));
-//     uint256 constant CONFIGURE_RULES_RID = uint256(keccak256("CONFIGURE_RULES"));
+//     uint256 constant SKIP_PAYMENT_PID = uint256(keccak256("SKIP_PAYMENT"));
+//     uint256 constant CONFIGURE_RULES_PID = uint256(keccak256("CONFIGURE_RULES"));
 
 //     // Storage fields and structs
 //     struct PaymentConfig {
@@ -37,8 +37,8 @@
 //         require(
 //             $accessControl().contractAddress.hasAccess({
 //                 account: msg.sender,
-//                 resourceLocation: address(this),
-//                 resourceId: CONFIGURE_RULES_RID
+//                 contractAddress: address(this),
+//                 permissionId: CONFIGURE_RULES_PID
 //             }),
 //             "UsernamePayToRegisterRule: account is not allowed to configure this rule"
 //         );
@@ -49,8 +49,8 @@
 //         //     require(
 //         //         $accessControl().contractAddress.hasAccess({
 //         //             account: msg.sender,
-//         //             resourceLocation: address(this),
-//         //             resourceId: CHANGE_RULE_ACCESS_CONTROL_RID
+//         //             contractAddress: address(this),
+//         //             permissionId: CHANGE_RULE_ACCESS_CONTROL_PID
 //         //         }),
 //         //         'UsernamePayToRegisterRule: access denied'
 //         //     );
@@ -65,8 +65,8 @@
 //         if (
 //             $accessControl().contractAddress.hasAccess({
 //                 account: originalMsgSender,
-//                 resourceLocation: address(this),
-//                 resourceId: SKIP_PAYMENT_RID
+//                 contractAddress: address(this),
+//                 permissionId: SKIP_PAYMENT_PID
 //             })
 //         ) {
 //             return;

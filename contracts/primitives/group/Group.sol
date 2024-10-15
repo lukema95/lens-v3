@@ -11,10 +11,10 @@ import {Events} from "./../../types/Events.sol";
 
 contract Group is IGroup, RuleBasedGroup, AccessControlled {
     // Resource IDs involved in the contract
-    uint256 constant SET_RULES_RID = uint256(keccak256("SET_RULES"));
-    uint256 constant SET_METADATA_RID = uint256(keccak256("SET_METADATA"));
-    uint256 constant SET_EXTRA_DATA_RID = uint256(keccak256("SET_EXTRA_DATA"));
-    uint256 constant REMOVE_MEMBER_RID = uint256(keccak256("REMOVE_MEMBER"));
+    uint256 constant SET_RULES_PID = uint256(keccak256("SET_RULES"));
+    uint256 constant SET_METADATA_PID = uint256(keccak256("SET_METADATA"));
+    uint256 constant SET_EXTRA_DATA_PID = uint256(keccak256("SET_EXTRA_DATA"));
+    uint256 constant REMOVE_MEMBER_PID = uint256(keccak256("REMOVE_MEMBER"));
 
     constructor(string memory metadataURI, IAccessControl accessControl) AccessControlled(accessControl) {
         Core.$storage().metadataURI = metadataURI;
@@ -25,22 +25,22 @@ contract Group is IGroup, RuleBasedGroup, AccessControlled {
 
     function _emitRIDs() internal override {
         super._emitRIDs();
-        emit Lens_ResourceId_Available(SET_RULES_RID, "SET_RULES");
-        emit Lens_ResourceId_Available(SET_METADATA_RID, "SET_METADATA");
-        emit Lens_ResourceId_Available(SET_EXTRA_DATA_RID, "SET_EXTRA_DATA");
-        emit Lens_ResourceId_Available(REMOVE_MEMBER_RID, "REMOVE_MEMBER");
+        emit Lens_PermissonId_Available(SET_RULES_PID, "SET_RULES");
+        emit Lens_PermissonId_Available(SET_METADATA_PID, "SET_METADATA");
+        emit Lens_PermissonId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
+        emit Lens_PermissonId_Available(REMOVE_MEMBER_PID, "REMOVE_MEMBER");
     }
 
     // Access Controlled functions
 
     function setMetadataURI(string calldata metadataURI) external override {
-        _requireAccess(msg.sender, SET_METADATA_RID);
+        _requireAccess(msg.sender, SET_METADATA_PID);
         Core.$storage().metadataURI = metadataURI;
         emit Lens_Group_MetadataURISet(metadataURI);
     }
 
     function addGroupRules(RuleConfiguration[] calldata rules) external override {
-        _requireAccess(msg.sender, SET_RULES_RID);
+        _requireAccess(msg.sender, SET_RULES_PID);
         for (uint256 i = 0; i < rules.length; i++) {
             _addGroupRule(rules[i]);
             emit Lens_Group_RuleAdded(rules[i].ruleAddress, rules[i].configData, rules[i].isRequired);
@@ -48,7 +48,7 @@ contract Group is IGroup, RuleBasedGroup, AccessControlled {
     }
 
     function updateGroupRules(RuleConfiguration[] calldata rules) external override {
-        _requireAccess(msg.sender, SET_RULES_RID);
+        _requireAccess(msg.sender, SET_RULES_PID);
         for (uint256 i = 0; i < rules.length; i++) {
             _updateGroupRule(rules[i]);
             emit Lens_Group_RuleUpdated(rules[i].ruleAddress, rules[i].configData, rules[i].isRequired);
@@ -56,7 +56,7 @@ contract Group is IGroup, RuleBasedGroup, AccessControlled {
     }
 
     function removeGroupRules(address[] calldata rules) external override {
-        _requireAccess(msg.sender, SET_RULES_RID);
+        _requireAccess(msg.sender, SET_RULES_PID);
         for (uint256 i = 0; i < rules.length; i++) {
             _removeGroupRule(rules[i]);
             emit Lens_Group_RuleRemoved(rules[i]);
@@ -64,7 +64,7 @@ contract Group is IGroup, RuleBasedGroup, AccessControlled {
     }
 
     function setExtraData(DataElement[] calldata extraDataToSet) external override {
-        _requireAccess(msg.sender, SET_EXTRA_DATA_RID);
+        _requireAccess(msg.sender, SET_EXTRA_DATA_PID);
         for (uint256 i = 0; i < extraDataToSet.length; i++) {
             bool wasExtraDataAlreadySet = Core._setExtraData(extraDataToSet[i]);
             if (wasExtraDataAlreadySet) {
@@ -78,7 +78,7 @@ contract Group is IGroup, RuleBasedGroup, AccessControlled {
     }
 
     function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external override {
-        _requireAccess(msg.sender, SET_EXTRA_DATA_RID);
+        _requireAccess(msg.sender, SET_EXTRA_DATA_PID);
         for (uint256 i = 0; i < extraDataKeysToRemove.length; i++) {
             Core._removeExtraData(extraDataKeysToRemove[i]);
             emit Lens_Group_ExtraDataRemoved(extraDataKeysToRemove[i]);
@@ -104,7 +104,7 @@ contract Group is IGroup, RuleBasedGroup, AccessControlled {
     // TODO: Why don't we have addMember? Because we don't want to kidnap someone into the group?
 
     function removeMember(address account, RuleExecutionData calldata groupRulesData) external override {
-        _requireAccess(msg.sender, REMOVE_MEMBER_RID);
+        _requireAccess(msg.sender, REMOVE_MEMBER_PID);
         uint256 membershipId = Core._revokeMembership(account);
         _processRemoval(account, membershipId, groupRulesData);
         emit Lens_Group_MemberRemoved(account, membershipId, groupRulesData);

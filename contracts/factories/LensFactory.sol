@@ -28,10 +28,10 @@ interface IOwnable {
 // }
 
 // struct AccessConfiguration {
-//     uint256 resourceId;
-//     address resourceLocation;
+//     uint256 permissionId;
+//     address contractAddress;
 //     uint256 roleId;
-//     IRoleBasedAccessControl.AccessPermission accessPermission;
+//     IRoleBasedAccessControl.Access access;
 // }
 
 // uint8 decimals; TODO ???
@@ -157,16 +157,16 @@ contract LensFactory {
     //         }
     //     }
     //     for (uint256 i = 0; i < accessConfigs.length; i++) {
-    //         if (accessConfigs[i].resourceLocation == address(0)) {
+    //         if (accessConfigs[i].contractAddress == address(0)) {
     //             accessControl.setGlobalAccess(
-    //                 accessConfigs[i].roleId, accessConfigs[i].resourceId, accessConfigs[i].accessPermission, ""
+    //                 accessConfigs[i].roleId, accessConfigs[i].permissionId, accessConfigs[i].access, ""
     //             );
     //         } else {
     //             accessControl.setScopedAccess(
     //                 accessConfigs[i].roleId,
-    //                 accessConfigs[i].resourceLocation,
-    //                 accessConfigs[i].resourceId,
-    //                 accessConfigs[i].accessPermission,
+    //                 accessConfigs[i].contractAddress,
+    //                 accessConfigs[i].permissionId,
+    //                 accessConfigs[i].access,
     //                 ""
     //             );
     //         }

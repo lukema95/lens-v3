@@ -5,9 +5,9 @@
 // import {IUsernameRule} from "./../IUsernameRule.sol";
 
 // contract UsernameCharsetRule is IUsernameRule {
-//     uint256 constant SKIP_CHARSET_RID = uint256(keccak256("SKIP_CHARSET"));
-//     uint256 constant CHANGE_RULE_ACCESS_CONTROL_RID = uint256(keccak256("CHANGE_RULE_ACCESS_CONTROL"));
-//     uint256 constant CONFIGURE_RULE_RID = uint256(keccak256("CONFIGURE_RULE"));
+//     uint256 constant SKIP_CHARSET_PID = uint256(keccak256("SKIP_CHARSET"));
+//     uint256 constant CHANGE_RULE_ACCESS_CONTROL_PID = uint256(keccak256("CHANGE_RULE_ACCESS_CONTROL"));
+//     uint256 constant CONFIGURE_RULE_PID = uint256(keccak256("CONFIGURE_RULE"));
 
 //     struct CharsetRestrictions {
 //         bool allowNumeric;
@@ -58,8 +58,8 @@
 //             require(
 //                 _accessControl.hasAccess({
 //                     account: msg.sender,
-//                     resourceLocation: address(this),
-//                     resourceId: CONFIGURE_RULE_RID
+//                     contractAddress: address(this),
+//                     permissionId: CONFIGURE_RULE_PID
 //                 })
 //             ); // Must have can configure permission
 //             _charsetRestrictions = newCharsetRestrictions;
@@ -69,8 +69,8 @@
 //             require(
 //                 _accessControl.hasAccess({
 //                     account: msg.sender,
-//                     resourceLocation: address(this),
-//                     resourceId: CHANGE_RULE_ACCESS_CONTROL_RID
+//                     contractAddress: address(this),
+//                     permissionId: CHANGE_RULE_ACCESS_CONTROL_PID
 //                 })
 //             ); // Must have canSetAccessControl
 //             _accessControl = IAccessControl(accessControl);
@@ -89,8 +89,8 @@
 //         if (
 //             _accessControl.hasAccess({
 //                 account: originalMsgSender,
-//                 resourceLocation: address(this),
-//                 resourceId: SKIP_CHARSET_RID
+//                 contractAddress: address(this),
+//                 permissionId: SKIP_CHARSET_PID
 //             })
 //         ) {
 //             return;

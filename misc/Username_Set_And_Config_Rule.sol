@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {UsernameCore as Core} from './UsernameCore.sol';
-import {IUsernameRules} from './IUsernameRules.sol';
-import {IUsername} from './IUsername.sol';
-import {IAccessControl} from './../access-control/IAccessControl.sol';
+import {UsernameCore as Core} from "./UsernameCore.sol";
+import {IUsernameRules} from "./IUsernameRules.sol";
+import {IUsername} from "./IUsername.sol";
+import {IAccessControl} from "./../access-control/IAccessControl.sol";
 
 contract Username is IUsername {
     constructor(string memory namespace, IAccessControl accessControl) {
@@ -12,7 +12,7 @@ contract Username is IUsername {
         Core.$storage().accessControl = address(accessControl);
     }
 
-    uint256 constant SET_RULES_RID = uint256(keccak256('SET_RULES'));
+    uint256 constant SET_RULES_PID = uint256(keccak256("SET_RULES"));
 
     // Owner functions
 
@@ -20,8 +20,8 @@ contract Username is IUsername {
         require(
             IAccessControl(Core.$storage().accessControl).hasAccess({
                 account: msg.sender,
-                resourceLocation: address(this),
-                resourceId: SET_RULES_RID
+                contractAddress: address(this),
+                permissionId: SET_RULES_PID
             })
         ); // msg.sender must have permissions to set rules
         Core.$storage().usernameRules = usernameRules;

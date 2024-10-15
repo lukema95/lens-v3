@@ -12,7 +12,7 @@ contract OwnerOnlyAccessControl is Ownership, IAccessControl {
         );
     }
 
-    function hasAccess(address account, address, /* resourceLocation */ uint256 /* resourceId */ )
+    function hasAccess(address account, address, /* contractAddress */ uint256 /* permissionId */ )
         external
         view
         override
