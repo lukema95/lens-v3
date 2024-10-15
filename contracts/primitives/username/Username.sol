@@ -107,29 +107,32 @@ contract Username is IUsername, ERC721, RuleBasedUsername, AccessControlled {
         emit Lens_Username_Removed(username, account, data);
     }
 
-    function linkUsername(address account, string memory username, RuleExecutionData calldata data) external override {
+    function assignUsername(address account, string memory username, RuleExecutionData calldata data)
+        external
+        override
+    {
         require(msg.sender == account); // msg.sender must be the account
-        Core._linkUsername(account, username);
+        Core._assignUsername(account, username);
         _processLinking(account, username, data);
-        emit Lens_Username_Linked(username, account, data);
+        emit Lens_Username_Assigned(username, account, data);
     }
 
-    function unlinkUsername(string memory username, RuleExecutionData calldata data) external override {
+    function unassignUsername(string memory username, RuleExecutionData calldata data) external override {
         address account = Core.$storage().usernameToAccount[username];
         require(msg.sender == account); // msg.sender must be the account
-        Core._unlinkUsername(username);
+        Core._unassignUsername(username);
         _processUnlinking(account, username, data);
         emit Lens_Username_Unlinked(username, account, data);
     }
 
     // TODO: Decide if it worth to have a "before/after" hook for the rules, or if we are covered just with the "before"
     // Think about CEI pattern and if we are OK with the "before", because it looks more like CIE than CEI.
-    // function linkUsername(address account, string memory username, bytes calldata data) external {
+    // function assignUsername(address account, string memory username, bytes calldata data) external {
     //     require(msg.sender == account); // msg.sender must be the account
     //     IUsernameRule(Core.$storage().usernameRules).beforeLinking(msg.sender, account, username, data);
-    //     Core._linkUsername(account, username);
+    //     Core._assignUsername(account, username);
     //     IUsernameRule(Core.$storage().usernameRules).afterLinking(msg.sender, account, username, data);
-    //     emit Lens_Username_Linked(username, account, data);
+    //     emit Lens_Username_Assigned(username, account, data);
     // }
 
     function setExtraData(DataElement[] calldata extraDataToSet) external override {

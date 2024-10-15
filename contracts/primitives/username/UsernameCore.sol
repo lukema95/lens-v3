@@ -36,12 +36,12 @@ library UsernameCore {
         _removeUsername(username);
     }
 
-    function linkUsername(address account, string memory username) external {
-        _linkUsername(account, username);
+    function assignUsername(address account, string memory username) external {
+        _assignUsername(account, username);
     }
 
-    function unlinkUsername(string memory username) external {
-        _unlinkUsername(username);
+    function unassignUsername(string memory username) external {
+        _unassignUsername(username);
     }
 
     function setExtraData(DataElement calldata extraDataToSet) external returns (bool) {
@@ -66,7 +66,7 @@ library UsernameCore {
         $storage().usernameExists[username] = false;
     }
 
-    function _linkUsername(address account, string memory username) internal {
+    function _assignUsername(address account, string memory username) internal {
         require($storage().usernameExists[username]); // Username must exist
         require($storage().usernameToAccount[username] == address(0)); // Username must not be linked yet
         require(bytes($storage().accountToUsername[account]).length == 0); // Account must not have a username yet
@@ -74,7 +74,7 @@ library UsernameCore {
         $storage().accountToUsername[account] = username;
     }
 
-    function _unlinkUsername(string memory username) internal {
+    function _unassignUsername(string memory username) internal {
         address account = $storage().usernameToAccount[username];
         require(account != address(0)); // Username must be linked
         delete $storage().accountToUsername[account];
