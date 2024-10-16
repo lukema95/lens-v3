@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import {IAccessControl} from "./IAccessControl.sol";
 
-// TODO: Should we add `bytes data` param to the `hasAccess`? For more complex logic like providing admin signatures.
 interface IRoleBasedAccessControl is IAccessControl {
     event Lens_AccessControl_RoleGranted(address indexed account, uint256 indexed roleId);
     event Lens_AccessControl_RoleRevoked(address indexed account, uint256 indexed roleId);
@@ -37,16 +36,10 @@ interface IRoleBasedAccessControl is IAccessControl {
     function hasRole(address account, uint256 roleId) external view returns (bool);
 
     // Resource access permissions functions - Global
-    function setGlobalAccess(uint256 roleId, uint256 permissionId, Access access, bytes calldata data) external;
+    function setGlobalAccess(uint256 roleId, uint256 permissionId, Access access) external;
 
-    // Resource access permissions functions - Scoped (location is address based)
-    function setScopedAccess(
-        uint256 roleId,
-        address contractAddress,
-        uint256 permissionId,
-        Access access,
-        bytes calldata data
-    ) external;
+    // Resource access permissions functions - Scoped (by contract address)
+    function setScopedAccess(uint256 roleId, address contractAddress, uint256 permissionId, Access access) external;
 
     // These are not meant to be used to check access, but to query internal configuration state instead.
     function getGlobalAccess(uint256 roleId, uint256 permissionId) external view returns (Access);

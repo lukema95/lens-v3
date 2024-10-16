@@ -108,10 +108,7 @@ contract RoleBasedAccessControl is IRoleBasedAccessControl {
         }
     }
 
-    function setGlobalAccess(uint256 roleId, uint256 permissionId, Access access, bytes calldata /* data */ )
-        external
-        override
-    {
+    function setGlobalAccess(uint256 roleId, uint256 permissionId, Access access) external override {
         require(msg.sender == _owner);
         require(roleId != OWNER_ROLE_ID && roleId != ADMIN_ROLE_ID);
         Access previousPermission = _globalAccess[roleId][permissionId];
@@ -126,13 +123,10 @@ contract RoleBasedAccessControl is IRoleBasedAccessControl {
         }
     }
 
-    function setScopedAccess(
-        uint256 roleId,
-        address contractAddress,
-        uint256 permissionId,
-        Access access,
-        bytes calldata /* data */
-    ) external override {
+    function setScopedAccess(uint256 roleId, address contractAddress, uint256 permissionId, Access access)
+        external
+        override
+    {
         require(msg.sender == _owner);
         require(roleId != OWNER_ROLE_ID && roleId != ADMIN_ROLE_ID);
         Access previousPermission = _scopedAccess[roleId][contractAddress][permissionId];

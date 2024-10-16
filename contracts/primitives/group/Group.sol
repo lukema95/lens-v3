@@ -19,12 +19,12 @@ contract Group is IGroup, RuleBasedGroup, AccessControlled {
     constructor(string memory metadataURI, IAccessControl accessControl) AccessControlled(accessControl) {
         Core.$storage().metadataURI = metadataURI;
         emit Lens_Group_MetadataURISet(metadataURI);
-        _emitRIDs();
+        _emitPIDs();
         emit Events.Lens_Contract_Deployed("group", "lens.group", "group", "lens.group");
     }
 
-    function _emitRIDs() internal override {
-        super._emitRIDs();
+    function _emitPIDs() internal override {
+        super._emitPIDs();
         emit Lens_PermissonId_Available(SET_RULES_PID, "SET_RULES");
         emit Lens_PermissonId_Available(SET_METADATA_PID, "SET_METADATA");
         emit Lens_PermissonId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");

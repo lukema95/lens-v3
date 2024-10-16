@@ -37,7 +37,7 @@ contract AccessControlled {
         _;
     }
 
-    function _emitRIDs() internal virtual {
+    function _emitPIDs() internal virtual {
         emit Lens_PermissonId_Available(SET_ACCESS_CONTROL_PID, "SET_ACCESS_CONTROL");
     }
 

@@ -20,12 +20,12 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
     constructor(string memory metadataURI, IAccessControl accessControl) AccessControlled(accessControl) {
         Core.$storage().metadataURI = metadataURI;
         emit Lens_Graph_MetadataURISet(metadataURI);
-        _emitRIDs();
+        _emitPIDs();
         emit Events.Lens_Contract_Deployed("graph", "lens.graph", "graph", "lens.graph");
     }
 
-    function _emitRIDs() internal override {
-        super._emitRIDs();
+    function _emitPIDs() internal override {
+        super._emitPIDs();
         emit Lens_PermissonId_Available(SET_RULES_PID, "SET_RULES");
         emit Lens_PermissonId_Available(SET_METADATA_PID, "SET_METADATA");
         emit Lens_PermissonId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
@@ -70,7 +70,7 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
         RuleConfiguration[] calldata rules,
         RuleExecutionData calldata graphRulesData
     ) external override {
-        // TODO: Decide if we want a RID to skip checks for owners/admins
+        // TODO: Decide if we want a PID to skip checks for owners/admins
         // require(msg.sender == account || _hasAccess(SKIP_FOLLOW_RULES_CHECKS_PID));
         require(msg.sender == account);
         address[] memory ruleAddresses = new address[](rules.length);

@@ -14,7 +14,7 @@ import {Events} from "./../../types/Events.sol";
 import {ERC721} from "../base/ERC721.sol";
 
 contract Username is IUsername, ERC721, RuleBasedUsername, AccessControlled {
-    // TODO: Do we want more granular resources here? Like add/update/remove RIDs? Or are we OK with the multi-purpose?
+    // TODO: Do we want more granular resources here? Like add/update/remove PIDs? Or are we OK with the multi-purpose?
     uint256 constant SET_RULES_PID = uint256(keccak256("SET_RULES"));
     uint256 constant SET_METADATA_PID = uint256(keccak256("SET_METADATA"));
     uint256 constant SET_EXTRA_DATA_PID = uint256(keccak256("SET_EXTRA_DATA"));
@@ -37,12 +37,12 @@ contract Username is IUsername, ERC721, RuleBasedUsername, AccessControlled {
         Core.$storage().namespace = namespace;
         Core.$storage().metadataURI = metadataURI;
         emit Lens_Username_MetadataURISet(metadataURI);
-        _emitRIDs();
+        _emitPIDs();
         emit Events.Lens_Contract_Deployed("username", "lens.username", "username", "lens.username");
     }
 
-    function _emitRIDs() internal override {
-        super._emitRIDs();
+    function _emitPIDs() internal override {
+        super._emitPIDs();
         emit Lens_PermissonId_Available(SET_RULES_PID, "SET_RULES");
         emit Lens_PermissonId_Available(SET_METADATA_PID, "SET_METADATA");
         emit Lens_PermissonId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
@@ -166,7 +166,7 @@ contract Username is IUsername, ERC721, RuleBasedUsername, AccessControlled {
     }
 
     // function _validateUsernameLength(string memory username) internal pure {
-    //     // TODO: Add the RIDs for skipping length restrictions.
+    //     // TODO: Add the PIDs for skipping length restrictions.
     //     LengthRestriction memory lengthRestriction = $lengthRestriction();
     //     uint256 usernameLength = bytes(username).length;
     //     if (lengthRestriction.min != 0) {

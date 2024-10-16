@@ -45,13 +45,13 @@ contract App is IApp, AccessControlled {
         _setPaymaster(initialProps.paymaster);
         _setExtraData(extraData);
 
-        _emitRIDs();
+        _emitPIDs();
 
         emit Events.Lens_Contract_Deployed("app", "lens.app", "app", "lens.app");
     }
 
-    function _emitRIDs() internal override {
-        super._emitRIDs();
+    function _emitPIDs() internal override {
+        super._emitPIDs();
         emit Lens_PermissonId_Available(SET_PRIMITIVES_PID, "SET_PRIMITIVES");
         emit Lens_PermissonId_Available(SET_SIGNERS_PID, "SET_SIGNERS");
         emit Lens_PermissonId_Available(SET_TREASURY_PID, "SET_TREASURY");
