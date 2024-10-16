@@ -27,14 +27,12 @@ contract RoleBasedAccessControl is IRoleBasedAccessControl {
     mapping(uint256 => mapping(uint256 => Access)) internal _globalAccess;
 
     constructor(address owner) {
-        emit Events.Lens_Contract_Deployed(
-            "access-control", "lens.access-control.owner-admin", "access-control", "lens.access-control.owner-admin"
-        );
+        _emitLensContractDeployedEvent();
         _owner = owner;
         emit Lens_AccessControl_RoleGranted(owner, OWNER_ROLE_ID);
     }
 
-    function transferOwnership(address newOwner) external {
+    function transferOwnership(address newOwner) external virtual {
         address oldOwner = _owner;
         require(msg.sender == _owner);
         _owner = newOwner;
@@ -44,6 +42,7 @@ contract RoleBasedAccessControl is IRoleBasedAccessControl {
     function hasAccess(address account, address contractAddress, uint256 permissionId)
         external
         view
+        virtual
         override
         returns (bool)
     {
@@ -59,7 +58,7 @@ contract RoleBasedAccessControl is IRoleBasedAccessControl {
         }
     }
 
-    function grantRole(address account, uint256 roleId) external override {
+    function grantRole(address account, uint256 roleId) external virtual override {
         require(msg.sender == _owner);
         require(account != _owner);
         if (roleId == OWNER_ROLE_ID) {
@@ -73,7 +72,7 @@ contract RoleBasedAccessControl is IRoleBasedAccessControl {
         emit Lens_AccessControl_RoleGranted(account, roleId);
     }
 
-    function revokeRole(address account, uint256 roleId) external override {
+    function revokeRole(address account, uint256 roleId) external virtual override {
         require(msg.sender == _owner);
         require(account != _owner);
         if (roleId == OWNER_ROLE_ID) {
@@ -98,7 +97,7 @@ contract RoleBasedAccessControl is IRoleBasedAccessControl {
         emit Lens_AccessControl_RoleRevoked(account, roleId);
     }
 
-    function hasRole(address account, uint256 roleId) external view override returns (bool) {
+    function hasRole(address account, uint256 roleId) external view virtual override returns (bool) {
         if (roleId == ADMIN_ROLE_ID) {
             return account == _owner;
         } else if (roleId == ADMIN_ROLE_ID) {
@@ -108,7 +107,7 @@ contract RoleBasedAccessControl is IRoleBasedAccessControl {
         }
     }
 
-    function setGlobalAccess(uint256 roleId, uint256 permissionId, Access access) external override {
+    function setGlobalAccess(uint256 roleId, uint256 permissionId, Access access) external virtual override {
         require(msg.sender == _owner);
         require(roleId != OWNER_ROLE_ID && roleId != ADMIN_ROLE_ID);
         Access previousPermission = _globalAccess[roleId][permissionId];
@@ -125,6 +124,7 @@ contract RoleBasedAccessControl is IRoleBasedAccessControl {
 
     function setScopedAccess(uint256 roleId, address contractAddress, uint256 permissionId, Access access)
         external
+        virtual
         override
     {
         require(msg.sender == _owner);
@@ -141,17 +141,18 @@ contract RoleBasedAccessControl is IRoleBasedAccessControl {
         }
     }
 
-    function getGlobalAccess(uint256 roleId, uint256 permissionId) external view override returns (Access) {
+    function getGlobalAccess(uint256 roleId, uint256 permissionId) external view virtual override returns (Access) {
         return _globalAccess[roleId][permissionId];
     }
 
-    function getGlobalAccess(address account, uint256 permissionId) external view override returns (Access) {
+    function getGlobalAccess(address account, uint256 permissionId) external view virtual override returns (Access) {
         return _getGlobalAccess(account, permissionId);
     }
 
     function getScopedAccess(uint256 roleId, address contractAddress, uint256 permissionId)
         external
         view
+        virtual
         override
         returns (Access)
     {
@@ -161,13 +162,14 @@ contract RoleBasedAccessControl is IRoleBasedAccessControl {
     function getScopedAccess(address account, address contractAddress, uint256 permissionId)
         external
         view
+        virtual
         override
         returns (Access)
     {
         return _getScopedAccess(account, contractAddress, permissionId);
     }
 
-    function _hasCustomRole(address account, uint256 roleId) internal view returns (bool) {
+    function _hasCustomRole(address account, uint256 roleId) internal view virtual returns (bool) {
         for (uint256 i = 0; i < _roles[account].length; i++) {
             if (_roles[account][i] == roleId) {
                 return true;
@@ -179,6 +181,7 @@ contract RoleBasedAccessControl is IRoleBasedAccessControl {
     function _getScopedAccess(address account, address contractAddress, uint256 permissionId)
         internal
         view
+        virtual
         returns (Access)
     {
         if (_owner == account || _isAdmin[account]) {
@@ -196,7 +199,7 @@ contract RoleBasedAccessControl is IRoleBasedAccessControl {
         }
     }
 
-    function _getGlobalAccess(address account, uint256 permissionId) internal view returns (Access) {
+    function _getGlobalAccess(address account, uint256 permissionId) internal view virtual returns (Access) {
         if (_owner == account || _isAdmin[account]) {
             return Access.GRANTED;
         } else {
@@ -210,5 +213,11 @@ contract RoleBasedAccessControl is IRoleBasedAccessControl {
             }
             return access;
         }
+    }
+
+    function _emitLensContractDeployedEvent() internal virtual {
+        emit Events.Lens_Contract_Deployed(
+            "access-control", "lens.access-control.owner-admin", "access-control", "lens.access-control.owner-admin"
+        );
     }
 }
