@@ -15,6 +15,8 @@ import {AppFactory, AppInitialProperties} from "./AppFactory.sol";
 import {AccountFactory} from "./AccountFactory.sol";
 import {IAccount} from "./../primitives/account/IAccount.sol";
 import {IUsername} from "./../primitives/username/IUsername.sol";
+import {ITokenURIProvider} from "../primitives/base/ITokenURIProvider.sol";
+import {LensUsernameTokenURIProvider} from "./../primitives/username/LensUsernameTokenURIProvider.sol";
 
 // TODO: Move this some place else or remove
 interface IOwnable {
@@ -140,8 +142,16 @@ contract LensFactory {
         string memory nftName,
         string memory nftSymbol
     ) external returns (address) {
+        ITokenURIProvider tokenURIProvider = new LensUsernameTokenURIProvider(); // TODO!
         return USERNAME_FACTORY.deployUsername(
-            namespace, metadataURI, _deployAccessControl(owner, admins), rules, extraData, nftName, nftSymbol
+            namespace,
+            metadataURI,
+            _deployAccessControl(owner, admins),
+            rules,
+            extraData,
+            nftName,
+            nftSymbol,
+            tokenURIProvider
         );
     }
 

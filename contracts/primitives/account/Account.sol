@@ -56,4 +56,9 @@ contract Account is IAccount, Ownable {
     }
 
     receive() external payable override {}
+
+    function _transferOwnership(address newOwner) internal override {
+        super._transferOwnership(newOwner);
+        emit Lens_Account_OwnerTransferred(newOwner);
+    }
 }

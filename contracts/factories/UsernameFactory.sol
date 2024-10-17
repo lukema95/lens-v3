@@ -5,6 +5,7 @@ import {IAccessControl} from "./../primitives/access-control/IAccessControl.sol"
 import {Username} from "./../primitives/username/Username.sol";
 import {OwnerOnlyAccessControl} from "./../primitives/access-control/OwnerOnlyAccessControl.sol";
 import {RuleConfiguration, DataElement} from "./../types/Types.sol";
+import {ITokenURIProvider} from "./../primitives/base/ITokenURIProvider.sol";
 
 contract UsernameFactory {
     event Lens_UsernameFactory_Deployment(address indexed username, string namespace);
@@ -22,9 +23,11 @@ contract UsernameFactory {
         RuleConfiguration[] calldata rules,
         DataElement[] calldata extraData,
         string memory nftName,
-        string memory nftSymbol
+        string memory nftSymbol,
+        ITokenURIProvider tokenURIProvider
     ) external returns (address) {
-        Username username = new Username(namespace, metadataURI, _factoryOwnedAccessControl, nftName, nftSymbol);
+        Username username =
+            new Username(namespace, metadataURI, _factoryOwnedAccessControl, nftName, nftSymbol, tokenURIProvider);
         username.addUsernameRules(rules);
         username.setExtraData(extraData);
         username.setAccessControl(accessControl);

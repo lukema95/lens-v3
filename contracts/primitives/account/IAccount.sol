@@ -5,6 +5,7 @@ interface IAccount {
     event Lens_Account_AccountManagerAdded(address indexed accountManager);
     event Lens_Account_AccountManagerRemoved(address indexed accountManager);
     event Lens_Account_MetadataURISet(string metadataURI);
+    event Lens_Account_OwnerTransferred(address indexed newOwner);
     event TransactionExecuted(address indexed to, uint256 value, bytes data, address indexed executor);
 
     function addAccountManager(address _accountManager) external;

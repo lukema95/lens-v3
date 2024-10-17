@@ -1,0 +1,19 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import {ITokenURIProvider} from "../base/ITokenURIProvider.sol";
+import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
+
+contract LensUsernameTokenURIProvider is ITokenURIProvider {
+    using StringsUpgradeable for uint256;
+
+    // TODO: Implement Lens Username Token URI SVGs
+    function tokenURI(uint256 tokenId) external pure override returns (string memory) {
+        return string.concat(
+            "data:image/svg+xml;",
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800"><circle cy="400" cx="400" r="300"/><text fill="#fff" transform-origin="400 400" y="400" x="400" font-weight="bold" text-anchor="middle" font-size="80">#',
+            tokenId.toString(),
+            "</text></svg>"
+        );
+    }
+}

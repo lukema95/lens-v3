@@ -11,13 +11,15 @@ import {AccessControlled} from "./../base/AccessControlled.sol";
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
 import {RuleConfiguration} from "./../../types/Types.sol";
 import {Events} from "./../../types/Events.sol";
-import {ERC721} from "../base/ERC721.sol";
+import {LensERC721} from "../base/LensERC721.sol";
+import {ITokenURIProvider} from "../base/ITokenURIProvider.sol";
 
-contract Username is IUsername, ERC721, RuleBasedUsername, AccessControlled {
+contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled {
     // TODO: Do we want more granular resources here? Like add/update/remove PIDs? Or are we OK with the multi-purpose?
     uint256 constant SET_RULES_PID = uint256(keccak256("SET_RULES"));
     uint256 constant SET_METADATA_PID = uint256(keccak256("SET_METADATA"));
     uint256 constant SET_EXTRA_DATA_PID = uint256(keccak256("SET_EXTRA_DATA"));
+    uint256 constant SET_TOKEN_URI_PROVIDER_PID = uint256(keccak256("SET_TOKEN_URI_PROVIDER"));
 
     // TODO: This will be a mandatory rule now
     // // Storage fields and structs
@@ -32,8 +34,9 @@ contract Username is IUsername, ERC721, RuleBasedUsername, AccessControlled {
         string memory metadataURI,
         IAccessControl accessControl,
         string memory nftName,
-        string memory nftSymbol
-    ) ERC721(nftName, nftSymbol) AccessControlled(accessControl) {
+        string memory nftSymbol,
+        ITokenURIProvider tokenURIProvider
+    ) LensERC721(nftName, nftSymbol, tokenURIProvider) AccessControlled(accessControl) {
         Core.$storage().namespace = namespace;
         Core.$storage().metadataURI = metadataURI;
         emit Lens_Username_MetadataURISet(metadataURI);
@@ -46,6 +49,11 @@ contract Username is IUsername, ERC721, RuleBasedUsername, AccessControlled {
         emit Lens_PermissonId_Available(SET_RULES_PID, "SET_RULES");
         emit Lens_PermissonId_Available(SET_METADATA_PID, "SET_METADATA");
         emit Lens_PermissonId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
+        emit Lens_PermissonId_Available(SET_TOKEN_URI_PROVIDER_PID, "SET_TOKEN_URI_PROVIDER");
+    }
+
+    function _beforeTokenURIProviderSet(ITokenURIProvider /* tokenURIProvider */ ) internal view override {
+        _requireAccess(msg.sender, SET_TOKEN_URI_PROVIDER_PID);
     }
 
     // Access Controlled functions
@@ -100,8 +108,10 @@ contract Username is IUsername, ERC721, RuleBasedUsername, AccessControlled {
     }
 
     function removeUsername(string memory username, RuleExecutionData calldata data) external override {
-        address account = _ownerOf(_computeId(username));
+        uint256 id = _computeId(username);
+        address account = _ownerOf(id);
         require(msg.sender == account); // msg.sender must be the owner of the username
+        _burn(id);
         Core._removeUsername(username);
         _processRemoval(account, username, data);
         emit Lens_Username_Removed(username, account, data);

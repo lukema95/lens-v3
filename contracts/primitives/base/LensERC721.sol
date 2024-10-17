@@ -4,19 +4,24 @@
 import "./IERC721.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
+import "./ITokenURIProvider.sol";
+import "./IERC4906Events.sol";
 
 pragma solidity ^0.8.0;
 
-contract ERC721 is IERC721 {
+contract LensERC721 is IERC721 {
     using AddressUpgradeable for address;
-    using StringsUpgradeable for uint256;
+
+    event Lens_ERC721_Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
+    event Lens_ERC721_TokenURIProviderSet(address indexed tokenURIProvider);
 
     struct ERC721Storage {
         // Token name
         string name;
         // Token symbol
         string symbol;
+        // Token URI provider
+        ITokenURIProvider tokenURIProvider;
         // Mapping from token ID to owner address
         mapping(uint256 => address) owners;
         // Mapping owner address to token count
@@ -36,9 +41,11 @@ contract ERC721 is IERC721 {
         }
     }
 
-    constructor(string memory nftName, string memory nftSymbol) {
+    constructor(string memory nftName, string memory nftSymbol, ITokenURIProvider tokenURIProvider) {
         $erc721Storage().name = nftName;
         $erc721Storage().symbol = nftSymbol;
+        $erc721Storage().tokenURIProvider = tokenURIProvider;
+        emit Lens_ERC721_TokenURIProviderSet(address(tokenURIProvider));
     }
 
     /**
@@ -78,24 +85,21 @@ contract ERC721 is IERC721 {
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
         _requireMinted(tokenId);
 
-        string memory baseURI = _baseURI();
-        return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
+        return $erc721Storage().tokenURIProvider.tokenURI(tokenId);
     }
 
-    /**
-     * @dev Base URI for computing {tokenURI}. If set, the resulting URI for each
-     * token will be the concatenation of the `baseURI` and the `tokenId`. Empty
-     * by default, can be overridden in child contracts.
-     */
-    function _baseURI() internal view virtual returns (string memory) {
-        return "";
+    function setTokenURIProvider(ITokenURIProvider tokenURIProvider) external virtual {
+        _beforeTokenURIProviderSet(tokenURIProvider);
+        $erc721Storage().tokenURIProvider = tokenURIProvider;
+        emit IERC4906Events.BatchMetadataUpdate(0, type(uint256).max);
+        emit Lens_ERC721_TokenURIProviderSet(address(tokenURIProvider));
     }
 
     /**
      * @dev See {IERC721-approve}.
      */
     function approve(address to, uint256 tokenId) public virtual override {
-        address owner = ERC721.ownerOf(tokenId);
+        address owner = LensERC721.ownerOf(tokenId);
         require(to != owner, "ERC721: approval to current owner");
 
         require(
@@ -204,7 +208,7 @@ contract ERC721 is IERC721 {
      * - `tokenId` must exist.
      */
     function _isApprovedOrOwner(address spender, uint256 tokenId) internal view virtual returns (bool) {
-        address owner = ERC721.ownerOf(tokenId);
+        address owner = LensERC721.ownerOf(tokenId);
         return (spender == owner || isApprovedForAll(owner, spender) || getApproved(tokenId) == spender);
     }
 
@@ -249,7 +253,7 @@ contract ERC721 is IERC721 {
         require(to != address(0), "ERC721: mint to the zero address");
         require(!_exists(tokenId), "ERC721: token already minted");
 
-        _beforeTokenTransfer(address(0), to, tokenId, 1);
+        _beforeTokenTransfer(address(0), to, tokenId);
 
         // Check that tokenId was not minted by `_beforeTokenTransfer` hook
         require(!_exists(tokenId), "ERC721: token already minted");
@@ -266,7 +270,7 @@ contract ERC721 is IERC721 {
 
         emit Transfer(address(0), to, tokenId);
 
-        _afterTokenTransfer(address(0), to, tokenId, 1);
+        _afterTokenTransfer(address(0), to, tokenId);
     }
 
     /**
@@ -281,12 +285,12 @@ contract ERC721 is IERC721 {
      * Emits a {Transfer} event.
      */
     function _burn(uint256 tokenId) internal virtual {
-        address owner = ERC721.ownerOf(tokenId);
+        address owner = LensERC721.ownerOf(tokenId);
 
-        _beforeTokenTransfer(owner, address(0), tokenId, 1);
+        _beforeTokenTransfer(owner, address(0), tokenId);
 
         // Update ownership in case tokenId was transferred by `_beforeTokenTransfer` hook
-        owner = ERC721.ownerOf(tokenId);
+        owner = LensERC721.ownerOf(tokenId);
 
         // Clear approvals
         delete $erc721Storage().tokenApprovals[tokenId];
@@ -300,7 +304,7 @@ contract ERC721 is IERC721 {
 
         emit Transfer(owner, address(0), tokenId);
 
-        _afterTokenTransfer(owner, address(0), tokenId, 1);
+        _afterTokenTransfer(owner, address(0), tokenId);
     }
 
     /**
@@ -315,13 +319,13 @@ contract ERC721 is IERC721 {
      * Emits a {Transfer} event.
      */
     function _transfer(address from, address to, uint256 tokenId) internal virtual {
-        require(ERC721.ownerOf(tokenId) == from, "ERC721: transfer from incorrect owner");
+        require(LensERC721.ownerOf(tokenId) == from, "ERC721: transfer from incorrect owner");
         require(to != address(0), "ERC721: transfer to the zero address");
 
-        _beforeTokenTransfer(from, to, tokenId, 1);
+        _beforeTokenTransfer(from, to, tokenId);
 
         // Check that tokenId was not transferred by `_beforeTokenTransfer` hook
-        require(ERC721.ownerOf(tokenId) == from, "ERC721: transfer from incorrect owner");
+        require(LensERC721.ownerOf(tokenId) == from, "ERC721: transfer from incorrect owner");
 
         // Clear approvals from the previous owner
         delete $erc721Storage().tokenApprovals[tokenId];
@@ -338,8 +342,9 @@ contract ERC721 is IERC721 {
         $erc721Storage().owners[tokenId] = to;
 
         emit Transfer(from, to, tokenId);
+        emit Lens_ERC721_Transfer(from, to, tokenId);
 
-        _afterTokenTransfer(from, to, tokenId, 1);
+        _afterTokenTransfer(from, to, tokenId);
     }
 
     /**
@@ -349,7 +354,7 @@ contract ERC721 is IERC721 {
      */
     function _approve(address to, uint256 tokenId) internal virtual {
         $erc721Storage().tokenApprovals[tokenId] = to;
-        emit Approval(ERC721.ownerOf(tokenId), to, tokenId);
+        emit Approval(LensERC721.ownerOf(tokenId), to, tokenId);
     }
 
     /**
@@ -403,6 +408,8 @@ contract ERC721 is IERC721 {
         }
     }
 
+    function _beforeTokenURIProviderSet(ITokenURIProvider tokenURIProvider) internal virtual {}
+
     /**
      * @dev Hook that is called before any token transfer. This includes minting and burning. If {ERC721Consecutive} is
      * used, the hook may be called as part of a consecutive (batch) mint, as indicated by `batchSize` greater than 1.
@@ -413,11 +420,10 @@ contract ERC721 is IERC721 {
      * - When `from` is zero, the tokens will be minted for `to`.
      * - When `to` is zero, ``from``'s tokens will be burned.
      * - `from` and `to` are never both zero.
-     * - `batchSize` is non-zero.
      *
      * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
      */
-    function _beforeTokenTransfer(address from, address to, uint256 firstTokenId, uint256 batchSize) internal virtual {}
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal virtual {}
 
     /**
      * @dev Hook that is called after any token transfer. This includes minting and burning. If {ERC721Consecutive} is
@@ -429,11 +435,10 @@ contract ERC721 is IERC721 {
      * - When `from` is zero, the tokens were minted for `to`.
      * - When `to` is zero, ``from``'s tokens were burned.
      * - `from` and `to` are never both zero.
-     * - `batchSize` is non-zero.
      *
      * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
      */
-    function _afterTokenTransfer(address from, address to, uint256 firstTokenId, uint256 batchSize) internal virtual {}
+    function _afterTokenTransfer(address from, address to, uint256 tokenId) internal virtual {}
 
     /**
      * @dev Unsafe write access to the balances, used by extensions that "mint" tokens using an {ownerOf} override.
