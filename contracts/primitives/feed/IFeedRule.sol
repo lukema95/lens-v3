@@ -17,11 +17,11 @@ interface IFeedRule {
     function processEditPost(
         uint256 postId,
         uint256 localSequentialId,
-        EditPostParams calldata newPostParams,
+        EditPostParams calldata editPostParams,
         bytes calldata data
     ) external;
 
-    function processDeletePost(uint256 postId, uint256 localSequentialId, bytes calldata feedRulesData) external;
+    function processDeletePost(uint256 postId, uint256 localSequentialId, bytes calldata data) external;
 
     function processPostRulesChanged(
         uint256 postId,
