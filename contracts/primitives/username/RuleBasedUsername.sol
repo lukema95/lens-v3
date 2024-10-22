@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IUsernameRule} from "./IUsernameRule.sol";
+import {IUsernameRule, UsernameRule} from "./IUsernameRule.sol";
 import {RulesStorage, RulesLib} from "./../base/RulesLib.sol";
 import {RuleConfiguration, RuleExecutionData} from "./../../types/Types.sol";
 
@@ -29,46 +29,71 @@ contract RuleBasedUsername {
     // Internal
 
     function _addUsernameRule(RuleConfiguration calldata rule) internal {
-        $usernameRulesStorage().addRule(rule, abi.encodeWithSelector(IUsernameRule.configure.selector, rule.configData));
+        $usernameRulesStorage().addRule(rule, abi.encodeCall(IUsernameRule.configure, (rule.configData)));
     }
 
     function _updateUsernameRule(RuleConfiguration calldata rule) internal {
-        $usernameRulesStorage().updateRule(
-            rule, abi.encodeWithSelector(IUsernameRule.configure.selector, rule.configData)
-        );
+        $usernameRulesStorage().updateRule(rule, abi.encodeCall(IUsernameRule.configure, (rule.configData)));
     }
 
     function _removeUsernameRule(address rule) internal {
         $usernameRulesStorage().removeRule(rule);
     }
 
-    function _processCreation(address account, string memory username, RuleExecutionData calldata data) internal {
-        _processUsernameRule(IUsernameRule.processCreation.selector, account, username, data);
+    function _internalProcessCreation(address rule, address account, string calldata username, bytes calldata data)
+        internal
+        returns (bool, bytes memory)
+    {
+        return rule.call(abi.encodeCall(IUsernameRule.processCreation, (account, username, data)));
     }
 
-    function _processRemoval(address account, string memory username, RuleExecutionData calldata data) internal {
-        _processUsernameRule(IUsernameRule.processRemoval.selector, account, username, data);
+    function _processCreation(address account, string calldata username, RuleExecutionData calldata data) internal {
+        _processUsernameRule(_internalProcessCreation, account, username, data);
     }
 
-    function _processAssigning(address account, string memory username, RuleExecutionData calldata data) internal {
-        _processUsernameRule(IUsernameRule.processAssigning.selector, account, username, data);
+    function _internalProcessRemoval(address rule, address account, string calldata username, bytes calldata data)
+        internal
+        returns (bool, bytes memory)
+    {
+        return rule.call(abi.encodeCall(IUsernameRule.processRemoval, (account, username, data)));
     }
 
-    function _processUnassigning(address account, string memory username, RuleExecutionData calldata data) internal {
-        _processUsernameRule(IUsernameRule.processUnassigning.selector, account, username, data);
+    function _processRemoval(address account, string calldata username, RuleExecutionData calldata data) internal {
+        _processUsernameRule(_internalProcessRemoval, account, username, data);
+    }
+
+    function _internalProcessAssigning(address rule, address account, string calldata username, bytes calldata data)
+        internal
+        returns (bool, bytes memory)
+    {
+        return rule.call(abi.encodeCall(IUsernameRule.processAssigning, (account, username, data)));
+    }
+
+    function _processAssigning(address account, string calldata username, RuleExecutionData calldata data) internal {
+        _processUsernameRule(_internalProcessAssigning, account, username, data);
+    }
+
+    function _internalProcessUnassigning(address rule, address account, string calldata username, bytes calldata data)
+        internal
+        returns (bool, bytes memory)
+    {
+        return rule.call(abi.encodeCall(IUsernameRule.processUnassigning, (account, username, data)));
+    }
+
+    function _processUnassigning(address account, string calldata username, RuleExecutionData calldata data) internal {
+        _processUsernameRule(_internalProcessUnassigning, account, username, data);
     }
 
     function _processUsernameRule(
-        bytes4 selector,
+        function(address,address,string calldata,bytes calldata) internal returns(bool, bytes memory) func,
         address account,
-        string memory username,
+        string calldata username,
         RuleExecutionData calldata data
     ) private {
         // Check required rules (AND-combined rules)
         for (uint256 i = 0; i < $usernameRulesStorage().requiredRules.length; i++) {
-            (bool callNotReverted,) = $usernameRulesStorage().requiredRules[i].call(
-                abi.encodeWithSelector(selector, account, username, data.dataForRequiredRules[i])
-            );
+            (bool callNotReverted,) =
+                func($usernameRulesStorage().anyOfRules[i], account, username, data.dataForRequiredRules[i]);
             require(callNotReverted, "Some required rule failed");
         }
         // Check any-of rules (OR-combined rules)
@@ -76,9 +101,9 @@ contract RuleBasedUsername {
             return; // If there are no OR-combined rules, we can return
         }
         for (uint256 i = 0; i < $usernameRulesStorage().anyOfRules.length; i++) {
-            (bool callNotReverted, bytes memory returnData) = $usernameRulesStorage().anyOfRules[i].call(
-                abi.encodeWithSelector(selector, account, username, data.dataForAnyOfRules[i])
-            );
+            (bool callNotReverted, bytes memory returnData) =
+                func($usernameRulesStorage().anyOfRules[i], account, username, data.dataForAnyOfRules[i]);
+
             if (callNotReverted && abi.decode(returnData, (bool))) {
                 // Note: abi.decode would fail if call reverted, so don't put this out of the brackets!
                 return; // If any of the OR-combined rules passed, it means they succeed and we can return

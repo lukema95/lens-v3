@@ -28,37 +28,60 @@ contract RuleBasedGroup {
     // Internal
 
     function _addGroupRule(RuleConfiguration calldata rule) internal {
-        $groupRulesStorage().addRule(rule, abi.encodeWithSelector(IGroupRule.configure.selector, rule.configData));
+        $groupRulesStorage().addRule(rule, abi.encodeCall(IGroupRule.configure, (rule.configData)));
     }
 
     function _updateGroupRule(RuleConfiguration calldata rule) internal {
-        $groupRulesStorage().updateRule(rule, abi.encodeWithSelector(IGroupRule.configure.selector, rule.configData));
+        $groupRulesStorage().updateRule(rule, abi.encodeCall(IGroupRule.configure, (rule.configData)));
     }
 
     function _removeGroupRule(address rule) internal {
         $groupRulesStorage().removeRule(rule);
     }
 
+    function _internalProcessJoining(address rule, address account, uint256 membershipId, bytes calldata data)
+        internal
+        returns (bool, bytes memory)
+    {
+        return rule.call(abi.encodeCall(IGroupRule.processJoining, (account, membershipId, data)));
+    }
+
     function _processJoining(address account, uint256 membershipId, RuleExecutionData calldata data) internal {
-        _processGroupRule(IGroupRule.processJoining.selector, account, membershipId, data);
+        _processGroupRule(_internalProcessJoining, account, membershipId, data);
+    }
+
+    function _internalProcessRemoval(address rule, address account, uint256 membershipId, bytes calldata data)
+        internal
+        returns (bool, bytes memory)
+    {
+        return rule.call(abi.encodeCall(IGroupRule.processRemoval, (account, membershipId, data)));
     }
 
     function _processRemoval(address account, uint256 membershipId, RuleExecutionData calldata data) internal {
-        _processGroupRule(IGroupRule.processRemoval.selector, account, membershipId, data);
+        _processGroupRule(_internalProcessRemoval, account, membershipId, data);
+    }
+
+    function _internalProcessLeaving(address rule, address account, uint256 membershipId, bytes calldata data)
+        internal
+        returns (bool, bytes memory)
+    {
+        return rule.call(abi.encodeCall(IGroupRule.processLeaving, (account, membershipId, data)));
     }
 
     function _processLeaving(address account, uint256 membershipId, RuleExecutionData calldata data) internal {
-        _processGroupRule(IGroupRule.processLeaving.selector, account, membershipId, data);
+        _processGroupRule(_internalProcessLeaving, account, membershipId, data);
     }
 
-    function _processGroupRule(bytes4 selector, address account, uint256 membershipId, RuleExecutionData calldata data)
-        private
-    {
+    function _processGroupRule(
+        function(address,address,uint256,bytes calldata) internal returns (bool,bytes memory) func,
+        address account,
+        uint256 membershipId,
+        RuleExecutionData calldata data
+    ) private {
         // Check required rules (AND-combined rules)
         for (uint256 i = 0; i < $groupRulesStorage().requiredRules.length; i++) {
-            (bool callNotReverted,) = $groupRulesStorage().requiredRules[i].call(
-                abi.encodeWithSelector(selector, account, membershipId, data.dataForRequiredRules[i])
-            );
+            (bool callNotReverted,) =
+                func($groupRulesStorage().requiredRules[i], account, membershipId, data.dataForRequiredRules[i]);
             require(callNotReverted, "Some required rule failed");
         }
         // Check any-of rules (OR-combined rules)
@@ -66,9 +89,9 @@ contract RuleBasedGroup {
             return; // If there are no OR-combined rules, we can return
         }
         for (uint256 i = 0; i < $groupRulesStorage().anyOfRules.length; i++) {
-            (bool callNotReverted, bytes memory returnData) = $groupRulesStorage().anyOfRules[i].call(
-                abi.encodeWithSelector(selector, account, membershipId, data.dataForAnyOfRules[i])
-            );
+            (bool callNotReverted, bytes memory returnData) =
+                func($groupRulesStorage().anyOfRules[i], account, membershipId, data.dataForAnyOfRules[i]);
+
             if (callNotReverted && abi.decode(returnData, (bool))) {
                 // Note: abi.decode would fail if call reverted, so don't put this out of the brackets!
                 return; // If any of the OR-combined rules passed, it means they succeed and we can return
