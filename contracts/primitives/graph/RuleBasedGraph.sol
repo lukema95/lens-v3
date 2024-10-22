@@ -91,6 +91,16 @@ contract RuleBasedGraph {
         revert("All of the any-of rules failed");
     }
 
+    function _internalGraphProcessFollow(
+        address rule,
+        address followerAcount,
+        address accountToFollow,
+        uint256 followId,
+        bytes calldata data
+    ) internal returns (bool, bytes memory) {
+        return rule.call(abi.encodeCall(IGraphRule.processFollow, (followerAcount, accountToFollow, followId, data)));
+    }
+
     function _graphProcessFollow(
         address followerAcount,
         address accountToFollow,
@@ -98,8 +108,18 @@ contract RuleBasedGraph {
         RuleExecutionData calldata graphRulesData
     ) internal {
         _processFollow(
-            $graphRulesStorage(), IGraphRule.processFollow, followerAcount, accountToFollow, followId, graphRulesData
+            $graphRulesStorage(), _internalGraphProcessFollow, followerAcount, accountToFollow, followId, graphRulesData
         );
+    }
+
+    function _internalAccountProcessFollow(
+        address rule,
+        address followerAcount,
+        address accountToFollow,
+        uint256 followId,
+        bytes calldata data
+    ) internal returns (bool, bytes memory) {
+        return rule.call(abi.encodeCall(IFollowRule.processFollow, (followerAcount, accountToFollow, followId, data)));
     }
 
     function _accountProcessFollow(
@@ -110,7 +130,7 @@ contract RuleBasedGraph {
     ) internal {
         _processFollow(
             $followRulesStorage(accountToFollow),
-            IFollowRule.processFollow,
+            _internalAccountProcessFollow,
             followerAcount,
             accountToFollow,
             followId,
@@ -120,7 +140,7 @@ contract RuleBasedGraph {
 
     function _processFollow(
         RulesStorage storage rulesStorage,
-        function(address,address,uint256,bytes calldata) external func,
+        function(address,address,address,uint256,bytes calldata) internal returns (bool,bytes memory) func,
         address followerAcount,
         address accountToFollow,
         uint256 followId,
@@ -128,8 +148,8 @@ contract RuleBasedGraph {
     ) internal {
         // Check required rules (AND-combined rules)
         for (uint256 i = 0; i < rulesStorage.requiredRules.length; i++) {
-            (bool callNotReverted,) = rulesStorage.requiredRules[i].call(
-                abi.encodeCall(func, (followerAcount, accountToFollow, followId, data.dataForRequiredRules[i]))
+            (bool callNotReverted,) = func(
+                rulesStorage.requiredRules[i], followerAcount, accountToFollow, followId, data.dataForRequiredRules[i]
             );
             require(callNotReverted, "Some required rule failed");
         }
@@ -138,9 +158,8 @@ contract RuleBasedGraph {
             return; // If there are no OR-combined rules, we can return
         }
         for (uint256 i = 0; i < rulesStorage.anyOfRules.length; i++) {
-            (bool callNotReverted, bytes memory returnData) = rulesStorage.anyOfRules[i].call(
-                abi.encodeCall(func, (followerAcount, accountToFollow, followId, data.dataForAnyOfRules[i]))
-            );
+            (bool callNotReverted, bytes memory returnData) =
+                func(rulesStorage.anyOfRules[i], followerAcount, accountToFollow, followId, data.dataForAnyOfRules[i]);
             if (callNotReverted && abi.decode(returnData, (bool))) {
                 // Note: abi.decode would fail if call reverted, so don't put this out of the brackets!
                 return; // If any of the OR-combined rules passed, it means they succeed and we can return
