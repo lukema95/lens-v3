@@ -61,7 +61,7 @@ contract RuleBasedGraph {
 
     function _graphProcessFollowRulesChange(
         address account,
-        address[] memory followRules,
+        RuleConfiguration[] calldata followRules,
         RuleExecutionData calldata graphRulesData
     ) internal {
         // Check required rules (AND-combined rules)
