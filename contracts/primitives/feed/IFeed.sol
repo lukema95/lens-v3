@@ -14,21 +14,14 @@ struct CreatePostParams {
     address author; // Multiple authors can be added in extraData
     address source; // Client source, if any
     string contentURI;
+    uint256 repostedPostId;
     uint256 quotedPostId;
-    uint256 parentPostId;
+    uint256 repliedPostId;
     RuleConfiguration[] rules;
     RuleExecutionData feedRulesData;
+    RuleExecutionData repostedPostRulesData;
     RuleExecutionData quotedPostRulesData;
-    RuleExecutionData parentPostRulesData;
-    DataElement[] extraData;
-}
-
-struct CreateRepostParams {
-    address author;
-    address source;
-    uint256 parentPostId;
-    RuleExecutionData feedRulesData;
-    RuleExecutionData parentPostRulesData;
+    RuleExecutionData repliedPostRulesData;
     DataElement[] extraData;
 }
 
@@ -38,9 +31,9 @@ struct Post {
     uint256 localSequentialId;
     address source;
     string contentURI;
-    bool isRepost;
+    uint256 repostedPostId;
     uint256 quotedPostId;
-    uint256 parentPostId;
+    uint256 repliedPostId;
     address[] requiredRules;
     address[] anyOfRules;
     uint80 creationTimestamp;
@@ -53,14 +46,6 @@ interface IFeed is IMetadataBased {
         address indexed author,
         uint256 indexed localSequentialId,
         CreatePostParams postParams,
-        uint256 rootPostId
-    );
-
-    event Lens_Feed_RepostCreated(
-        uint256 indexed postId,
-        address indexed author,
-        uint256 indexed localSequentialId,
-        CreateRepostParams postParams,
         uint256 rootPostId
     );
 
@@ -103,8 +88,6 @@ interface IFeed is IMetadataBased {
     function removeFeedRules(address[] calldata rules) external;
 
     function createPost(CreatePostParams calldata postParams) external returns (uint256);
-
-    function createRepost(CreateRepostParams calldata repostParams) external returns (uint256);
 
     function editPost(
         uint256 postId,

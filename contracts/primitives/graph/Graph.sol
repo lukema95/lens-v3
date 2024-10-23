@@ -96,16 +96,17 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
         _graphProcessFollowRulesChange(account, rules, graphRulesData);
     }
 
-    function removeFollowRules(address account, address[] calldata rules, RuleExecutionData calldata graphRulesData)
-        external
-        override
-    {
+    function removeFollowRules(
+        address account,
+        address[] calldata rules,
+        RuleExecutionData calldata /* graphRulesData */
+    ) external override {
         require(msg.sender == account);
         for (uint256 i = 0; i < rules.length; i++) {
             _removeFollowRule(account, rules[i]);
             emit Lens_Graph_Follow_RuleRemoved(account, rules[i]);
         }
-        _graphProcessFollowRulesChange(account, rules, graphRulesData);
+        // _graphProcessFollowRulesChange(account, rules, graphRulesData); TODO: FIX!!!!
     }
 
     function follow(

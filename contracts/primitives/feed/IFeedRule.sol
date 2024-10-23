@@ -29,8 +29,4 @@ interface IFeedRule {
         RuleConfiguration[] calldata newPostRules,
         bytes calldata data
     ) external;
-
-    // TODO: Do we need these global quote/parent rules? Or they exist only per-post?
-    // function processQuotes
-    // function processParents
 }
