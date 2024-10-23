@@ -10,13 +10,13 @@ contract RestrictedSignersGraphRule is RestrictedSignersRule, IGraphRule {
         _configure(data);
     }
 
-    function processFollow(address followerAcount, address accountToFollow, uint256 followId, bytes calldata data)
+    function processFollow(address followerAccount, address accountToFollow, uint256 followId, bytes calldata data)
         external
         override
     {
-        _validateRestricteSignerMessage({
+        _validateRestrictedSignerMessage({
             functionSelector: IGraphRule.processFollow.selector,
-            abiEncodedFunctionParams: abi.encode(followerAcount, accountToFollow, followId),
+            abiEncodedFunctionParams: abi.encode(followerAccount, accountToFollow, followId),
             signature: abi.decode(data, (EIP712Signature))
         });
     }
@@ -27,7 +27,7 @@ contract RestrictedSignersGraphRule is RestrictedSignersRule, IGraphRule {
         uint256 followId,
         bytes calldata data
     ) external override {
-        _validateRestricteSignerMessage({
+        _validateRestrictedSignerMessage({
             functionSelector: IGraphRule.processUnfollow.selector,
             abiEncodedFunctionParams: abi.encode(unfollowerAccount, accountToUnfollow, followId),
             signature: abi.decode(data, (EIP712Signature))
@@ -38,7 +38,7 @@ contract RestrictedSignersGraphRule is RestrictedSignersRule, IGraphRule {
         external
         override
     {
-        _validateRestricteSignerMessage({
+        _validateRestrictedSignerMessage({
             functionSelector: IGraphRule.processFollowRulesChange.selector,
             abiEncodedFunctionParams: abi.encode(account, followRules),
             signature: abi.decode(data, (EIP712Signature))

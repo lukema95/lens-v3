@@ -102,7 +102,7 @@ contract RuleBasedGraph {
     }
 
     function _graphProcessFollow(
-        address followerAcount,
+        address followerAccount,
         address accountToFollow,
         uint256 followId,
         RuleExecutionData calldata graphRulesData
@@ -110,7 +110,7 @@ contract RuleBasedGraph {
         _processFollow(
             $graphRulesStorage(),
             IGraphRule.processFollow.selector,
-            followerAcount,
+            followerAccount,
             accountToFollow,
             followId,
             graphRulesData
@@ -118,7 +118,7 @@ contract RuleBasedGraph {
     }
 
     function _accountProcessFollow(
-        address followerAcount,
+        address followerAccount,
         address accountToFollow,
         uint256 followId,
         RuleExecutionData calldata followRulesData
@@ -126,7 +126,7 @@ contract RuleBasedGraph {
         _processFollow(
             $followRulesStorage(accountToFollow),
             IFollowRule.processFollow.selector,
-            followerAcount,
+            followerAccount,
             accountToFollow,
             followId,
             followRulesData
@@ -136,7 +136,7 @@ contract RuleBasedGraph {
     function _processFollow(
         RulesStorage storage rulesStorage,
         bytes4 selector,
-        address followerAcount,
+        address followerAccount,
         address accountToFollow,
         uint256 followId,
         RuleExecutionData calldata data
@@ -145,7 +145,7 @@ contract RuleBasedGraph {
         for (uint256 i = 0; i < rulesStorage.requiredRules.length; i++) {
             (bool callNotReverted,) = rulesStorage.requiredRules[i].call(
                 abi.encodeWithSelector(
-                    selector, followerAcount, accountToFollow, followId, data.dataForRequiredRules[i]
+                    selector, followerAccount, accountToFollow, followId, data.dataForRequiredRules[i]
                 )
             );
             require(callNotReverted, "Some required rule failed");
@@ -156,7 +156,7 @@ contract RuleBasedGraph {
         }
         for (uint256 i = 0; i < rulesStorage.anyOfRules.length; i++) {
             (bool callNotReverted, bytes memory returnData) = rulesStorage.anyOfRules[i].call(
-                abi.encodeWithSelector(selector, followerAcount, accountToFollow, followId, data.dataForAnyOfRules[i])
+                abi.encodeWithSelector(selector, followerAccount, accountToFollow, followId, data.dataForAnyOfRules[i])
             );
             if (callNotReverted && abi.decode(returnData, (bool))) {
                 // Note: abi.decode would fail if call reverted, so don't put this out of the brackets!
