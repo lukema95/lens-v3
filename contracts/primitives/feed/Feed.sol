@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IFeed, Post, EditPostParams, CreatePostParams, CreateRepostParams} from "./IFeed.sol";
+import {IFeed, Post, EditPostParams, CreatePostParams} from "./IFeed.sol";
 import {FeedCore as Core} from "./FeedCore.sol";
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
 import {DataElement} from "./../../types/Types.sol";
@@ -72,7 +72,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     {
         address author = Core.$storage().posts[postId].author;
         require(msg.sender == author, "MSG_SENDER_NOT_AUTHOR");
-        require(!Core.$storage().posts[postId].isRepost, "CANNOT_ADD_RULES_TO_REPOST");
+        require(Core.$storage().posts[postId].rootPostId == postId, "ONLY_ROOT_POSTS_CAN_HAVE_RULES");
         for (uint256 i = 0; i < rules.length; i++) {
             _addPostRule(postId, rules[i]);
             emit Lens_Feed_Post_RuleAdded(
@@ -91,7 +91,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     ) external override {
         address author = Core.$storage().posts[postId].author;
         require(msg.sender == author, "MSG_SENDER_NOT_AUTHOR");
-        require(!Core.$storage().posts[postId].isRepost, "CANNOT_UPDATE_RULES_ON_REPOST");
+        require(Core.$storage().posts[postId].rootPostId == postId, "ONLY_ROOT_POSTS_CAN_HAVE_RULES");
         for (uint256 i = 0; i < rules.length; i++) {
             _updatePostRule(postId, rules[i]);
             emit Lens_Feed_Post_RuleUpdated(
@@ -110,7 +110,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     ) external override {
         address author = Core.$storage().posts[postId].author;
         require(msg.sender == author, "MSG_SENDER_NOT_AUTHOR");
-        require(!Core.$storage().posts[postId].isRepost, "CANNOT_REMOVE_RULES_FROM_REPOST");
+        require(Core.$storage().posts[postId].rootPostId == postId, "ONLY_ROOT_POSTS_CAN_HAVE_RULES");
         for (uint256 i = 0; i < rules.length; i++) {
             _removePostRule(postId, rules[i].ruleAddress);
             emit Lens_Feed_Post_RuleRemoved(postId, author, rules[i].ruleAddress);
@@ -124,33 +124,40 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
 
     function createPost(CreatePostParams calldata createPostParams) external override returns (uint256) {
         require(msg.sender == createPostParams.author, "MSG_SENDER_NOT_AUTHOR");
-        // Is this a comment?
-        if (createPostParams.parentPostId != 0) {
-            require(createPostParams.quotedPostId != createPostParams.parentPostId, "CANNOT_BE_QUOTED_AND_PARENT");
-            require(createPostParams.rules.length == 0, "CHILD_POSTS_CANNOT_HAVE_RULES");
-            require(!Core.$storage().posts[createPostParams.parentPostId].isRepost, "REPOST_CANNOT_BE_PARENT");
-        }
-        require(!Core.$storage().posts[createPostParams.quotedPostId].isRepost, "REPOST_CANNOT_BE_QUOTED");
+
         (uint256 postId, uint256 localSequentialId, uint256 rootPostId) = Core._createPost(createPostParams);
         _processPostCreation(postId, localSequentialId, createPostParams);
 
-        // We can only add rules to the post on creation, or by calling dedicated functions after (not on editPost)
-        for (uint256 i = 0; i < createPostParams.rules.length; i++) {
-            _addPostRule(postId, createPostParams.rules[i]);
-            emit Lens_Feed_RuleAdded(
-                createPostParams.rules[i].ruleAddress,
-                createPostParams.rules[i].configData,
-                createPostParams.rules[i].isRequired
-            );
+        if (createPostParams.quotedPostId != 0) {
+            _processQuotedPostRules(createPostParams.quotedPostId, postId, createPostParams.quotedPostRulesData);
         }
 
-        // Check if Feed rules allows the given Post's rule configuration
-        _processChangesOnPostRules(
-            createPostParams.author, postId, createPostParams.rules, createPostParams.feedRulesData
-        );
+        if (createPostParams.repliedPostId != 0) {
+            _processRepliedPostRules(createPostParams.repliedPostId, postId, createPostParams.repliedPostRulesData);
+        }
 
-        _processQuotedPostRules(createPostParams.quotedPostId, postId, createPostParams.quotedPostRulesData);
-        _processParentPostRules(createPostParams.parentPostId, postId, createPostParams.parentPostRulesData);
+        if (createPostParams.repostedPostId != 0) {
+            _processRepostedPostRules(createPostParams.repliedPostId, postId, createPostParams.repostedPostRulesData);
+        }
+
+        if (postId != rootPostId) {
+            require(createPostParams.rules.length == 0, "ONLY_ROOT_POSTS_CAN_HAVE_RULES");
+        } else {
+            // We can only add rules to the post on creation, or by calling dedicated functions after (not on editPost)
+            for (uint256 i = 0; i < createPostParams.rules.length; i++) {
+                _addPostRule(postId, createPostParams.rules[i]);
+                emit Lens_Feed_RuleAdded(
+                    createPostParams.rules[i].ruleAddress,
+                    createPostParams.rules[i].configData,
+                    createPostParams.rules[i].isRequired
+                );
+            }
+
+            // Check if Feed rules allows the given Post's rule configuration
+            _processChangesOnPostRules(
+                createPostParams.author, postId, createPostParams.rules, createPostParams.feedRulesData
+            );
+        }
 
         emit Lens_Feed_PostCreated(postId, createPostParams.author, localSequentialId, createPostParams, rootPostId);
 
@@ -160,30 +167,6 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
                 createPostParams.extraData[i].key,
                 createPostParams.extraData[i].value,
                 createPostParams.extraData[i].value
-            );
-        }
-
-        return postId;
-    }
-
-    function createRepost(CreateRepostParams calldata createRepostParams) external override returns (uint256) {
-        require(msg.sender == createRepostParams.author, "MSG_SENDER_NOT_AUTHOR");
-        require(!Core.$storage().posts[createRepostParams.parentPostId].isRepost, "CANNOT_REPOST_REPOST");
-        (uint256 postId, uint256 localSequentialId, uint256 rootPostId) = Core._createRepost(createRepostParams);
-        _feedProcessCreateRepost(postId, localSequentialId, createRepostParams); // TODO: Fix this!
-
-        _processParentPostRules(createRepostParams.parentPostId, postId, createRepostParams.parentPostRulesData);
-
-        emit Lens_Feed_RepostCreated(
-            postId, createRepostParams.author, localSequentialId, createRepostParams, rootPostId
-        );
-
-        for (uint256 i = 0; i < createRepostParams.extraData.length; i++) {
-            emit Lens_Feed_Post_ExtraDataAdded(
-                postId,
-                createRepostParams.extraData[i].key,
-                createRepostParams.extraData[i].value,
-                createRepostParams.extraData[i].value
             );
         }
 
@@ -262,9 +245,9 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
             localSequentialId: Core.$storage().posts[postId].localSequentialId,
             source: Core.$storage().posts[postId].source,
             contentURI: Core.$storage().posts[postId].contentURI,
-            isRepost: Core.$storage().posts[postId].isRepost,
+            repostedPostId: Core.$storage().posts[postId].repostedPostId,
             quotedPostId: Core.$storage().posts[postId].quotedPostId,
-            parentPostId: Core.$storage().posts[postId].parentPostId,
+            repliedPostId: Core.$storage().posts[postId].repliedPostId,
             requiredRules: _getPostRules(postId, true),
             anyOfRules: _getPostRules(postId, false),
             creationTimestamp: Core.$storage().posts[postId].creationTimestamp,

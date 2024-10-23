@@ -6,7 +6,7 @@ import {IFeedRule} from "./IFeedRule.sol";
 import {FeedCore as Core} from "./FeedCore.sol";
 import {RulesStorage, RulesLib} from "./../base/RulesLib.sol";
 import {RuleConfiguration, RuleExecutionData} from "./../../types/Types.sol";
-import {EditPostParams, CreatePostParams, CreateRepostParams} from "./IFeed.sol";
+import {EditPostParams, CreatePostParams} from "./IFeed.sol";
 
 contract RuleBasedFeed {
     using RulesLib for RulesStorage;
@@ -98,21 +98,21 @@ contract RuleBasedFeed {
         revert("All of the OR rules failed");
     }
 
-    function _processParentPostRules(
-        uint256 parentPostId,
+    function _processRepliedPostRules(
+        uint256 repliedPostId,
         uint256 postId,
         RuleExecutionData calldata parentPostRulesData
     ) internal {
-        uint256 rootPostId = Core.$storage().posts[parentPostId].rootPostId;
+        uint256 rootPostId = Core.$storage().posts[repliedPostId].rootPostId;
         RulesStorage storage rulesToProcess = $postRulesStorage(rootPostId);
 
         // Check required rules (AND-combined rules)
         for (uint256 i = 0; i < rulesToProcess.requiredRules.length; i++) {
             (bool callNotReverted,) = rulesToProcess.requiredRules[i].call(
                 abi.encodeWithSelector(
-                    IPostRule.processParent.selector,
+                    IPostRule.processReply.selector,
                     rootPostId,
-                    parentPostId,
+                    repliedPostId,
                     postId,
                     parentPostRulesData.dataForRequiredRules[i]
                 )
@@ -126,9 +126,52 @@ contract RuleBasedFeed {
         for (uint256 i = 0; i < rulesToProcess.anyOfRules.length; i++) {
             (bool callNotReverted, bytes memory returnData) = rulesToProcess.anyOfRules[i].call(
                 abi.encodeWithSelector(
-                    IPostRule.processParent.selector,
+                    IPostRule.processReply.selector,
                     rootPostId,
-                    parentPostId,
+                    repliedPostId,
+                    postId,
+                    parentPostRulesData.dataForAnyOfRules[i]
+                )
+            );
+            if (callNotReverted && abi.decode(returnData, (bool))) {
+                // Note: abi.decode would fail if call reverted, so don't put this out of the brackets!
+                return; // If any of the OR-combined rules passed, it means they succeed and we can return
+            }
+        }
+        revert("All of the OR rules failed");
+    }
+
+    function _processRepostedPostRules(
+        uint256 repostedPostId,
+        uint256 postId,
+        RuleExecutionData calldata parentPostRulesData
+    ) internal {
+        uint256 rootPostId = Core.$storage().posts[repostedPostId].rootPostId;
+        RulesStorage storage rulesToProcess = $postRulesStorage(rootPostId);
+
+        // Check required rules (AND-combined rules)
+        for (uint256 i = 0; i < rulesToProcess.requiredRules.length; i++) {
+            (bool callNotReverted,) = rulesToProcess.requiredRules[i].call(
+                abi.encodeWithSelector(
+                    IPostRule.processRepost.selector,
+                    rootPostId,
+                    repostedPostId,
+                    postId,
+                    parentPostRulesData.dataForRequiredRules[i]
+                )
+            );
+            require(callNotReverted, "Some required rule failed");
+        }
+        // Check any-of rules (OR-combined rules)
+        if (rulesToProcess.anyOfRules.length == 0) {
+            return; // If there are no OR-combined rules, we can return
+        }
+        for (uint256 i = 0; i < rulesToProcess.anyOfRules.length; i++) {
+            (bool callNotReverted, bytes memory returnData) = rulesToProcess.anyOfRules[i].call(
+                abi.encodeWithSelector(
+                    IPostRule.processRepost.selector,
+                    rootPostId,
+                    repostedPostId,
                     postId,
                     parentPostRulesData.dataForAnyOfRules[i]
                 )
@@ -158,35 +201,6 @@ contract RuleBasedFeed {
         for (uint256 i = 0; i < $feedRulesStorage().anyOfRules.length; i++) {
             (bool callNotReverted, bytes memory returnData) = $feedRulesStorage().anyOfRules[i].call(
                 abi.encodeWithSelector(IFeedRule.processCreatePost.selector, postId, localSequentialId, postParams)
-            );
-            if (callNotReverted && abi.decode(returnData, (bool))) {
-                // Note: abi.decode would fail if call reverted, so don't put this out of the brackets!
-                return; // If any of the OR-combined rules passed, it means they succeed and we can return
-            }
-        }
-        revert("All of the OR rules failed");
-    }
-
-    // TODO: FIX THIS!!!
-    function _feedProcessCreateRepost(
-        uint256 postId,
-        uint256 localSequentialId,
-        CreateRepostParams calldata repostParams
-    ) internal {
-        // Check required rules (AND-combined rules)
-        for (uint256 i = 0; i < $feedRulesStorage().requiredRules.length; i++) {
-            (bool callNotReverted,) = $feedRulesStorage().requiredRules[i].call(
-                abi.encodeWithSelector(IFeedRule.processCreatePost.selector, postId, localSequentialId, repostParams)
-            );
-            require(callNotReverted, "Some required rule failed");
-        }
-        // Check any-of rules (OR-combined rules)
-        if ($feedRulesStorage().anyOfRules.length == 0) {
-            return; // If there are no OR-combined rules, we can return
-        }
-        for (uint256 i = 0; i < $feedRulesStorage().anyOfRules.length; i++) {
-            (bool callNotReverted, bytes memory returnData) = $feedRulesStorage().anyOfRules[i].call(
-                abi.encodeWithSelector(IFeedRule.processCreatePost.selector, postId, localSequentialId, repostParams)
             );
             if (callNotReverted && abi.decode(returnData, (bool))) {
                 // Note: abi.decode would fail if call reverted, so don't put this out of the brackets!
