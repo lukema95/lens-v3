@@ -73,16 +73,14 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
         // TODO: Decide if we want a PID to skip checks for owners/admins
         // require(msg.sender == account || _hasAccess(SKIP_FOLLOW_RULES_CHECKS_PID));
         require(msg.sender == account);
-        address[] memory ruleAddresses = new address[](rules.length);
         for (uint256 i = 0; i < rules.length; i++) {
             _addFollowRule(account, rules[i]);
-            ruleAddresses[i] = rules[i].ruleAddress;
             emit Lens_Graph_Follow_RuleAdded(account, rules[i].ruleAddress, rules[i]);
         }
         // if (_hasAccess(SKIP_FOLLOW_RULES_CHECKS_PID)) {
         //     return; // Skip processing the graph rules if you have the right access
         // }
-        _graphProcessFollowRulesChange(account, ruleAddresses, graphRulesData);
+        _graphProcessFollowRulesChange(account, rules, graphRulesData);
     }
 
     function updateFollowRules(
@@ -91,25 +89,24 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
         RuleExecutionData calldata graphRulesData
     ) external override {
         require(msg.sender == account);
-        address[] memory ruleAddresses = new address[](rules.length);
         for (uint256 i = 0; i < rules.length; i++) {
             _updateFollowRule(account, rules[i]);
-            ruleAddresses[i] = rules[i].ruleAddress;
             emit Lens_Graph_Follow_RuleUpdated(account, rules[i].ruleAddress, rules[i]);
         }
-        _graphProcessFollowRulesChange(account, ruleAddresses, graphRulesData);
+        _graphProcessFollowRulesChange(account, rules, graphRulesData);
     }
 
-    function removeFollowRules(address account, address[] calldata rules, RuleExecutionData calldata graphRulesData)
-        external
-        override
-    {
+    function removeFollowRules(
+        address account,
+        address[] calldata rules,
+        RuleExecutionData calldata /* graphRulesData */
+    ) external override {
         require(msg.sender == account);
         for (uint256 i = 0; i < rules.length; i++) {
             _removeFollowRule(account, rules[i]);
             emit Lens_Graph_Follow_RuleRemoved(account, rules[i]);
         }
-        _graphProcessFollowRulesChange(account, rules, graphRulesData);
+        // _graphProcessFollowRulesChange(account, rules, graphRulesData); TODO: FIX!!!!
     }
 
     function follow(

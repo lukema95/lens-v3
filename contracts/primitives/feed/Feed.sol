@@ -80,8 +80,9 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
             );
         }
 
+        uint256 localSequentialId = Core.$storage().posts[postId].localSequentialId;
         // Check the feed rules if it accepts the new RuleConfiguration
-        _processChangesOnPostRules(author, postId, rules, feedRulesData);
+        _processChangesOnPostRules(postId, localSequentialId, rules, feedRulesData);
     }
 
     function updatePostRules(
@@ -99,8 +100,9 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
             );
         }
 
+        uint256 localSequentialId = Core.$storage().posts[postId].localSequentialId;
         // Check the feed rules if it accepts the new RuleConfiguration
-        _processChangesOnPostRules(author, postId, rules, feedRulesData);
+        _processChangesOnPostRules(postId, localSequentialId, rules, feedRulesData);
     }
 
     function removePostRules(
@@ -116,8 +118,9 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
             emit Lens_Feed_Post_RuleRemoved(postId, author, rules[i].ruleAddress);
         }
 
+        uint256 localSequentialId = Core.$storage().posts[postId].localSequentialId;
         // Check the feed rules if it accepts the new RuleConfiguration
-        _processChangesOnPostRules(author, postId, rules, feedRulesData);
+        _processChangesOnPostRules(postId, localSequentialId, rules, feedRulesData);
     }
 
     // Public user functions
@@ -155,7 +158,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
 
             // Check if Feed rules allows the given Post's rule configuration
             _processChangesOnPostRules(
-                createPostParams.author, postId, createPostParams.rules, createPostParams.feedRulesData
+                postId, localSequentialId, createPostParams.rules, createPostParams.feedRulesData
             );
         }
 
@@ -182,7 +185,8 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         // TODO: We can have this for moderators:
         // require(msg.sender == author || _hasAccess(msg.sender, EDIT_POST_PID));
         require(msg.sender == author, "MSG_SENDER_NOT_AUTHOR");
-        _feedProcessEditPost(postId, newPostParams, editPostFeedRulesData);
+        uint256 localSequentialId = Core.$storage().posts[postId].localSequentialId;
+        _feedProcessEditPost(postId, localSequentialId, newPostParams, editPostFeedRulesData);
         bool[] memory wereExtraDataValuesSet = Core._editPost(postId, newPostParams);
         emit Lens_Feed_PostEdited(postId, author, newPostParams, editPostFeedRulesData);
         for (uint256 i = 0; i < newPostParams.extraData.length; i++) {
@@ -211,7 +215,8 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     ) external override {
         address author = Core.$storage().posts[postId].author;
         require(msg.sender == author || _hasAccess(msg.sender, DELETE_POST_PID), "MSG_SENDER_NOT_AUTHOR_NOR_HAS_ACCESS");
-        _feedProcessDeletePost(postId, feedRulesData);
+        uint256 localSequentialId = Core.$storage().posts[postId].localSequentialId;
+        _feedProcessDeletePost(postId, localSequentialId, feedRulesData);
         Core._deletePost(postId, extraDataKeysToDelete);
         emit Lens_Feed_PostDeleted(postId, author, feedRulesData);
     }

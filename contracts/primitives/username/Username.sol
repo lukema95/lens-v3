@@ -94,7 +94,7 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
 
     // Permissionless functions
 
-    function createUsername(address account, string memory username, RuleExecutionData calldata data)
+    function createUsername(address account, string calldata username, RuleExecutionData calldata data)
         external
         override
     {
@@ -107,7 +107,7 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
         emit Lens_Username_Created(username, account, data);
     }
 
-    function removeUsername(string memory username, RuleExecutionData calldata data) external override {
+    function removeUsername(string calldata username, RuleExecutionData calldata data) external override {
         uint256 id = _computeId(username);
         address account = _ownerOf(id);
         require(msg.sender == account); // msg.sender must be the owner of the username
@@ -117,7 +117,7 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
         emit Lens_Username_Removed(username, account, data);
     }
 
-    function assignUsername(address account, string memory username, RuleExecutionData calldata data)
+    function assignUsername(address account, string calldata username, RuleExecutionData calldata data)
         external
         override
     {
@@ -127,7 +127,7 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
         emit Lens_Username_Assigned(username, account, data);
     }
 
-    function unassignUsername(string memory username, RuleExecutionData calldata data) external override {
+    function unassignUsername(string calldata username, RuleExecutionData calldata data) external override {
         address account = Core.$storage().usernameToAccount[username];
         require(msg.sender == account); // msg.sender must be the account
         Core._unassignUsername(username);

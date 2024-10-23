@@ -36,11 +36,11 @@ contract RuleBasedFeed {
     // Internal
 
     function _addFeedRule(RuleConfiguration calldata rule) internal {
-        $feedRulesStorage().addRule(rule, abi.encodeWithSelector(IFeedRule.configure.selector, rule.configData));
+        $feedRulesStorage().addRule(rule, abi.encodeCall(IFeedRule.configure, (rule.configData)));
     }
 
     function _updateFeedRule(RuleConfiguration calldata rule) internal {
-        $feedRulesStorage().updateRule(rule, abi.encodeWithSelector(IFeedRule.configure.selector, rule.configData));
+        $feedRulesStorage().updateRule(rule, abi.encodeCall(IFeedRule.configure, (rule.configData)));
     }
 
     function _removeFeedRule(address rule) internal {
@@ -48,15 +48,11 @@ contract RuleBasedFeed {
     }
 
     function _addPostRule(uint256 postId, RuleConfiguration calldata rule) internal {
-        $postRulesStorage(postId).addRule(
-            rule, abi.encodeWithSelector(IPostRule.configure.selector, postId, rule.configData)
-        );
+        $postRulesStorage(postId).addRule(rule, abi.encodeCall(IPostRule.configure, (postId, rule.configData)));
     }
 
     function _updatePostRule(uint256 postId, RuleConfiguration calldata rule) internal {
-        $postRulesStorage(postId).updateRule(
-            rule, abi.encodeWithSelector(IPostRule.configure.selector, postId, rule.configData)
-        );
+        $postRulesStorage(postId).updateRule(rule, abi.encodeCall(IPostRule.configure, (postId, rule.configData)));
     }
 
     function _removePostRule(uint256 postId, address rule) internal {
@@ -74,8 +70,9 @@ contract RuleBasedFeed {
         // Check required rules (AND-combined rules)
         for (uint256 i = 0; i < rulesToProcess.requiredRules.length; i++) {
             (bool callNotReverted,) = rulesToProcess.requiredRules[i].call(
-                abi.encodeWithSelector(
-                    IPostRule.processQuote.selector, quotedPostId, postId, quotedPostRulesData.dataForRequiredRules[i]
+                abi.encodeCall(
+                    IPostRule.processQuote,
+                    (rootPostId, quotedPostId, postId, quotedPostRulesData.dataForRequiredRules[i])
                 )
             );
             require(callNotReverted, "Some required rule failed");
@@ -86,8 +83,8 @@ contract RuleBasedFeed {
         }
         for (uint256 i = 0; i < rulesToProcess.anyOfRules.length; i++) {
             (bool callNotReverted, bytes memory returnData) = rulesToProcess.anyOfRules[i].call(
-                abi.encodeWithSelector(
-                    IPostRule.processQuote.selector, quotedPostId, postId, quotedPostRulesData.dataForAnyOfRules[i]
+                abi.encodeCall(
+                    IPostRule.processQuote, (rootPostId, quotedPostId, postId, quotedPostRulesData.dataForAnyOfRules[i])
                 )
             );
             if (callNotReverted && abi.decode(returnData, (bool))) {
@@ -109,12 +106,9 @@ contract RuleBasedFeed {
         // Check required rules (AND-combined rules)
         for (uint256 i = 0; i < rulesToProcess.requiredRules.length; i++) {
             (bool callNotReverted,) = rulesToProcess.requiredRules[i].call(
-                abi.encodeWithSelector(
-                    IPostRule.processReply.selector,
-                    rootPostId,
-                    repliedPostId,
-                    postId,
-                    parentPostRulesData.dataForRequiredRules[i]
+                abi.encodeCall(
+                    IPostRule.processReply,
+                    (rootPostId, repliedPostId, postId, parentPostRulesData.dataForRequiredRules[i])
                 )
             );
             require(callNotReverted, "Some required rule failed");
@@ -125,12 +119,9 @@ contract RuleBasedFeed {
         }
         for (uint256 i = 0; i < rulesToProcess.anyOfRules.length; i++) {
             (bool callNotReverted, bytes memory returnData) = rulesToProcess.anyOfRules[i].call(
-                abi.encodeWithSelector(
-                    IPostRule.processReply.selector,
-                    rootPostId,
-                    repliedPostId,
-                    postId,
-                    parentPostRulesData.dataForAnyOfRules[i]
+                abi.encodeCall(
+                    IPostRule.processReply,
+                    (rootPostId, repliedPostId, postId, parentPostRulesData.dataForAnyOfRules[i])
                 )
             );
             if (callNotReverted && abi.decode(returnData, (bool))) {
@@ -152,12 +143,9 @@ contract RuleBasedFeed {
         // Check required rules (AND-combined rules)
         for (uint256 i = 0; i < rulesToProcess.requiredRules.length; i++) {
             (bool callNotReverted,) = rulesToProcess.requiredRules[i].call(
-                abi.encodeWithSelector(
-                    IPostRule.processRepost.selector,
-                    rootPostId,
-                    repostedPostId,
-                    postId,
-                    parentPostRulesData.dataForRequiredRules[i]
+                abi.encodeCall(
+                    IPostRule.processRepost,
+                    (rootPostId, repostedPostId, postId, parentPostRulesData.dataForRequiredRules[i])
                 )
             );
             require(callNotReverted, "Some required rule failed");
@@ -168,12 +156,9 @@ contract RuleBasedFeed {
         }
         for (uint256 i = 0; i < rulesToProcess.anyOfRules.length; i++) {
             (bool callNotReverted, bytes memory returnData) = rulesToProcess.anyOfRules[i].call(
-                abi.encodeWithSelector(
-                    IPostRule.processRepost.selector,
-                    rootPostId,
-                    repostedPostId,
-                    postId,
-                    parentPostRulesData.dataForAnyOfRules[i]
+                abi.encodeCall(
+                    IPostRule.processRepost,
+                    (rootPostId, repostedPostId, postId, parentPostRulesData.dataForAnyOfRules[i])
                 )
             );
             if (callNotReverted && abi.decode(returnData, (bool))) {
@@ -190,7 +175,10 @@ contract RuleBasedFeed {
         // Check required rules (AND-combined rules)
         for (uint256 i = 0; i < $feedRulesStorage().requiredRules.length; i++) {
             (bool callNotReverted,) = $feedRulesStorage().requiredRules[i].call(
-                abi.encodeWithSelector(IFeedRule.processCreatePost.selector, postId, localSequentialId, postParams)
+                abi.encodeCall(
+                    IFeedRule.processCreatePost,
+                    (postId, localSequentialId, postParams, postParams.feedRulesData.dataForRequiredRules[i])
+                )
             );
             require(callNotReverted, "Some required rule failed");
         }
@@ -200,7 +188,10 @@ contract RuleBasedFeed {
         }
         for (uint256 i = 0; i < $feedRulesStorage().anyOfRules.length; i++) {
             (bool callNotReverted, bytes memory returnData) = $feedRulesStorage().anyOfRules[i].call(
-                abi.encodeWithSelector(IFeedRule.processCreatePost.selector, postId, localSequentialId, postParams)
+                abi.encodeCall(
+                    IFeedRule.processCreatePost,
+                    (postId, localSequentialId, postParams, postParams.feedRulesData.dataForAnyOfRules[i])
+                )
             );
             if (callNotReverted && abi.decode(returnData, (bool))) {
                 // Note: abi.decode would fail if call reverted, so don't put this out of the brackets!
@@ -212,14 +203,16 @@ contract RuleBasedFeed {
 
     function _feedProcessEditPost(
         uint256 postId,
+        uint256 localSequentialId,
         EditPostParams calldata newPostParams,
         RuleExecutionData calldata feedRulesData
     ) internal {
         // Check required rules (AND-combined rules)
         for (uint256 i = 0; i < $feedRulesStorage().requiredRules.length; i++) {
             (bool callNotReverted,) = $feedRulesStorage().requiredRules[i].call(
-                abi.encodeWithSelector(
-                    IFeedRule.processEditPost.selector, postId, newPostParams, feedRulesData.dataForRequiredRules[i]
+                abi.encodeCall(
+                    IFeedRule.processEditPost,
+                    (postId, localSequentialId, newPostParams, feedRulesData.dataForRequiredRules[i])
                 )
             );
             require(callNotReverted, "Some required rule failed");
@@ -230,8 +223,9 @@ contract RuleBasedFeed {
         }
         for (uint256 i = 0; i < $feedRulesStorage().anyOfRules.length; i++) {
             (bool callNotReverted, bytes memory returnData) = $feedRulesStorage().anyOfRules[i].call(
-                abi.encodeWithSelector(
-                    IFeedRule.processEditPost.selector, postId, newPostParams, feedRulesData.dataForAnyOfRules[i]
+                abi.encodeCall(
+                    IFeedRule.processEditPost,
+                    (postId, localSequentialId, newPostParams, feedRulesData.dataForAnyOfRules[i])
                 )
             );
             if (callNotReverted && abi.decode(returnData, (bool))) {
@@ -242,12 +236,14 @@ contract RuleBasedFeed {
         revert("All of the OR rules failed");
     }
 
-    function _feedProcessDeletePost(uint256 postId, RuleExecutionData calldata feedRulesData) internal {
+    function _feedProcessDeletePost(uint256 postId, uint256 localSequentialId, RuleExecutionData calldata feedRulesData)
+        internal
+    {
         // Check required rules (AND-combined rules)
         for (uint256 i = 0; i < $feedRulesStorage().requiredRules.length; i++) {
             (bool callNotReverted,) = $feedRulesStorage().requiredRules[i].call(
-                abi.encodeWithSelector(
-                    IFeedRule.processDeletePost.selector, postId, feedRulesData.dataForRequiredRules[i]
+                abi.encodeCall(
+                    IFeedRule.processDeletePost, (postId, localSequentialId, feedRulesData.dataForRequiredRules[i])
                 )
             );
             require(callNotReverted, "Some required rule failed");
@@ -258,7 +254,9 @@ contract RuleBasedFeed {
         }
         for (uint256 i = 0; i < $feedRulesStorage().anyOfRules.length; i++) {
             (bool callNotReverted, bytes memory returnData) = $feedRulesStorage().anyOfRules[i].call(
-                abi.encodeWithSelector(IFeedRule.processDeletePost.selector, postId, feedRulesData.dataForAnyOfRules[i])
+                abi.encodeCall(
+                    IFeedRule.processDeletePost, (postId, localSequentialId, feedRulesData.dataForAnyOfRules[i])
+                )
             );
             if (callNotReverted && abi.decode(returnData, (bool))) {
                 // Note: abi.decode would fail if call reverted, so don't put this out of the brackets!
@@ -269,20 +267,17 @@ contract RuleBasedFeed {
     }
 
     function _processChangesOnPostRules(
-        address author,
         uint256 postId,
+        uint256 localSequentialId,
         RuleConfiguration[] calldata newPostRules,
         RuleExecutionData calldata feedRulesData
     ) internal {
         // Check required rules (AND-combined rules)
         for (uint256 i = 0; i < $feedRulesStorage().requiredRules.length; i++) {
             (bool callNotReverted,) = $feedRulesStorage().requiredRules[i].call(
-                abi.encodeWithSelector(
-                    IFeedRule.processPostRulesChanged.selector,
-                    author,
-                    postId,
-                    newPostRules,
-                    feedRulesData.dataForRequiredRules[i]
+                abi.encodeCall(
+                    IFeedRule.processPostRulesChanged,
+                    (postId, localSequentialId, newPostRules, feedRulesData.dataForRequiredRules[i])
                 )
             );
             require(callNotReverted, "Some required rule failed");
@@ -293,12 +288,9 @@ contract RuleBasedFeed {
         }
         for (uint256 i = 0; i < $feedRulesStorage().anyOfRules.length; i++) {
             (bool callNotReverted, bytes memory returnData) = $feedRulesStorage().anyOfRules[i].call(
-                abi.encodeWithSelector(
-                    IFeedRule.processPostRulesChanged.selector,
-                    author,
-                    postId,
-                    newPostRules,
-                    feedRulesData.dataForAnyOfRules[i]
+                abi.encodeCall(
+                    IFeedRule.processPostRulesChanged,
+                    (postId, localSequentialId, newPostRules, feedRulesData.dataForAnyOfRules[i])
                 )
             );
             if (callNotReverted && abi.decode(returnData, (bool))) {
