@@ -83,9 +83,9 @@ contract NftTokenGateRule is IGraphRule {
     }
 
     function _validateErc721TokenOwnership(address token, uint256 amount, address owner) internal view {
-        IERC721 erc20Token = IERC721(token);
+        IERC721 erc721Token = IERC721(token);
 
-        uint256 balance = erc20Token.balanceOf(owner);
+        uint256 balance = erc721Token.balanceOf(owner);
 
         if (balance < amount) {
             revert("Errors.notEnoughTokens()");
