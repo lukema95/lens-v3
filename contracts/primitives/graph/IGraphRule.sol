@@ -7,7 +7,8 @@ interface IGraphRule {
     function configure(bytes calldata data) external;
 
     function processFollow(address followerAcount, address accountToFollow, uint256 followId, bytes calldata data)
-        external;
+        external
+        returns (bool);
 
     // TODO: Should this exist? Maybe not, so it cannot prevent the unfollow...
     // Maybe the function should exist but not being called by `unfollow` but by the user in a separate tx later.
@@ -17,13 +18,14 @@ interface IGraphRule {
         address accountToUnfollow,
         uint256 followId,
         bytes calldata data
-    ) external;
+    ) external returns (bool);
 
     // TODO: We will try to implement this using a registry
-    // function processBlock(address account, bytes calldata data) external;
+    // function processBlock(address account, bytes calldata data) external returns(bool);
 
-    // function processUnblock(address account, bytes calldata data) external;
+    // function processUnblock(address account, bytes calldata data) external returns(bool);
 
     function processFollowRulesChange(address account, RuleConfiguration[] calldata followRules, bytes calldata data)
-        external;
+        external
+        returns (bool);
 }
