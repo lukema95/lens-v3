@@ -79,6 +79,9 @@ contract AccountAccessControl is IAccessControl, RoleBasedAccessControl {
     //     }
     // }
 
+    // ACTUALLY!!!!! It would make more sense to just use different access controls for these different purposes,
+    // where each access control is tied to a specific "strategy" for permission IDs
+
     function _doesRoleHasAccess(uint256 roleId, address contractAddress, uint256 permissionId)
         internal
         view
