@@ -18,7 +18,7 @@ contract RoleBasedAccessControl is IRoleBasedAccessControl {
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     uint256 immutable OWNER_ROLE_ID = uint256(keccak256("OWNER"));
-    uint256 immutable ADMIN_ROLE_ID = uint256(keccak256("ADMIN"));
+    uint256 immutable ADMIN_ROLE_ID = uint256(keccak256("ADMIN")); // TODO: Consider moving this out from here.
 
     address internal _owner;
     mapping(address => bool) internal _isAdmin;
