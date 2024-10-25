@@ -154,7 +154,7 @@ contract RuleBasedGraph {
             require(callNotReverted, "Some required rule failed");
         }
         // Check any-of rules (OR-combined rules)
-        if ($graphRulesStorage().anyOfRules.length == 0) {
+        if (rulesStorage.anyOfRules.length == 0) {
             return; // If there are no OR-combined rules, we can return
         }
         for (uint256 i = 0; i < rulesStorage.anyOfRules.length; i++) {

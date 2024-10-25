@@ -62,7 +62,7 @@ contract App is IApp, AccessControlled {
 
     ///////////////// Graph
 
-    function setGraph(address graph) public {
+    function setGraph(address graph) external override {
         _requireAccess(msg.sender, SET_PRIMITIVES_PID);
         _setGraph(graph);
     }
@@ -127,7 +127,7 @@ contract App is IApp, AccessControlled {
 
     ///////////////// Username
 
-    function setUsername(address username) public {
+    function setUsername(address username) external override {
         _requireAccess(msg.sender, SET_PRIMITIVES_PID);
         _setUsername(username);
     }
@@ -151,12 +151,12 @@ contract App is IApp, AccessControlled {
 
     ///////////////// Group
 
-    function addGroups(address[] memory groups) external {
+    function addGroups(address[] memory groups) external override {
         _requireAccess(msg.sender, SET_PRIMITIVES_PID);
         _addGroups(groups);
     }
 
-    function removeGroups(address[] memory groups) external {
+    function removeGroups(address[] memory groups) external override {
         _requireAccess(msg.sender, SET_PRIMITIVES_PID);
         _removeGroups(groups);
     }
@@ -203,7 +203,7 @@ contract App is IApp, AccessControlled {
 
     ///////////////// Paymaster
 
-    function setPaymaster(address paymaster) public {
+    function setPaymaster(address paymaster) external override {
         _requireAccess(msg.sender, SET_PRIMITIVES_PID);
         _setPaymaster(paymaster);
     }
@@ -226,9 +226,13 @@ contract App is IApp, AccessControlled {
         }
     }
 
+    function getPaymaster() external view override returns (address) {
+        return Core.$storage().defaultPaymaster;
+    }
+
     ///////////////// Treasury
 
-    function setTreasury(address treasury) public {
+    function setTreasury(address treasury) external override {
         _requireAccess(msg.sender, SET_TREASURY_PID);
         _setTreasury(treasury);
     }
@@ -238,9 +242,13 @@ contract App is IApp, AccessControlled {
         emit Lens_App_TreasurySet(treasury);
     }
 
+    function getTreasury() external view override returns (address) {
+        return Core.$storage().treasury;
+    }
+
     ///////////////// Metadata URI
 
-    function setMetadataURI(string calldata metadataURI) public override {
+    function setMetadataURI(string calldata metadataURI) external override {
         _requireAccess(msg.sender, SET_METADATA_PID);
         _setMetadataURI(metadataURI);
     }
@@ -281,39 +289,43 @@ contract App is IApp, AccessControlled {
     // Getters
     //////////////////////////////////////////////////////////////////////////
 
-    function getGraphs() public view returns (address[] memory) {
+    function getGraphs() external view override returns (address[] memory) {
         return Core.$storage().graphs;
     }
 
-    function getFeeds() public view returns (address[] memory) {
+    function getFeeds() external view override returns (address[] memory) {
         return Core.$storage().feeds;
     }
 
-    function getUsernames() public view returns (address[] memory) {
+    function getUsernames() external view override returns (address[] memory) {
         return Core.$storage().usernames;
     }
 
-    function getGroups() public view returns (address[] memory) {
+    function getGroups() external view override returns (address[] memory) {
         return Core.$storage().groups;
     }
 
-    function getDefaultGraph() public view returns (address) {
+    function getDefaultGraph() external view override returns (address) {
         return Core.$storage().defaultGraph;
     }
 
-    function getDefaultFeed() public view returns (address) {
+    function getDefaultFeed() external view override returns (address) {
         return Core.$storage().defaultFeed;
     }
 
-    function getDefaultUsername() public view returns (address) {
+    function getDefaultUsername() external view override returns (address) {
         return Core.$storage().defaultUsername;
     }
 
-    function getDefaultGroup() public view returns (address) {
+    function getDefaultGroup() external view override returns (address) {
         return Core.$storage().defaultGroup;
     }
 
-    function getSigners() public view returns (address[] memory) {
+    function getDefaultPaymaster() external view override returns (address) {
+        return Core.$storage().defaultPaymaster;
+    }
+
+    function getSigners() external view override returns (address[] memory) {
         return Core.$storage().signers;
     }
 
