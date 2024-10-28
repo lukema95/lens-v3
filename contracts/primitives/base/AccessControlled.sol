@@ -9,10 +9,8 @@ contract AccessControlled {
     using AccessControlLib for address;
 
     event Lens_PermissonId_Available(uint256 indexed permissionId, string name);
-    event Lens_AccessControlAdded(address indexed accessControl);
-    event Lens_AccessControlUpdated(address indexed accessControl);
-
-    uint256 constant SET_ACCESS_CONTROL_PID = uint256(keccak256("SET_ACCESS_CONTROL"));
+    event Lens_AccessControlAdded(address indexed accessControl, bytes32 indexed accessControlType);
+    event Lens_AccessControlUpdated(address indexed accessControl, bytes32 indexed accessControlType);
 
     struct AccessControlledStorage {
         address accessControl;
@@ -29,7 +27,7 @@ contract AccessControlled {
 
     constructor(IAccessControl accessControl) {
         accessControl.verifyHasAccessFunction();
-        _setAccessControl(address(accessControl));
+        _setAccessControl(accessControl);
     }
 
     modifier requireAccess(uint256 permissionId) {
@@ -37,9 +35,7 @@ contract AccessControlled {
         _;
     }
 
-    function _emitPIDs() internal virtual {
-        emit Lens_PermissonId_Available(SET_ACCESS_CONTROL_PID, "SET_ACCESS_CONTROL");
-    }
+    function _emitPIDs() internal virtual {}
 
     function _requireAccess(address account, uint256 permissionId) internal view {
         _accessControl().requireAccess(account, permissionId);
@@ -51,9 +47,9 @@ contract AccessControlled {
 
     // Access Controlled Functions
     function setAccessControl(IAccessControl newAccessControl) external {
-        _accessControl().requireAccess(msg.sender, SET_ACCESS_CONTROL_PID);
+        _accessControl().requireCanChangeAccessControl(msg.sender);
         newAccessControl.verifyHasAccessFunction();
-        _setAccessControl(address(newAccessControl));
+        _setAccessControl(newAccessControl);
     }
 
     // Internal functions
@@ -62,13 +58,13 @@ contract AccessControlled {
         return IAccessControl($accessControlledStorage().accessControl);
     }
 
-    function _setAccessControl(address newAccessControl) internal {
+    function _setAccessControl(IAccessControl newAccessControl) internal {
         address oldAccessControl = $accessControlledStorage().accessControl;
-        $accessControlledStorage().accessControl = newAccessControl;
+        $accessControlledStorage().accessControl = address(newAccessControl);
         if (oldAccessControl == address(0)) {
-            emit Lens_AccessControlAdded(newAccessControl);
+            emit Lens_AccessControlAdded(address(newAccessControl), newAccessControl.getType());
         } else {
-            emit Lens_AccessControlUpdated(newAccessControl);
+            emit Lens_AccessControlUpdated(address(newAccessControl), newAccessControl.getType());
         }
     }
 
