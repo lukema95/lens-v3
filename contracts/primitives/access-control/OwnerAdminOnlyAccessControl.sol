@@ -25,12 +25,16 @@ contract OwnerAdminOnlyAccessControl is RoleBasedAccessControl {
         revert();
     }
 
+    function getType() external pure virtual override returns (bytes32) {
+        return keccak256("lens.access-control.owner-admin-only-access-control");
+    }
+
     function _emitLensContractDeployedEvent() internal virtual override {
         emit Events.Lens_Contract_Deployed(
             "access-control",
-            "lens.access-control.owner-admin-only",
+            "lens.access-control.owner-admin-only-access-control",
             "access-control",
-            "lens.access-control.owner-admin-only"
+            "lens.access-control.owner-admin-only-access-control"
         );
     }
 }
