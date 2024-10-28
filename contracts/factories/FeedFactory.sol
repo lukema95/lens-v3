@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {IAccessControl} from "./../primitives/access-control/IAccessControl.sol";
 import {Feed} from "./../primitives/feed/Feed.sol";
-import {OwnerOnlyAccessControl} from "./../primitives/access-control/OwnerOnlyAccessControl.sol";
+import {RoleBasedAccessControl} from "./../primitives/access-control/RoleBasedAccessControl.sol";
 import {RuleConfiguration, DataElement} from "./../types/Types.sol";
 
 contract FeedFactory {
@@ -12,7 +12,7 @@ contract FeedFactory {
     IAccessControl internal immutable _factoryOwnedAccessControl;
 
     constructor() {
-        _factoryOwnedAccessControl = new OwnerOnlyAccessControl({owner: address(this)});
+        _factoryOwnedAccessControl = new RoleBasedAccessControl({owner: address(this)});
     }
 
     function deployFeed(

@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {IAccessControl} from "./../primitives/access-control/IAccessControl.sol";
 import {Username} from "./../primitives/username/Username.sol";
-import {OwnerOnlyAccessControl} from "./../primitives/access-control/OwnerOnlyAccessControl.sol";
+import {RoleBasedAccessControl} from "./../primitives/access-control/RoleBasedAccessControl.sol";
 import {RuleConfiguration, DataElement} from "./../types/Types.sol";
 import {ITokenURIProvider} from "./../primitives/base/ITokenURIProvider.sol";
 
@@ -13,7 +13,7 @@ contract UsernameFactory {
     IAccessControl internal immutable _factoryOwnedAccessControl;
 
     constructor() {
-        _factoryOwnedAccessControl = new OwnerOnlyAccessControl({owner: address(this)});
+        _factoryOwnedAccessControl = new RoleBasedAccessControl({owner: address(this)});
     }
 
     function deployUsername(

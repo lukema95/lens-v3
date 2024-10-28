@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {IRoleBasedAccessControl} from "./../primitives/access-control/IRoleBasedAccessControl.sol";
 import {IAccessControl} from "./../primitives/access-control/IAccessControl.sol";
 import {Group} from "./../primitives/group/Group.sol";
-import {OwnerOnlyAccessControl} from "./../primitives/access-control/OwnerOnlyAccessControl.sol";
+import {RoleBasedAccessControl} from "./../primitives/access-control/RoleBasedAccessControl.sol";
 import {RoleBasedAccessControl} from "./../primitives/access-control/RoleBasedAccessControl.sol";
 import {RuleConfiguration, RuleExecutionData, DataElement} from "./../types/Types.sol";
 import {GroupFactory} from "./GroupFactory.sol";
@@ -62,7 +62,7 @@ contract LensFactory {
         FEED_FACTORY = feedFactory;
         GRAPH_FACTORY = graphFactory;
         USERNAME_FACTORY = usernameFactory;
-        _factoryOwnedAccessControl = new OwnerOnlyAccessControl({owner: address(this)});
+        _factoryOwnedAccessControl = new RoleBasedAccessControl({owner: address(this)});
     }
 
     // TODO: This function belongs to an App probably.
