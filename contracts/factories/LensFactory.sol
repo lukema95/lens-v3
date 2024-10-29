@@ -70,12 +70,15 @@ contract LensFactory {
         string calldata metadataURI,
         address owner,
         address[] calldata accountManagers,
+        uint256[][] calldata executionRoles,
+        uint256[][] calldata primitiveRoles,
         address usernamePrimitiveAddress,
         string calldata username,
         RuleExecutionData calldata createUsernameData,
         RuleExecutionData calldata assignUsernameData
     ) external returns (address) {
-        address account = ACCOUNT_FACTORY.deployAccount(address(this), metadataURI, accountManagers);
+        address account =
+            ACCOUNT_FACTORY.deployAccount(address(this), metadataURI, accountManagers, executionRoles, primitiveRoles);
         IUsername usernamePrimitive = IUsername(usernamePrimitiveAddress);
         bytes memory txData = abi.encodeCall(usernamePrimitive.createUsername, (account, username, createUsernameData));
         IAccount(payable(account)).executeTransaction(usernamePrimitiveAddress, uint256(0), txData);
@@ -85,11 +88,14 @@ contract LensFactory {
         return account;
     }
 
-    function deployAccount(string memory metadataURI, address owner, address[] calldata accountManagers)
-        external
-        returns (address)
-    {
-        return ACCOUNT_FACTORY.deployAccount(owner, metadataURI, accountManagers);
+    function deployAccount(
+        string memory metadataURI,
+        address owner,
+        address[] calldata accountManagers,
+        uint256[][] calldata executionRoles,
+        uint256[][] calldata primitiveRoles
+    ) external returns (address) {
+        return ACCOUNT_FACTORY.deployAccount(owner, metadataURI, accountManagers, executionRoles, primitiveRoles);
     }
 
     function deployApp(

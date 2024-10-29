@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import {Events} from "./../../types/Events.sol";
 import {RoleBasedAccessControl} from "./RoleBasedAccessControl.sol";
+import {Access} from "./IRoleBasedAccessControl.sol";
 
 contract OwnerAdminOnlyAccessControl is RoleBasedAccessControl {
     uint256 constant ADMIN_ROLE_ID = uint256(keccak256("ADMIN"));
