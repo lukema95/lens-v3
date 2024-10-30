@@ -31,6 +31,7 @@ struct Post {
     uint256 localSequentialId;
     address source;
     string contentURI;
+    uint256 rootPostId;
     uint256 repostedPostId;
     uint256 quotedPostId;
     uint256 repliedPostId;
