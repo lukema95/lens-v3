@@ -6,7 +6,7 @@ import {IAccessControl} from "./../primitives/access-control/IAccessControl.sol"
 import {Group} from "./../primitives/group/Group.sol";
 import {RoleBasedAccessControl} from "./../primitives/access-control/RoleBasedAccessControl.sol";
 import {RoleBasedAccessControl} from "./../primitives/access-control/RoleBasedAccessControl.sol";
-import {RuleConfiguration, RuleExecutionData, DataElement} from "./../types/Types.sol";
+import {RuleConfiguration, RuleExecutionData, DataElement, SourceStamp} from "./../types/Types.sol";
 import {GroupFactory} from "./GroupFactory.sol";
 import {FeedFactory} from "./FeedFactory.sol";
 import {GraphFactory} from "./GraphFactory.sol";
@@ -69,6 +69,7 @@ contract LensFactory {
     // TODO: This function belongs to an App probably.
     function createAccountWithUsernameFree(
         string calldata metadataURI,
+        SourceStamp calldata metadataURISourceStamp,
         address owner,
         address[] calldata accountManagers,
         AccountManagerPermissions[] calldata accountManagersPermissions,
@@ -77,8 +78,9 @@ contract LensFactory {
         RuleExecutionData calldata createUsernameData,
         RuleExecutionData calldata assignUsernameData
     ) external returns (address) {
-        address account =
-            ACCOUNT_FACTORY.deployAccount(address(this), metadataURI, accountManagers, accountManagersPermissions);
+        address account = ACCOUNT_FACTORY.deployAccount(
+            address(this), metadataURI, metadataURISourceStamp, accountManagers, accountManagersPermissions
+        );
         IUsername usernamePrimitive = IUsername(usernamePrimitiveAddress);
         bytes memory txData = abi.encodeCall(usernamePrimitive.createUsername, (account, username, createUsernameData));
         IAccount(payable(account)).executeTransaction(usernamePrimitiveAddress, uint256(0), txData);
@@ -90,11 +92,14 @@ contract LensFactory {
 
     function deployAccount(
         string memory metadataURI,
+        SourceStamp memory metadataURISourceStamp,
         address owner,
         address[] calldata accountManagers,
         AccountManagerPermissions[] calldata accountManagersPermissions
     ) external returns (address) {
-        return ACCOUNT_FACTORY.deployAccount(owner, metadataURI, accountManagers, accountManagersPermissions);
+        return ACCOUNT_FACTORY.deployAccount(
+            owner, metadataURI, metadataURISourceStamp, accountManagers, accountManagersPermissions
+        );
     }
 
     function deployApp(

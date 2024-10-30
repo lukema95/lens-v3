@@ -7,6 +7,8 @@ import {AppCore as Core} from "./AppCore.sol";
 import {DataElement, DataElementValue} from "./../../types/Types.sol";
 import {AccessControlled} from "./../base/AccessControlled.sol";
 import {Events} from "./../../types/Events.sol";
+import {BaseSource} from "./../base/BaseSource.sol";
+import {ISource} from "./../base/ISource.sol";
 
 struct AppInitialProperties {
     address graph;
@@ -19,7 +21,7 @@ struct AppInitialProperties {
     address treasury;
 }
 
-contract App is IApp, AccessControlled {
+contract App is IApp, BaseSource, AccessControlled {
     // Resource IDs involved in the contract
     uint256 constant SET_PRIMITIVES_PID = uint256(keccak256("SET_PRIMITIVES"));
     uint256 constant SET_SIGNERS_PID = uint256(keccak256("SET_SIGNERS"));
@@ -58,6 +60,10 @@ contract App is IApp, AccessControlled {
         emit Lens_PermissonId_Available(SET_PAYMASTER_PID, "SET_PAYMASTER");
         emit Lens_PermissonId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
         emit Lens_PermissonId_Available(SET_METADATA_PID, "SET_METADATA");
+    }
+
+    function _isValidSourceStampSigner(address signer) internal virtual override returns (bool) {
+        return Core.$storage().signerStorageHelper[signer].isSet; // TODO: What about the app's owner?
     }
 
     ///////////////// Graph
@@ -242,7 +248,7 @@ contract App is IApp, AccessControlled {
         emit Lens_App_TreasurySet(treasury);
     }
 
-    function getTreasury() external view override returns (address) {
+    function getTreasury() external view override(IApp, ISource) returns (address) {
         return Core.$storage().treasury;
     }
 

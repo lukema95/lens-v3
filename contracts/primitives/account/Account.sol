@@ -5,6 +5,8 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {Events} from "./../../types/Events.sol";
 import {IAccount} from "./IAccount.sol";
+import {SourceStamp} from "./../../types/Types.sol";
+import {ISource} from "./../../primitives/base/ISource.sol";
 
 struct AccountManagerPermissions {
     bool canExecuteTansactions;
@@ -17,22 +19,26 @@ contract Account is IAccount, Ownable {
     event Lens_Account_AccountManagerRemoved(address accountManager);
     event Lens_Account_AccountManagerUpdated(address accountManager, AccountManagerPermissions permissions);
 
-    string internal _metadataURI; // TODO: Add getter/setter/internal etc
+    mapping(address => string) internal _metadataURI; // TODO: Add getter/setter/internal etc
     mapping(address => AccountManagerPermissions) internal _accountManagerPermissions; // TODO: Add getter/setter/internal etc
 
     constructor(
         address owner,
         string memory metadataURI,
+        SourceStamp memory metadataURISourceStamp,
         address[] memory accountManagers,
         AccountManagerPermissions[] memory accountManagerPermissions
     ) Ownable() {
-        _metadataURI = metadataURI;
+        _metadataURI[metadataURISourceStamp.source] = metadataURI;
+        if (metadataURISourceStamp.source != address(0)) {
+            ISource(metadataURISourceStamp.source).validateSource(metadataURISourceStamp);
+        }
         for (uint256 i = 0; i < accountManagers.length; i++) {
             _accountManagerPermissions[accountManagers[i]] = accountManagerPermissions[i];
             emit Lens_Account_AccountManagerAdded(accountManagers[i], accountManagerPermissions[i]);
         }
         _transferOwnership(owner);
-        emit Lens_Account_MetadataURISet(metadataURI);
+        emit Lens_Account_MetadataURISet(metadataURI, metadataURISourceStamp.source);
         emit Events.Lens_Contract_Deployed("account", "lens.account", "account", "lens.account");
     }
 
@@ -64,9 +70,16 @@ contract Account is IAccount, Ownable {
         emit Lens_Account_AccountManagerUpdated(accountManager, accountManagerPermissions);
     }
 
-    function setMetadataURI(string calldata metadataURI) external override onlyOwner {
-        _metadataURI = metadataURI;
-        emit Lens_Account_MetadataURISet(metadataURI);
+    function setMetadataURI(string calldata metadataURI, SourceStamp calldata sourceStamp)
+        external
+        override
+        onlyOwner // TODO: What about managers??
+    {
+        _metadataURI[sourceStamp.source] = metadataURI;
+        if (sourceStamp.source != address(0)) {
+            ISource(sourceStamp.source).validateSource(sourceStamp);
+        }
+        emit Lens_Account_MetadataURISet(metadataURI, sourceStamp.source);
     }
 
     function executeTransaction(address to, uint256 value, bytes calldata data) external payable override {
