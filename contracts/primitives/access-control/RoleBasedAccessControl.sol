@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IRoleBasedAccessControl} from "./IRoleBasedAccessControl.sol";
+import {Access, IRoleBasedAccessControl} from "./IRoleBasedAccessControl.sol";
 import {Events} from "./../../types/Events.sol";
 
 /**
