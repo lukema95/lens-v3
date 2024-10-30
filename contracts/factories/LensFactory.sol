@@ -14,6 +14,7 @@ import {UsernameFactory} from "./UsernameFactory.sol";
 import {AppFactory, AppInitialProperties} from "./AppFactory.sol";
 import {AccountFactory} from "./AccountFactory.sol";
 import {IAccount} from "./../primitives/account/IAccount.sol";
+import {AccountManagerPermissions} from "./../primitives/account/Account.sol";
 import {IUsername} from "./../primitives/username/IUsername.sol";
 import {ITokenURIProvider} from "../primitives/base/ITokenURIProvider.sol";
 import {LensUsernameTokenURIProvider} from "./../primitives/username/LensUsernameTokenURIProvider.sol";
@@ -70,15 +71,14 @@ contract LensFactory {
         string calldata metadataURI,
         address owner,
         address[] calldata accountManagers,
-        uint256[][] calldata executionRoles,
-        uint256[][] calldata primitiveRoles,
+        AccountManagerPermissions[] calldata accountManagersPermissions,
         address usernamePrimitiveAddress,
         string calldata username,
         RuleExecutionData calldata createUsernameData,
         RuleExecutionData calldata assignUsernameData
     ) external returns (address) {
         address account =
-            ACCOUNT_FACTORY.deployAccount(address(this), metadataURI, accountManagers, executionRoles, primitiveRoles);
+            ACCOUNT_FACTORY.deployAccount(address(this), metadataURI, accountManagers, accountManagersPermissions);
         IUsername usernamePrimitive = IUsername(usernamePrimitiveAddress);
         bytes memory txData = abi.encodeCall(usernamePrimitive.createUsername, (account, username, createUsernameData));
         IAccount(payable(account)).executeTransaction(usernamePrimitiveAddress, uint256(0), txData);
@@ -92,10 +92,9 @@ contract LensFactory {
         string memory metadataURI,
         address owner,
         address[] calldata accountManagers,
-        uint256[][] calldata executionRoles,
-        uint256[][] calldata primitiveRoles
+        AccountManagerPermissions[] calldata accountManagersPermissions
     ) external returns (address) {
-        return ACCOUNT_FACTORY.deployAccount(owner, metadataURI, accountManagers, executionRoles, primitiveRoles);
+        return ACCOUNT_FACTORY.deployAccount(owner, metadataURI, accountManagers, accountManagersPermissions);
     }
 
     function deployApp(
