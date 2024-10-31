@@ -25,20 +25,20 @@ contract Account is IAccount, Ownable {
     constructor(
         address owner,
         string memory metadataURI,
-        SourceStamp memory metadataURISourceStamp,
         address[] memory accountManagers,
-        AccountManagerPermissions[] memory accountManagerPermissions
+        AccountManagerPermissions[] memory accountManagerPermissions,
+        SourceStamp memory sourceStamp
     ) Ownable() {
-        _metadataURI[metadataURISourceStamp.source] = metadataURI;
-        if (metadataURISourceStamp.source != address(0)) {
-            ISource(metadataURISourceStamp.source).validateSource(metadataURISourceStamp);
+        _metadataURI[sourceStamp.source] = metadataURI;
+        if (sourceStamp.source != address(0)) {
+            ISource(sourceStamp.source).validateSource(sourceStamp);
         }
         for (uint256 i = 0; i < accountManagers.length; i++) {
             _accountManagerPermissions[accountManagers[i]] = accountManagerPermissions[i];
             emit Lens_Account_AccountManagerAdded(accountManagers[i], accountManagerPermissions[i]);
         }
         _transferOwnership(owner);
-        emit Lens_Account_MetadataURISet(metadataURI, metadataURISourceStamp.source);
+        emit Lens_Account_MetadataURISet(metadataURI, sourceStamp.source);
         emit Events.Lens_Contract_Deployed("account", "lens.account", "account", "lens.account");
     }
 

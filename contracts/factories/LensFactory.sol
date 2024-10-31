@@ -69,17 +69,17 @@ contract LensFactory {
     // TODO: This function belongs to an App probably.
     function createAccountWithUsernameFree(
         string calldata metadataURI,
-        SourceStamp calldata metadataURISourceStamp,
         address owner,
         address[] calldata accountManagers,
         AccountManagerPermissions[] calldata accountManagersPermissions,
         address usernamePrimitiveAddress,
         string calldata username,
         RuleExecutionData calldata createUsernameData,
-        RuleExecutionData calldata assignUsernameData
+        RuleExecutionData calldata assignUsernameData,
+        SourceStamp calldata sourceStamp
     ) external returns (address) {
         address account = ACCOUNT_FACTORY.deployAccount(
-            address(this), metadataURI, metadataURISourceStamp, accountManagers, accountManagersPermissions
+            address(this), metadataURI, accountManagers, accountManagersPermissions, sourceStamp
         );
         IUsername usernamePrimitive = IUsername(usernamePrimitiveAddress);
         bytes memory txData = abi.encodeCall(usernamePrimitive.createUsername, (account, username, createUsernameData));
@@ -92,14 +92,13 @@ contract LensFactory {
 
     function deployAccount(
         string memory metadataURI,
-        SourceStamp memory metadataURISourceStamp,
         address owner,
         address[] calldata accountManagers,
-        AccountManagerPermissions[] calldata accountManagersPermissions
+        AccountManagerPermissions[] calldata accountManagersPermissions,
+        SourceStamp memory sourceStamp
     ) external returns (address) {
-        return ACCOUNT_FACTORY.deployAccount(
-            owner, metadataURI, metadataURISourceStamp, accountManagers, accountManagersPermissions
-        );
+        return
+            ACCOUNT_FACTORY.deployAccount(owner, metadataURI, accountManagers, accountManagersPermissions, sourceStamp);
     }
 
     function deployApp(
