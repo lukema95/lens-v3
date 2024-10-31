@@ -33,13 +33,13 @@ contract Account is IAccount, Ownable {
         override
         onlyOwner
     {
-        require(!_accountManagerPermissions[accountManager].canExecuteTansactions, "Account manager already exists");
+        require(!_accountManagerPermissions[accountManager].canExecuteTransactions, "Account manager already exists");
         _accountManagerPermissions[accountManager] = accountManagerPermissions;
         emit Lens_Account_AccountManagerAdded(accountManager, accountManagerPermissions);
     }
 
     function removeAccountManager(address accountManager) external override onlyOwner {
-        require(_accountManagerPermissions[accountManager].canExecuteTansactions, "Account manager already exists");
+        require(_accountManagerPermissions[accountManager].canExecuteTransactions, "Account manager already exists");
         delete _accountManagerPermissions[accountManager];
         emit Lens_Account_AccountManagerRemoved(accountManager);
     }
@@ -48,8 +48,8 @@ contract Account is IAccount, Ownable {
         address accountManager,
         AccountManagerPermissions calldata accountManagerPermissions
     ) external override onlyOwner {
-        require(_accountManagerPermissions[accountManager].canExecuteTansactions, "Account manager does not exist");
-        require(accountManagerPermissions.canExecuteTansactions, "Cannot remove execution permissions");
+        require(_accountManagerPermissions[accountManager].canExecuteTransactions, "Account manager does not exist");
+        require(accountManagerPermissions.canExecuteTransactions, "Cannot remove execution permissions");
         _accountManagerPermissions[accountManager] = accountManagerPermissions;
         emit Lens_Account_AccountManagerUpdated(accountManager, accountManagerPermissions);
     }
@@ -65,7 +65,7 @@ contract Account is IAccount, Ownable {
     function executeTransaction(address to, uint256 value, bytes calldata data) external payable override {
         if (msg.sender != owner()) {
             require(
-                _accountManagerPermissions[msg.sender].canExecuteTansactions, "No permissions to execute transactions"
+                _accountManagerPermissions[msg.sender].canExecuteTransactions, "No permissions to execute transactions"
             );
             if (value > 0) {
                 require(

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.17;
 
 struct AccountManagerPermissions {
-    bool canExecuteTansactions;
+    bool canExecuteTransactions;
     bool canTransferTokens;
     bool canTransferNative;
     bool canSetMetadataURI;
