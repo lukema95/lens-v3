@@ -10,6 +10,7 @@ struct AccountManagerPermissions {
     bool canExecuteTansactions;
     bool canTransferTokens;
     bool canTransferNative;
+    bool canSetMetadataURI;
 }
 
 contract Account is IAccount, Ownable {
@@ -64,7 +65,10 @@ contract Account is IAccount, Ownable {
         emit Lens_Account_AccountManagerUpdated(accountManager, accountManagerPermissions);
     }
 
-    function setMetadataURI(string calldata metadataURI) external override onlyOwner {
+    function setMetadataURI(string calldata metadataURI) external override {
+        if (msg.sender != owner()) {
+            require(_accountManagerPermissions[msg.sender].canSetMetadataURI, "No permissions to set metadata URI");
+        }
         _metadataURI = metadataURI;
         emit Lens_Account_MetadataURISet(metadataURI);
     }
