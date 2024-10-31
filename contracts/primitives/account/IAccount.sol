@@ -5,7 +5,7 @@ import {AccountManagerPermissions} from "./Account.sol";
 import {SourceStamp} from "./../../types/Types.sol";
 
 interface IAccount {
-    event Lens_Account_MetadataURISet(string metadataURI, address source);
+    event Lens_Account_MetadataURISet(string metadataURI, address indexed source);
     event Lens_Account_OwnerTransferred(address indexed newOwner);
     event TransactionExecuted(address indexed to, uint256 value, bytes data, address indexed executor);
     // TODO: Move events from the primitive here
@@ -19,6 +19,7 @@ interface IAccount {
     ) external;
     function setMetadataURI(string calldata _metadataURI, SourceStamp calldata sourceStamp) external;
     function executeTransaction(address to, uint256 value, bytes calldata data) external payable;
+    function getMetadataURI(address source) external view returns (string memory);
 
     receive() external payable;
 }

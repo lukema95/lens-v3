@@ -82,6 +82,10 @@ contract Account is IAccount, Ownable {
         emit Lens_Account_MetadataURISet(metadataURI, sourceStamp.source);
     }
 
+    function getMetadataURI(address source) external view override returns (string memory) {
+        return _metadataURI[source];
+    }
+
     function executeTransaction(address to, uint256 value, bytes calldata data) external payable override {
         if (msg.sender != owner()) {
             require(

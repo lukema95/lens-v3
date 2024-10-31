@@ -91,18 +91,18 @@ contract LensFactory {
     }
 
     function deployAccount(
-        string memory metadataURI,
+        string calldata metadataURI,
         address owner,
         address[] calldata accountManagers,
         AccountManagerPermissions[] calldata accountManagersPermissions,
-        SourceStamp memory sourceStamp
+        SourceStamp calldata sourceStamp
     ) external returns (address) {
         return
             ACCOUNT_FACTORY.deployAccount(owner, metadataURI, accountManagers, accountManagersPermissions, sourceStamp);
     }
 
     function deployApp(
-        string memory metadataURI,
+        string calldata metadataURI,
         bool sourceStampVerificationEnabled,
         address owner,
         address[] calldata admins,
@@ -119,7 +119,7 @@ contract LensFactory {
     }
 
     function deployGroup(
-        string memory metadataURI,
+        string calldata metadataURI,
         address owner,
         address[] calldata admins,
         RuleConfiguration[] calldata rules,
@@ -129,7 +129,7 @@ contract LensFactory {
     }
 
     function deployFeed(
-        string memory metadataURI,
+        string calldata metadataURI,
         address owner,
         address[] calldata admins,
         RuleConfiguration[] calldata rules,
@@ -139,7 +139,7 @@ contract LensFactory {
     }
 
     function deployGraph(
-        string memory metadataURI,
+        string calldata metadataURI,
         address owner,
         address[] calldata admins,
         RuleConfiguration[] calldata rules,
@@ -149,14 +149,14 @@ contract LensFactory {
     }
 
     function deployUsername(
-        string memory namespace,
-        string memory metadataURI,
+        string calldata namespace,
+        string calldata metadataURI,
         address owner,
         address[] calldata admins,
         RuleConfiguration[] calldata rules,
         DataElement[] calldata extraData,
-        string memory nftName,
-        string memory nftSymbol
+        string calldata nftName,
+        string calldata nftSymbol
     ) external returns (address) {
         ITokenURIProvider tokenURIProvider = new LensUsernameTokenURIProvider(); // TODO!
         return USERNAME_FACTORY.deployUsername(
