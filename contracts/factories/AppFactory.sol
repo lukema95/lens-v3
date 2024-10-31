@@ -10,11 +10,12 @@ contract AppFactory {
 
     function deployApp(
         string memory metadataURI,
+        bool sourceStampVerificationEnabled,
         IAccessControl accessControl,
         AppInitialProperties calldata initialProperties,
         DataElement[] calldata extraData
     ) external returns (address) {
-        App app = new App(metadataURI, accessControl, initialProperties, extraData);
+        App app = new App(metadataURI, sourceStampVerificationEnabled, accessControl, initialProperties, extraData);
         emit Lens_AppFactory_Deployment(address(app));
         return address(app);
     }
