@@ -4,20 +4,9 @@ pragma solidity ^0.8.12;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {Events} from "./../../types/Events.sol";
-import {IAccount} from "./IAccount.sol";
-
-struct AccountManagerPermissions {
-    bool canExecuteTansactions;
-    bool canTransferTokens;
-    bool canTransferNative;
-    bool canSetMetadataURI;
-}
+import {IAccount, AccountManagerPermissions} from "./IAccount.sol";
 
 contract Account is IAccount, Ownable {
-    event Lens_Account_AccountManagerAdded(address accountManager, AccountManagerPermissions permissions);
-    event Lens_Account_AccountManagerRemoved(address accountManager);
-    event Lens_Account_AccountManagerUpdated(address accountManager, AccountManagerPermissions permissions);
-
     string internal _metadataURI; // TODO: Add getter/setter/internal etc
     mapping(address => AccountManagerPermissions) internal _accountManagerPermissions; // TODO: Add getter/setter/internal etc
 
@@ -89,7 +78,7 @@ contract Account is IAccount, Ownable {
         }
         (bool success,) = to.call{value: value}(data);
         require(success, "Transaction execution failed");
-        emit TransactionExecuted(to, value, data, msg.sender);
+        emit Lens_Account_TransactionExecuted(to, value, data, msg.sender);
     }
 
     receive() external payable override {}
