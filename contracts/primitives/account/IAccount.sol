@@ -15,6 +15,7 @@ interface IAccount {
     event Lens_Account_AccountManagerAdded(address accountManager, AccountManagerPermissions permissions);
     event Lens_Account_AccountManagerRemoved(address accountManager);
     event Lens_Account_AccountManagerUpdated(address accountManager, AccountManagerPermissions permissions);
+    event Lens_Account_AllowNonOwnerSpending(bool allow);
 
     function addAccountManager(address _accountManager, AccountManagerPermissions calldata accountManagerPermissions)
         external;

@@ -9,6 +9,7 @@ import {IAccount, AccountManagerPermissions} from "./IAccount.sol";
 contract Account is IAccount, Ownable {
     string internal _metadataURI; // TODO: Add getter/setter/internal etc
     mapping(address => AccountManagerPermissions) internal _accountManagerPermissions; // TODO: Add getter/setter/internal etc
+    bool internal _allowNonOwnerSpending; // TODO: Think of a better name
 
     constructor(
         address owner,
@@ -27,6 +28,11 @@ contract Account is IAccount, Ownable {
     }
 
     // Owner Only functions
+
+    function allowNonOwnerSpending(bool allow) external onlyOwner {
+        _allowNonOwnerSpending = allow;
+        emit Lens_Account_AllowNonOwnerSpending(allow);
+    }
 
     function addAccountManager(address accountManager, AccountManagerPermissions calldata accountManagerPermissions)
         external
@@ -73,6 +79,7 @@ contract Account is IAccount, Ownable {
                 );
             }
             if (_isTransferRelatedSelector(bytes4(data[:4]))) {
+                require(_allowNonOwnerSpending, "Spender Lock ON: Non-owner spending not allowed");
                 require(_accountManagerPermissions[msg.sender].canTransferTokens, "No permissions to transfer tokens");
             }
         }
