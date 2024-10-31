@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {DataElement, RuleConfiguration, RuleExecutionData, DataElementValue} from "../../types/Types.sol";
+import {DataElement, RuleConfiguration, RuleExecutionData, DataElementValue, SourceStamp} from "../../types/Types.sol";
 import {IMetadataBased} from "./../base/IMetadataBased.sol";
 
 interface IUsername is IMetadataBased {
@@ -11,13 +11,15 @@ interface IUsername is IMetadataBased {
 
     event Lens_Username_RuleRemoved(address indexed ruleAddress);
 
-    event Lens_Username_Created(string username, address indexed account, RuleExecutionData data);
+    event Lens_Username_Created(string username, address indexed account, RuleExecutionData data, address source);
 
-    event Lens_Username_Removed(string username, address indexed account, RuleExecutionData data);
+    event Lens_Username_Removed(string username, address indexed account, RuleExecutionData data, address source);
 
-    event Lens_Username_Assigned(string username, address indexed account, RuleExecutionData data);
+    event Lens_Username_Assigned(string username, address indexed account, RuleExecutionData data, address source);
 
-    event Lens_Username_Unassigned(string username, address indexed previousAccount, RuleExecutionData data);
+    event Lens_Username_Unassigned(
+        string username, address indexed previousAccount, RuleExecutionData data, address source
+    );
 
     event Lens_Username_ExtraDataAdded(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
     event Lens_Username_ExtraDataUpdated(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
@@ -35,13 +37,25 @@ interface IUsername is IMetadataBased {
 
     function removeUsernameRules(address[] calldata rules) external;
 
-    function createUsername(address account, string memory username, RuleExecutionData calldata data) external;
+    function createUsername(
+        address account,
+        string memory username,
+        RuleExecutionData calldata data,
+        SourceStamp calldata sourceStamp
+    ) external;
 
-    function removeUsername(string memory username, RuleExecutionData calldata data) external;
+    function removeUsername(string memory username, RuleExecutionData calldata data, SourceStamp calldata sourceStamp)
+        external;
 
-    function assignUsername(address account, string memory username, RuleExecutionData calldata data) external;
+    function assignUsername(
+        address account,
+        string memory username,
+        RuleExecutionData calldata data,
+        SourceStamp calldata sourceStamp
+    ) external;
 
-    function unassignUsername(string memory username, RuleExecutionData calldata data) external;
+    function unassignUsername(string memory username, RuleExecutionData calldata data, SourceStamp calldata sourceStamp)
+        external;
 
     function usernameOf(address user) external view returns (string memory);
 

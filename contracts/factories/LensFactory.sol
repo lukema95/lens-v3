@@ -76,15 +76,21 @@ contract LensFactory {
         string calldata username,
         RuleExecutionData calldata createUsernameData,
         RuleExecutionData calldata assignUsernameData,
-        SourceStamp calldata sourceStamp
+        SourceStamp calldata accountCreationSourceStamp,
+        SourceStamp calldata createUsernameSourceStamp,
+        SourceStamp calldata assignUsernameSourceStamp
     ) external returns (address) {
         address account = ACCOUNT_FACTORY.deployAccount(
-            address(this), metadataURI, accountManagers, accountManagersPermissions, sourceStamp
+            address(this), metadataURI, accountManagers, accountManagersPermissions, accountCreationSourceStamp
         );
         IUsername usernamePrimitive = IUsername(usernamePrimitiveAddress);
-        bytes memory txData = abi.encodeCall(usernamePrimitive.createUsername, (account, username, createUsernameData));
+        bytes memory txData = abi.encodeCall(
+            usernamePrimitive.createUsername, (account, username, createUsernameData, createUsernameSourceStamp)
+        );
         IAccount(payable(account)).executeTransaction(usernamePrimitiveAddress, uint256(0), txData);
-        txData = abi.encodeCall(usernamePrimitive.assignUsername, (account, username, assignUsernameData));
+        txData = abi.encodeCall(
+            usernamePrimitive.assignUsername, (account, username, assignUsernameData, assignUsernameSourceStamp)
+        );
         IAccount(payable(account)).executeTransaction(usernamePrimitiveAddress, uint256(0), txData);
         IOwnable(account).transferOwnership(owner);
         return account;

@@ -7,8 +7,9 @@ import {IAccessControl} from "./../access-control/IAccessControl.sol";
 import {DataElement} from "./../../types/Types.sol";
 import {RuleBasedFeed} from "./RuleBasedFeed.sol";
 import {AccessControlled} from "./../base/AccessControlled.sol";
-import {RuleConfiguration, RuleExecutionData, DataElementValue} from "./../../types/Types.sol";
+import {RuleConfiguration, RuleExecutionData, DataElementValue, SourceStamp} from "./../../types/Types.sol";
 import {Events} from "./../../types/Events.sol";
+import {ISource} from "./../base/ISource.sol";
 
 contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     // Resource IDs involved in the contract
@@ -125,10 +126,18 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
 
     // Public user functions
 
-    function createPost(CreatePostParams calldata createPostParams) external override returns (uint256) {
+    function createPost(CreatePostParams calldata createPostParams, SourceStamp calldata sourceStamp)
+        external
+        override
+        returns (uint256)
+    {
         require(msg.sender == createPostParams.author, "MSG_SENDER_NOT_AUTHOR");
 
-        (uint256 postId, uint256 localSequentialId, uint256 rootPostId) = Core._createPost(createPostParams);
+        (uint256 postId, uint256 localSequentialId, uint256 rootPostId) =
+            Core._createPost(createPostParams, sourceStamp.source);
+        if (sourceStamp.source != address(0)) {
+            ISource(sourceStamp.source).validateSource(sourceStamp);
+        }
         _processPostCreation(postId, localSequentialId, createPostParams);
 
         if (createPostParams.quotedPostId != 0) {
@@ -162,7 +171,9 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
             );
         }
 
-        emit Lens_Feed_PostCreated(postId, createPostParams.author, localSequentialId, createPostParams, rootPostId);
+        emit Lens_Feed_PostCreated(
+            postId, createPostParams.author, localSequentialId, createPostParams, rootPostId, sourceStamp.source
+        );
 
         for (uint256 i = 0; i < createPostParams.extraData.length; i++) {
             emit Lens_Feed_Post_ExtraDataAdded(
@@ -179,7 +190,8 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     function editPost(
         uint256 postId,
         EditPostParams calldata newPostParams,
-        RuleExecutionData calldata editPostFeedRulesData
+        RuleExecutionData calldata editPostFeedRulesData,
+        SourceStamp calldata sourceStamp
     ) external override {
         address author = Core.$storage().posts[postId].author;
         // TODO: We can have this for moderators:
@@ -187,8 +199,11 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         require(msg.sender == author, "MSG_SENDER_NOT_AUTHOR");
         uint256 localSequentialId = Core.$storage().posts[postId].localSequentialId;
         _feedProcessEditPost(postId, localSequentialId, newPostParams, editPostFeedRulesData);
-        bool[] memory wereExtraDataValuesSet = Core._editPost(postId, newPostParams);
-        emit Lens_Feed_PostEdited(postId, author, newPostParams, editPostFeedRulesData);
+        bool[] memory wereExtraDataValuesSet = Core._editPost(postId, newPostParams, sourceStamp.source);
+        if (sourceStamp.source != address(0)) {
+            ISource(sourceStamp.source).validateSource(sourceStamp);
+        }
+        emit Lens_Feed_PostEdited(postId, author, newPostParams, editPostFeedRulesData, sourceStamp.source);
         for (uint256 i = 0; i < newPostParams.extraData.length; i++) {
             if (wereExtraDataValuesSet[i]) {
                 emit Lens_Feed_Post_ExtraDataUpdated(
@@ -211,14 +226,18 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     function deletePost(
         uint256 postId,
         bytes32[] calldata extraDataKeysToDelete,
-        RuleExecutionData calldata feedRulesData
+        RuleExecutionData calldata feedRulesData,
+        SourceStamp calldata sourceStamp
     ) external override {
         address author = Core.$storage().posts[postId].author;
         require(msg.sender == author || _hasAccess(msg.sender, DELETE_POST_PID), "MSG_SENDER_NOT_AUTHOR_NOR_HAS_ACCESS");
         uint256 localSequentialId = Core.$storage().posts[postId].localSequentialId;
         _feedProcessDeletePost(postId, localSequentialId, feedRulesData);
         Core._deletePost(postId, extraDataKeysToDelete);
-        emit Lens_Feed_PostDeleted(postId, author, feedRulesData);
+        if (sourceStamp.source != address(0)) {
+            ISource(sourceStamp.source).validateSource(sourceStamp);
+        }
+        emit Lens_Feed_PostDeleted(postId, author, feedRulesData, sourceStamp.source);
     }
 
     function setExtraData(DataElement[] calldata extraDataToSet) external override {
@@ -248,7 +267,6 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         return Post({
             author: Core.$storage().posts[postId].author,
             localSequentialId: Core.$storage().posts[postId].localSequentialId,
-            source: Core.$storage().posts[postId].source,
             contentURI: Core.$storage().posts[postId].contentURI,
             rootPostId: Core.$storage().posts[postId].rootPostId,
             repostedPostId: Core.$storage().posts[postId].repostedPostId,
@@ -257,7 +275,9 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
             requiredRules: _getPostRules(postId, true),
             anyOfRules: _getPostRules(postId, false),
             creationTimestamp: Core.$storage().posts[postId].creationTimestamp,
-            lastUpdatedTimestamp: Core.$storage().posts[postId].lastUpdatedTimestamp
+            creationSource: Core.$storage().posts[postId].creationSource,
+            lastUpdatedTimestamp: Core.$storage().posts[postId].lastUpdatedTimestamp,
+            lastUpdateSource: Core.$storage().posts[postId].lastUpdateSource
         });
     }
 
