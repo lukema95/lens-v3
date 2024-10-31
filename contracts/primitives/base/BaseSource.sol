@@ -8,6 +8,10 @@ abstract contract BaseSource is ISource {
     mapping(uint256 => bool) internal _wasSourceStampNonceUsed;
 
     function validateSource(SourceStamp calldata sourceStamp) external virtual override {
+        _validateSource(sourceStamp);
+    }
+
+    function _validateSource(SourceStamp calldata sourceStamp) internal virtual {
         require(!_wasSourceStampNonceUsed[sourceStamp.nonce]);
         require(sourceStamp.deadline >= block.timestamp);
         require(sourceStamp.source == address(this));

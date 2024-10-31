@@ -103,12 +103,19 @@ contract LensFactory {
 
     function deployApp(
         string memory metadataURI,
+        bool sourceStampVerificationEnabled,
         address owner,
         address[] calldata admins,
         AppInitialProperties calldata initialProperties,
         DataElement[] calldata extraData
     ) external returns (address) {
-        return APP_FACTORY.deployApp(metadataURI, _deployAccessControl(owner, admins), initialProperties, extraData);
+        return APP_FACTORY.deployApp(
+            metadataURI,
+            sourceStampVerificationEnabled,
+            _deployAccessControl(owner, admins),
+            initialProperties,
+            extraData
+        );
     }
 
     function deployGroup(
