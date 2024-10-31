@@ -52,12 +52,12 @@ contract App is IApp, AccessControlled {
 
     function _emitPIDs() internal override {
         super._emitPIDs();
-        emit Lens_PermissonId_Available(SET_PRIMITIVES_PID, "SET_PRIMITIVES");
-        emit Lens_PermissonId_Available(SET_SIGNERS_PID, "SET_SIGNERS");
-        emit Lens_PermissonId_Available(SET_TREASURY_PID, "SET_TREASURY");
-        emit Lens_PermissonId_Available(SET_PAYMASTER_PID, "SET_PAYMASTER");
-        emit Lens_PermissonId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
-        emit Lens_PermissonId_Available(SET_METADATA_PID, "SET_METADATA");
+        emit Lens_PermissionId_Available(SET_PRIMITIVES_PID, "SET_PRIMITIVES");
+        emit Lens_PermissionId_Available(SET_SIGNERS_PID, "SET_SIGNERS");
+        emit Lens_PermissionId_Available(SET_TREASURY_PID, "SET_TREASURY");
+        emit Lens_PermissionId_Available(SET_PAYMASTER_PID, "SET_PAYMASTER");
+        emit Lens_PermissionId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
+        emit Lens_PermissionId_Available(SET_METADATA_PID, "SET_METADATA");
     }
 
     ///////////////// Graph

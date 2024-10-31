@@ -26,9 +26,9 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
 
     function _emitPIDs() internal override {
         super._emitPIDs();
-        emit Lens_PermissonId_Available(SET_RULES_PID, "SET_RULES");
-        emit Lens_PermissonId_Available(SET_METADATA_PID, "SET_METADATA");
-        emit Lens_PermissonId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
+        emit Lens_PermissionId_Available(SET_RULES_PID, "SET_RULES");
+        emit Lens_PermissionId_Available(SET_METADATA_PID, "SET_METADATA");
+        emit Lens_PermissionId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
     }
 
     // Access Controlled functions
