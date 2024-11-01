@@ -31,8 +31,11 @@ abstract contract BaseCollectAction is IBaseCollectAction {
     }
 
     function configure(address feed, uint256 postId, bytes calldata data) external override returns (bytes memory) {
+        _validateSender(msg.sender, feed, postId);
+
         BaseCollectActionConfigureData memory baseConfigData = abi.decode(data, (BaseCollectActionConfigureData));
         _validateBaseConfigureData(baseConfigData);
+
         _storeBaseConfigureData(feed, postId, baseConfigData);
 
         emit Lens_PostAction_Configured(feed, postId, data);
@@ -56,6 +59,12 @@ abstract contract BaseCollectAction is IBaseCollectAction {
         returns (BaseCollectActionExecuteData memory)
     {
         return $collectDataStorage().collectData[feed][postId];
+    }
+
+    function _validateSender(address sender, address feed, uint256 postId) internal virtual {
+        if (sender != IFeed(feed).getPostAuthor(postId)) {
+            revert("Sender is not the author");
+        }
     }
 
     function _validateBaseConfigureData(BaseCollectActionConfigureData memory baseConfigData) internal virtual {
