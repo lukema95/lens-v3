@@ -65,7 +65,13 @@ abstract contract RestrictedSignersRule {
         require(signers.length == labels.length);
         for (uint256 i = 0; i < signers.length; i++) {
             bool wasWhitelisted = $ruleStorage(msg.sender).isWhitelistedSigner[signers[i]];
-            if (wasWhitelisted != isWhitelisted[i]) {
+            if (wasWhitelisted == isWhitelisted[i]) {
+                if (isWhitelisted[i]) {
+                    // Signal removal and re-addition in order to update the label
+                    emit Lens_RestrictedSignersRule_SignerRemoved(signers[i]);
+                    emit Lens_RestrictedSignersRule_SignerAdded(signers[i], labels[i]);
+                }
+            } else {
                 $ruleStorage(msg.sender).isWhitelistedSigner[signers[i]] = isWhitelisted[i];
                 if (isWhitelisted[i]) {
                     emit Lens_RestrictedSignersRule_SignerAdded(signers[i], labels[i]);
