@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./LensCollectedPost.sol";
+import "./LensCollectedPostTokenURIProvider.sol";
 import {
     IBaseCollectAction,
-    BaseCollectActionConfigureData,
-    BaseCollectActionExecuteData,
+    BaseCollectActionConfigureParams,
+    BaseCollectActionData,
     CollectFee
 } from "./IBaseCollectAction.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IFeed} from "../feed/IFeed.sol";
 import {IGraph} from "../graph/IGraph.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 abstract contract BaseCollectAction is IBaseCollectAction {
     using SafeERC20 for IERC20;
@@ -18,7 +20,7 @@ abstract contract BaseCollectAction is IBaseCollectAction {
     uint16 internal constant BPS_MAX = 10000;
 
     struct BaseCollectActionStorage {
-        mapping(address => mapping(uint256 => BaseCollectActionExecuteData)) collectData;
+        mapping(address => mapping(uint256 => BaseCollectActionData)) collectData;
     }
 
     // keccak256('lens.collect.action.storage')
@@ -31,14 +33,17 @@ abstract contract BaseCollectAction is IBaseCollectAction {
     }
 
     function configure(address feed, uint256 postId, bytes calldata data) external override returns (bytes memory) {
-        _validateSender(msg.sender, feed, postId);
+        _validateSenderIsAuthor(msg.sender, feed, postId);
 
-        BaseCollectActionConfigureData memory baseConfigData = abi.decode(data, (BaseCollectActionConfigureData));
-        _validateBaseConfigureData(baseConfigData);
+        BaseCollectActionConfigureParams memory baseConfigData = abi.decode(data, (BaseCollectActionConfigureParams));
+        _validateBaseConfigureParams(baseConfigData);
 
-        _storeBaseConfigureData(feed, postId, baseConfigData);
+        // create and deploy the Lens Collected Post contract
+        address collectionAddress = _deployLensCollectedPostContract(feed, postId, baseConfigData);
 
-        emit Lens_PostAction_Configured(feed, postId, data);
+        _storeBaseCollectParams(feed, postId, baseConfigData, collectionAddress);
+
+        emit Lens_PostAction_Configured(feed, postId, data, collectionAddress);
         return data;
     }
 
@@ -53,21 +58,17 @@ abstract contract BaseCollectAction is IBaseCollectAction {
         return data;
     }
 
-    function getBasePublicationCollectData(address feed, uint256 postId)
-        external
-        view
-        returns (BaseCollectActionExecuteData memory)
-    {
+    function getCollectActionData(address feed, uint256 postId) external view returns (BaseCollectActionData memory) {
         return $collectDataStorage().collectData[feed][postId];
     }
 
-    function _validateSender(address sender, address feed, uint256 postId) internal virtual {
+    function _validateSenderIsAuthor(address sender, address feed, uint256 postId) internal virtual {
         if (sender != IFeed(feed).getPostAuthor(postId)) {
             revert("Sender is not the author");
         }
     }
 
-    function _validateBaseConfigureData(BaseCollectActionConfigureData memory baseConfigData) internal virtual {
+    function _validateBaseConfigureParams(BaseCollectActionConfigureParams memory baseConfigData) internal virtual {
         // validate fees are less than 10000
         uint256 totalFees = 0;
         for (uint256 i = 0; i < baseConfigData.fees.length; i++) {
@@ -79,11 +80,13 @@ abstract contract BaseCollectAction is IBaseCollectAction {
         }
     }
 
-    function _storeBaseConfigureData(address feed, uint256 postId, BaseCollectActionConfigureData memory baseConfigData)
-        internal
-        virtual
-    {
-        $collectDataStorage().collectData[feed][postId] = BaseCollectActionExecuteData({
+    function _storeBaseCollectParams(
+        address feed,
+        uint256 postId,
+        BaseCollectActionConfigureParams memory baseConfigData,
+        address collectionAddress
+    ) internal virtual {
+        $collectDataStorage().collectData[feed][postId] = BaseCollectActionData({
             amount: baseConfigData.amount,
             collectLimit: baseConfigData.collectLimit,
             currency: baseConfigData.currency,
@@ -92,6 +95,7 @@ abstract contract BaseCollectAction is IBaseCollectAction {
             followerOnly: baseConfigData.followerOnly,
             endTimestamp: baseConfigData.endTimestamp,
             fees: baseConfigData.fees,
+            collectionAddress: collectionAddress,
             currentCollects: 0
         });
     }
@@ -100,7 +104,7 @@ abstract contract BaseCollectAction is IBaseCollectAction {
         internal
         virtual
     {
-        BaseCollectActionExecuteData storage data = $collectDataStorage().collectData[feed][postId];
+        BaseCollectActionData storage data = $collectDataStorage().collectData[feed][postId];
         data.currentCollects++;
 
         if (data.followerOnly && !IGraph(graph).isFollowing(collector, IFeed(feed).getPostAuthor(postId))) {
@@ -117,7 +121,7 @@ abstract contract BaseCollectAction is IBaseCollectAction {
     }
 
     function _processCollect(address referrer, address collector, address feed, uint256 postId) internal virtual {
-        BaseCollectActionExecuteData storage data = $collectDataStorage().collectData[feed][postId];
+        BaseCollectActionData storage data = $collectDataStorage().collectData[feed][postId];
         uint256 amount = data.amount;
         address currency = data.currency;
         address recipient = data.recipient;
@@ -161,5 +165,19 @@ abstract contract BaseCollectAction is IBaseCollectAction {
         }
 
         return adjustedAmount;
+    }
+
+    function _deployLensCollectedPostContract(
+        address feed,
+        uint256 postId,
+        BaseCollectActionConfigureParams memory baseConfigData
+    ) internal virtual returns (address) {
+        LensCollectedPost lensCollectedPost = new LensCollectedPost(
+            "Collected Post", // TODO: Something more specific here?
+            "LCP",
+            new LensCollectedPostTokenURIProvider(feed, postId)
+        );
+
+        return address(lensCollectedPost);
     }
 }
