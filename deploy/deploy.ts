@@ -4,7 +4,6 @@ import {
   verifyLensFactoryDeployedPrimitive,
   verifyLensFactoryDeployedUsername,
 } from './utils';
-import * as hre from 'hardhat';
 
 export default async function () {
   // accessControl factory
@@ -144,8 +143,6 @@ export default async function () {
   console.log(`ACCOUNT_FACTORY="${await accountFactory.getAddress()}"`);
   console.log('');
   console.log(`APP_FACTORY="${await appFactory.getAddress()}"`);
-  console.log('');
-  console.log(`USERNAME_FACTORY="${await usernameFactory.getAddress()}"`);
   console.log('');
   console.log(`USERNAME_FACTORY="${await usernameFactory.getAddress()}"`);
   console.log('');
