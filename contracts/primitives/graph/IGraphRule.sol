@@ -6,7 +6,7 @@ import {RuleConfiguration} from "./../../types/Types.sol";
 interface IGraphRule {
     function configure(bytes calldata data) external;
 
-    function processFollow(address followerAcount, address accountToFollow, uint256 followId, bytes calldata data)
+    function processFollow(address followerAccount, address accountToFollow, uint256 followId, bytes calldata data)
         external
         returns (bool);
 

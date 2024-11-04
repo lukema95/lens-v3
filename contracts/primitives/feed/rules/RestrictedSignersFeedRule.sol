@@ -17,7 +17,7 @@ contract RestrictedSignersFeedRule is RestrictedSignersRule, IFeedRule {
         CreatePostParams calldata postParams,
         bytes calldata data
     ) external override returns (bool) {
-        _validateRestricteSignerMessage({
+        _validateRestrictedSignerMessage({
             functionSelector: IFeedRule.processCreatePost.selector,
             abiEncodedFunctionParams: abi.encode(postId, localSequentialId, postParams),
             signature: abi.decode(data, (EIP712Signature))
@@ -31,7 +31,7 @@ contract RestrictedSignersFeedRule is RestrictedSignersRule, IFeedRule {
         EditPostParams calldata editPostParams,
         bytes calldata data
     ) external override returns (bool) {
-        _validateRestricteSignerMessage({
+        _validateRestrictedSignerMessage({
             functionSelector: IFeedRule.processEditPost.selector,
             abiEncodedFunctionParams: abi.encode(postId, localSequentialId, editPostParams),
             signature: abi.decode(data, (EIP712Signature))
@@ -44,7 +44,7 @@ contract RestrictedSignersFeedRule is RestrictedSignersRule, IFeedRule {
         override
         returns (bool)
     {
-        _validateRestricteSignerMessage({
+        _validateRestrictedSignerMessage({
             functionSelector: IFeedRule.processDeletePost.selector,
             abiEncodedFunctionParams: abi.encode(postId, localSequentialId),
             signature: abi.decode(data, (EIP712Signature))
@@ -58,7 +58,7 @@ contract RestrictedSignersFeedRule is RestrictedSignersRule, IFeedRule {
         RuleConfiguration[] calldata newPostRules,
         bytes calldata data
     ) external override returns (bool) {
-        _validateRestricteSignerMessage({
+        _validateRestrictedSignerMessage({
             functionSelector: IFeedRule.processPostRulesChanged.selector,
             abiEncodedFunctionParams: abi.encode(postId, localSequentialId, newPostRules),
             signature: abi.decode(data, (EIP712Signature))

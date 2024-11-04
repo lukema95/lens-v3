@@ -1,0 +1,85 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import {IAccessControl} from "./../../access-control/IAccessControl.sol";
+import {IUsernameRule} from "./../IUsernameRule.sol";
+import {AccessControlLib} from "./../../libraries/AccessControlLib.sol";
+import {Events} from "./../../../types/Events.sol";
+import {TokenGatedRule} from "../../base/TokenGatedRule.sol";
+
+contract TokenGatedUsernameRule is TokenGatedRule, IUsernameRule {
+    using AccessControlLib for IAccessControl;
+    using AccessControlLib for address;
+
+    uint256 constant SKIP_TOKEN_GATE_PID = uint256(keccak256("SKIP_TOKEN_GATE"));
+
+    struct RestrictionConfiguration {
+        bool restrictCreation;
+        bool restrictAssigning;
+    }
+
+    struct Configuration {
+        address accessControl;
+        RestrictionConfiguration restrictions;
+        TokenGateConfiguration tokenGate;
+    }
+
+    mapping(address usernamePrimitive => Configuration configuration) internal _configuration;
+
+    constructor() {
+        emit Events.Lens_PermissionId_Available(SKIP_TOKEN_GATE_PID, "SKIP_TOKEN_GATE");
+    }
+
+    function configure(bytes calldata data) external {
+        Configuration memory configuration = abi.decode(data, (Configuration));
+        configuration.accessControl.verifyHasAccessFunction();
+        _validateTokenGateConfiguration(configuration.tokenGate);
+        require(
+            configuration.restrictions.restrictCreation || configuration.restrictions.restrictAssigning,
+            "Username: no restrictions"
+        );
+        _configuration[msg.sender] = configuration;
+    }
+
+    function processCreation(address account, string calldata, /* username */ bytes calldata /* data */ )
+        external
+        view
+        returns (bool)
+    {
+        return _validateTokenBalance(_configuration[msg.sender], account);
+    }
+
+    function processAssigning(address account, string calldata, /* username */ bytes calldata /* data */ )
+        external
+        view
+        returns (bool)
+    {
+        return _validateTokenBalance(_configuration[msg.sender], account);
+    }
+
+    function _validateTokenBalance(Configuration memory configuration, address account) internal view returns (bool) {
+        if (
+            configuration.restrictions.restrictCreation
+                && !configuration.accessControl.hasAccess(account, SKIP_TOKEN_GATE_PID)
+        ) {
+            _validateTokenBalance(configuration.tokenGate, account);
+        }
+        return true;
+    }
+
+    function processRemoval(address, /* account */ string calldata, /* username */ bytes calldata /* data */ )
+        external
+        pure
+        returns (bool)
+    {
+        return false;
+    }
+
+    function processUnassigning(address, /* account */ string calldata, /* username */ bytes calldata /* data */ )
+        external
+        pure
+        returns (bool)
+    {
+        return false;
+    }
+}

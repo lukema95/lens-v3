@@ -15,13 +15,15 @@ contract FollowersOnlyPostRule is IPostRule {
 
     mapping(address feed => mapping(uint256 postId => Configuration configuration)) internal _configuration;
 
-    function configure(uint256 postId, bytes calldata data) external {
+    function configure(uint256 postId, bytes calldata data) external override {
         Configuration memory configuration = abi.decode(data, (Configuration));
         _configuration[msg.sender][postId] = configuration;
     }
 
-    function processQuote(uint256 rootPostId, uint256 quotedPostId, uint256 postId, bytes calldata data)
+    function processQuote(uint256 rootPostId, uint256, /* quotedPostId */ uint256 postId, bytes calldata /* data */ )
         external
+        view
+        override
         returns (bool)
     {
         return _processRestriction({
@@ -33,8 +35,10 @@ contract FollowersOnlyPostRule is IPostRule {
         });
     }
 
-    function processReply(uint256 rootPostId, uint256 repliedPostId, uint256 postId, bytes calldata data)
+    function processReply(uint256 rootPostId, uint256, /* repliedPostId */ uint256 postId, bytes calldata /* data */ )
         external
+        view
+        override
         returns (bool)
     {
         return _processRestriction({
@@ -46,8 +50,10 @@ contract FollowersOnlyPostRule is IPostRule {
         });
     }
 
-    function processRepost(uint256 rootPostId, uint256 repostedPostId, uint256 postId, bytes calldata data)
+    function processRepost(uint256 rootPostId, uint256, /* repostedPostId */ uint256 postId, bytes calldata /* data */ )
         external
+        view
+        override
         returns (bool)
     {
         return _processRestriction({
@@ -65,7 +71,7 @@ contract FollowersOnlyPostRule is IPostRule {
         address graph,
         uint256 rootPostId,
         uint256 newPostId
-    ) internal returns (bool) {
+    ) internal view returns (bool) {
         if (isRestrictionEnabled) {
             address rootPostAuthor = IFeed(feed).getPostAuthor(rootPostId);
             address newPostAuthor = IFeed(feed).getPostAuthor(newPostId);
