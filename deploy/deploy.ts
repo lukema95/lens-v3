@@ -124,7 +124,7 @@ export default async function () {
   );
   const lensUsernameAddress = await verifyLensFactoryDeployedPrimitive({
     tx: usernameDeploymentTx,
-    lensContractArtifactName: 'App',
+    lensContractArtifactName: 'Username',
     metadataURIConstructorParam: metadataURI,
   });
 
