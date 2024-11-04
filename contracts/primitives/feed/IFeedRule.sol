@@ -12,25 +12,23 @@ interface IFeedRule {
         uint256 localSequentialId,
         CreatePostParams calldata postParams,
         bytes calldata data
-    ) external;
+    ) external returns (bool);
 
     function processEditPost(
         uint256 postId,
         uint256 localSequentialId,
         EditPostParams calldata editPostParams,
         bytes calldata data
-    ) external;
+    ) external returns (bool);
 
-    function processDeletePost(uint256 postId, uint256 localSequentialId, bytes calldata data) external;
+    function processDeletePost(uint256 postId, uint256 localSequentialId, bytes calldata data)
+        external
+        returns (bool);
 
     function processPostRulesChanged(
         uint256 postId,
         uint256 localSequentialId,
         RuleConfiguration[] calldata newPostRules,
         bytes calldata data
-    ) external;
-
-    // TODO: Do we need these global quote/parent rules? Or they exist only per-post?
-    // function processQuotes
-    // function processParents
+    ) external returns (bool);
 }

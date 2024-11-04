@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {RuleConfiguration, RuleExecutionData, DataElement, DataElementValue} from "./../../types/Types.sol";
+import {
+    RuleConfiguration, RuleExecutionData, DataElement, DataElementValue, SourceStamp
+} from "./../../types/Types.sol";
 import {IMetadataBased} from "./../base/IMetadataBased.sol";
 
 // TODO: Might worth to add extraData to the follow entity
@@ -34,14 +36,16 @@ interface IGraph is IMetadataBased {
         address indexed accountToFollow,
         uint256 followId,
         RuleExecutionData graphRulesData,
-        RuleExecutionData followRulesData
+        RuleExecutionData followRulesData,
+        address source
     );
 
     event Lens_Graph_Unfollowed(
         address indexed followerAccount,
         address indexed accountToUnfollow,
         uint256 followId,
-        RuleExecutionData graphRulesData
+        RuleExecutionData graphRulesData,
+        address source
     );
 
     event Lens_Graph_ExtraDataAdded(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
@@ -76,12 +80,16 @@ interface IGraph is IMetadataBased {
         address targetAccount,
         uint256 followId,
         RuleExecutionData calldata graphRulesData,
-        RuleExecutionData calldata followRulesData
+        RuleExecutionData calldata followRulesData,
+        SourceStamp calldata sourceStamp
     ) external returns (uint256);
 
-    function unfollow(address followerAccount, address targetAccount, RuleExecutionData calldata graphRulesData)
-        external
-        returns (uint256);
+    function unfollow(
+        address followerAccount,
+        address targetAccount,
+        RuleExecutionData calldata graphRulesData,
+        SourceStamp calldata sourceStamp
+    ) external returns (uint256);
 
     function setExtraData(DataElement[] calldata extraDataToSet) external;
 

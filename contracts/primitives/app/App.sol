@@ -4,9 +4,11 @@ pragma solidity ^0.8.0;
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
 import {IApp} from "./IApp.sol";
 import {AppCore as Core} from "./AppCore.sol";
-import {DataElement, DataElementValue} from "./../../types/Types.sol";
+import {DataElement, DataElementValue, SourceStamp} from "./../../types/Types.sol";
 import {AccessControlled} from "./../base/AccessControlled.sol";
 import {Events} from "./../../types/Events.sol";
+import {BaseSource} from "./../base/BaseSource.sol";
+import {ISource} from "./../base/ISource.sol";
 
 struct AppInitialProperties {
     address graph;
@@ -19,22 +21,26 @@ struct AppInitialProperties {
     address treasury;
 }
 
-contract App is IApp, AccessControlled {
+contract App is IApp, BaseSource, AccessControlled {
     // Resource IDs involved in the contract
+
     uint256 constant SET_PRIMITIVES_PID = uint256(keccak256("SET_PRIMITIVES"));
     uint256 constant SET_SIGNERS_PID = uint256(keccak256("SET_SIGNERS"));
     uint256 constant SET_TREASURY_PID = uint256(keccak256("SET_TREASURY"));
     uint256 constant SET_PAYMASTER_PID = uint256(keccak256("SET_PAYMASTER"));
     uint256 constant SET_EXTRA_DATA_PID = uint256(keccak256("SET_EXTRA_DATA"));
     uint256 constant SET_METADATA_PID = uint256(keccak256("SET_METADATA"));
+    uint256 constant SET_SOURCE_STAMP_VERIFICATION_PID = uint256(keccak256("SET_SOURCE_STAMP_VERIFICATION"));
 
     constructor(
         string memory metadataURI,
+        bool isSourceStampVerificationEnabled,
         IAccessControl accessControl,
         AppInitialProperties memory initialProps,
         DataElement[] memory extraData
     ) AccessControlled(accessControl) {
         _setMetadataURI(metadataURI);
+        _setSourceStampVerification(isSourceStampVerificationEnabled);
         _setTreasury(initialProps.treasury);
         _setGraph(initialProps.graph);
         _addFeeds(initialProps.feeds);
@@ -52,17 +58,39 @@ contract App is IApp, AccessControlled {
 
     function _emitPIDs() internal override {
         super._emitPIDs();
-        emit Lens_PermissonId_Available(SET_PRIMITIVES_PID, "SET_PRIMITIVES");
-        emit Lens_PermissonId_Available(SET_SIGNERS_PID, "SET_SIGNERS");
-        emit Lens_PermissonId_Available(SET_TREASURY_PID, "SET_TREASURY");
-        emit Lens_PermissonId_Available(SET_PAYMASTER_PID, "SET_PAYMASTER");
-        emit Lens_PermissonId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
-        emit Lens_PermissonId_Available(SET_METADATA_PID, "SET_METADATA");
+        emit Events.Lens_PermissionId_Available(SET_PRIMITIVES_PID, "SET_PRIMITIVES");
+        emit Events.Lens_PermissionId_Available(SET_SIGNERS_PID, "SET_SIGNERS");
+        emit Events.Lens_PermissionId_Available(SET_TREASURY_PID, "SET_TREASURY");
+        emit Events.Lens_PermissionId_Available(SET_PAYMASTER_PID, "SET_PAYMASTER");
+        emit Events.Lens_PermissionId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
+        emit Events.Lens_PermissionId_Available(SET_METADATA_PID, "SET_METADATA");
+        emit Events.Lens_PermissionId_Available(SET_SOURCE_STAMP_VERIFICATION_PID, "SET_SOURCE_STAMP_VERIFICATION");
+    }
+
+    function _validateSource(SourceStamp calldata sourceStamp) internal virtual override {
+        // If source stamp verification is disabled, we don't need to verify the source stamp
+        if (!Core.$storage().sourceStampVerificationEnabled) {
+            super._validateSource(sourceStamp);
+        }
+    }
+
+    function _isValidSourceStampSigner(address signer) internal virtual override returns (bool) {
+        return Core.$storage().signerStorageHelper[signer].isSet; // TODO: What about the app's owner?
+    }
+
+    function _setSourceStampVerification(bool isEnabled) internal virtual {
+        Core.$storage().sourceStampVerificationEnabled = isEnabled;
+        emit Lens_App_SourceStampVerificationSet(isEnabled);
+    }
+
+    function setSourceStampVerification(bool isEnabled) external virtual override {
+        _requireAccess(msg.sender, SET_SOURCE_STAMP_VERIFICATION_PID);
+        _setSourceStampVerification(isEnabled);
     }
 
     ///////////////// Graph
 
-    function setGraph(address graph) public {
+    function setGraph(address graph) external override {
         _requireAccess(msg.sender, SET_PRIMITIVES_PID);
         _setGraph(graph);
     }
@@ -127,7 +155,7 @@ contract App is IApp, AccessControlled {
 
     ///////////////// Username
 
-    function setUsername(address username) public {
+    function setUsername(address username) external override {
         _requireAccess(msg.sender, SET_PRIMITIVES_PID);
         _setUsername(username);
     }
@@ -151,12 +179,12 @@ contract App is IApp, AccessControlled {
 
     ///////////////// Group
 
-    function addGroups(address[] memory groups) external {
+    function addGroups(address[] memory groups) external override {
         _requireAccess(msg.sender, SET_PRIMITIVES_PID);
         _addGroups(groups);
     }
 
-    function removeGroups(address[] memory groups) external {
+    function removeGroups(address[] memory groups) external override {
         _requireAccess(msg.sender, SET_PRIMITIVES_PID);
         _removeGroups(groups);
     }
@@ -203,7 +231,7 @@ contract App is IApp, AccessControlled {
 
     ///////////////// Paymaster
 
-    function setPaymaster(address paymaster) public {
+    function setPaymaster(address paymaster) external override {
         _requireAccess(msg.sender, SET_PRIMITIVES_PID);
         _setPaymaster(paymaster);
     }
@@ -226,9 +254,13 @@ contract App is IApp, AccessControlled {
         }
     }
 
+    function getPaymaster() external view override returns (address) {
+        return Core.$storage().defaultPaymaster;
+    }
+
     ///////////////// Treasury
 
-    function setTreasury(address treasury) public {
+    function setTreasury(address treasury) external override {
         _requireAccess(msg.sender, SET_TREASURY_PID);
         _setTreasury(treasury);
     }
@@ -238,9 +270,13 @@ contract App is IApp, AccessControlled {
         emit Lens_App_TreasurySet(treasury);
     }
 
+    function getTreasury() external view override(IApp, ISource) returns (address) {
+        return Core.$storage().treasury;
+    }
+
     ///////////////// Metadata URI
 
-    function setMetadataURI(string calldata metadataURI) public override {
+    function setMetadataURI(string calldata metadataURI) external override {
         _requireAccess(msg.sender, SET_METADATA_PID);
         _setMetadataURI(metadataURI);
     }
@@ -281,39 +317,43 @@ contract App is IApp, AccessControlled {
     // Getters
     //////////////////////////////////////////////////////////////////////////
 
-    function getGraphs() public view returns (address[] memory) {
+    function getGraphs() external view override returns (address[] memory) {
         return Core.$storage().graphs;
     }
 
-    function getFeeds() public view returns (address[] memory) {
+    function getFeeds() external view override returns (address[] memory) {
         return Core.$storage().feeds;
     }
 
-    function getUsernames() public view returns (address[] memory) {
+    function getUsernames() external view override returns (address[] memory) {
         return Core.$storage().usernames;
     }
 
-    function getGroups() public view returns (address[] memory) {
+    function getGroups() external view override returns (address[] memory) {
         return Core.$storage().groups;
     }
 
-    function getDefaultGraph() public view returns (address) {
+    function getDefaultGraph() external view override returns (address) {
         return Core.$storage().defaultGraph;
     }
 
-    function getDefaultFeed() public view returns (address) {
+    function getDefaultFeed() external view override returns (address) {
         return Core.$storage().defaultFeed;
     }
 
-    function getDefaultUsername() public view returns (address) {
+    function getDefaultUsername() external view override returns (address) {
         return Core.$storage().defaultUsername;
     }
 
-    function getDefaultGroup() public view returns (address) {
+    function getDefaultGroup() external view override returns (address) {
         return Core.$storage().defaultGroup;
     }
 
-    function getSigners() public view returns (address[] memory) {
+    function getDefaultPaymaster() external view override returns (address) {
+        return Core.$storage().defaultPaymaster;
+    }
+
+    function getSigners() external view override returns (address[] memory) {
         return Core.$storage().signers;
     }
 

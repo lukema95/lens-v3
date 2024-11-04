@@ -31,4 +31,12 @@ library AccessControlLib {
     function verifyHasAccessFunction(IAccessControl accessControl) internal view {
         accessControl.hasAccess(address(0), address(0), 0); // We expect this to not panic.
     }
+
+    function requireCanChangeAccessControl(address accessControl, address account) internal view {
+        requireCanChangeAccessControl(IAccessControl(accessControl), account);
+    }
+
+    function requireCanChangeAccessControl(IAccessControl accessControl, address account) internal view {
+        require(accessControl.canChangeAccessControl({account: account, contractAddress: address(this)}));
+    }
 }

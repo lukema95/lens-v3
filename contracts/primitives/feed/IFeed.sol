@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {DataElement, RuleConfiguration, RuleExecutionData, DataElementValue} from "../../types/Types.sol";
+import {DataElement, RuleConfiguration, RuleExecutionData, DataElementValue, SourceStamp} from "../../types/Types.sol";
 import {IMetadataBased} from "./../base/IMetadataBased.sol";
 
 // TODO: Discuss if there's a need for anything else to be added here
@@ -12,23 +12,15 @@ struct EditPostParams {
 
 struct CreatePostParams {
     address author; // Multiple authors can be added in extraData
-    address source; // Client source, if any
     string contentURI;
+    uint256 repostedPostId;
     uint256 quotedPostId;
-    uint256 parentPostId;
+    uint256 repliedPostId;
     RuleConfiguration[] rules;
     RuleExecutionData feedRulesData;
+    RuleExecutionData repostedPostRulesData;
     RuleExecutionData quotedPostRulesData;
-    RuleExecutionData parentPostRulesData;
-    DataElement[] extraData;
-}
-
-struct CreateRepostParams {
-    address author;
-    address source;
-    uint256 parentPostId;
-    RuleExecutionData feedRulesData;
-    RuleExecutionData parentPostRulesData;
+    RuleExecutionData repliedPostRulesData;
     DataElement[] extraData;
 }
 
@@ -36,15 +28,17 @@ struct CreateRepostParams {
 struct Post {
     address author;
     uint256 localSequentialId;
-    address source;
     string contentURI;
-    bool isRepost;
+    uint256 rootPostId;
+    uint256 repostedPostId;
     uint256 quotedPostId;
-    uint256 parentPostId;
+    uint256 repliedPostId;
     address[] requiredRules;
     address[] anyOfRules;
     uint80 creationTimestamp;
+    address creationSource;
     uint80 lastUpdatedTimestamp;
+    address lastUpdateSource;
 }
 
 interface IFeed is IMetadataBased {
@@ -53,22 +47,21 @@ interface IFeed is IMetadataBased {
         address indexed author,
         uint256 indexed localSequentialId,
         CreatePostParams postParams,
-        uint256 rootPostId
-    );
-
-    event Lens_Feed_RepostCreated(
-        uint256 indexed postId,
-        address indexed author,
-        uint256 indexed localSequentialId,
-        CreateRepostParams postParams,
-        uint256 rootPostId
+        uint256 rootPostId,
+        address source
     );
 
     event Lens_Feed_PostEdited(
-        uint256 indexed postId, address indexed author, EditPostParams newPostParams, RuleExecutionData feedRulesData
+        uint256 indexed postId,
+        address indexed author,
+        EditPostParams newPostParams,
+        RuleExecutionData feedRulesData,
+        address source
     );
 
-    event Lens_Feed_PostDeleted(uint256 indexed postId, address indexed author, RuleExecutionData feedRulesData);
+    event Lens_Feed_PostDeleted(
+        uint256 indexed postId, address indexed author, RuleExecutionData feedRulesData, address source
+    );
 
     event Lens_Feed_ExtraDataAdded(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
     event Lens_Feed_ExtraDataUpdated(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
@@ -102,14 +95,13 @@ interface IFeed is IMetadataBased {
 
     function removeFeedRules(address[] calldata rules) external;
 
-    function createPost(CreatePostParams calldata postParams) external returns (uint256);
-
-    function createRepost(CreateRepostParams calldata repostParams) external returns (uint256);
+    function createPost(CreatePostParams calldata postParams, SourceStamp calldata source) external returns (uint256);
 
     function editPost(
         uint256 postId,
         EditPostParams calldata newPostParams,
-        RuleExecutionData calldata editPostFeedRulesData
+        RuleExecutionData calldata editPostFeedRulesData,
+        SourceStamp calldata source
     ) external;
 
     // "Delete" - u know u cannot delete stuff from the internet, right? :]
@@ -117,7 +109,8 @@ interface IFeed is IMetadataBased {
     function deletePost(
         uint256 postId,
         bytes32[] calldata extraDataKeysToDelete,
-        RuleExecutionData calldata feedRulesData
+        RuleExecutionData calldata feedRulesData,
+        SourceStamp calldata source
     ) external;
 
     function addPostRules(uint256 postId, RuleConfiguration[] calldata rules, RuleExecutionData calldata feedRulesData)

@@ -4,16 +4,16 @@ pragma solidity ^0.8.0;
 import {IRoleBasedAccessControl} from "./../primitives/access-control/IRoleBasedAccessControl.sol";
 import {IAccessControl} from "./../primitives/access-control/IAccessControl.sol";
 import {Group} from "./../primitives/group/Group.sol";
-import {OwnerOnlyAccessControl} from "./../primitives/access-control/OwnerOnlyAccessControl.sol";
 import {RoleBasedAccessControl} from "./../primitives/access-control/RoleBasedAccessControl.sol";
-import {RuleConfiguration, RuleExecutionData, DataElement} from "./../types/Types.sol";
+import {RoleBasedAccessControl} from "./../primitives/access-control/RoleBasedAccessControl.sol";
+import {RuleConfiguration, RuleExecutionData, DataElement, SourceStamp} from "./../types/Types.sol";
 import {GroupFactory} from "./GroupFactory.sol";
 import {FeedFactory} from "./FeedFactory.sol";
 import {GraphFactory} from "./GraphFactory.sol";
 import {UsernameFactory} from "./UsernameFactory.sol";
 import {AppFactory, AppInitialProperties} from "./AppFactory.sol";
 import {AccountFactory} from "./AccountFactory.sol";
-import {IAccount} from "./../primitives/account/IAccount.sol";
+import {IAccount, AccountManagerPermissions} from "./../primitives/account/IAccount.sol";
 import {IUsername} from "./../primitives/username/IUsername.sol";
 import {ITokenURIProvider} from "../primitives/base/ITokenURIProvider.sol";
 import {LensUsernameTokenURIProvider} from "./../primitives/username/LensUsernameTokenURIProvider.sol";
@@ -62,7 +62,7 @@ contract LensFactory {
         FEED_FACTORY = feedFactory;
         GRAPH_FACTORY = graphFactory;
         USERNAME_FACTORY = usernameFactory;
-        _factoryOwnedAccessControl = new OwnerOnlyAccessControl({owner: address(this)});
+        _factoryOwnedAccessControl = new RoleBasedAccessControl({owner: address(this)});
     }
 
     // TODO: This function belongs to an App probably.
@@ -70,40 +70,61 @@ contract LensFactory {
         string calldata metadataURI,
         address owner,
         address[] calldata accountManagers,
+        AccountManagerPermissions[] calldata accountManagersPermissions,
         address usernamePrimitiveAddress,
         string calldata username,
         RuleExecutionData calldata createUsernameData,
-        RuleExecutionData calldata assignUsernameData
+        RuleExecutionData calldata assignUsernameData,
+        SourceStamp calldata accountCreationSourceStamp,
+        SourceStamp calldata createUsernameSourceStamp,
+        SourceStamp calldata assignUsernameSourceStamp
     ) external returns (address) {
-        address account = ACCOUNT_FACTORY.deployAccount(address(this), metadataURI, accountManagers);
+        address account = ACCOUNT_FACTORY.deployAccount(
+            address(this), metadataURI, accountManagers, accountManagersPermissions, accountCreationSourceStamp
+        );
         IUsername usernamePrimitive = IUsername(usernamePrimitiveAddress);
-        bytes memory txData = abi.encodeCall(usernamePrimitive.createUsername, (account, username, createUsernameData));
+        bytes memory txData = abi.encodeCall(
+            usernamePrimitive.createUsername, (account, username, createUsernameData, createUsernameSourceStamp)
+        );
         IAccount(payable(account)).executeTransaction(usernamePrimitiveAddress, uint256(0), txData);
-        txData = abi.encodeCall(usernamePrimitive.assignUsername, (account, username, assignUsernameData));
+        txData = abi.encodeCall(
+            usernamePrimitive.assignUsername, (account, username, assignUsernameData, assignUsernameSourceStamp)
+        );
         IAccount(payable(account)).executeTransaction(usernamePrimitiveAddress, uint256(0), txData);
         IOwnable(account).transferOwnership(owner);
         return account;
     }
 
-    function deployAccount(string memory metadataURI, address owner, address[] calldata accountManagers)
-        external
-        returns (address)
-    {
-        return ACCOUNT_FACTORY.deployAccount(owner, metadataURI, accountManagers);
+    function deployAccount(
+        string calldata metadataURI,
+        address owner,
+        address[] calldata accountManagers,
+        AccountManagerPermissions[] calldata accountManagersPermissions,
+        SourceStamp calldata sourceStamp
+    ) external returns (address) {
+        return
+            ACCOUNT_FACTORY.deployAccount(owner, metadataURI, accountManagers, accountManagersPermissions, sourceStamp);
     }
 
     function deployApp(
-        string memory metadataURI,
+        string calldata metadataURI,
+        bool sourceStampVerificationEnabled,
         address owner,
         address[] calldata admins,
         AppInitialProperties calldata initialProperties,
         DataElement[] calldata extraData
     ) external returns (address) {
-        return APP_FACTORY.deployApp(metadataURI, _deployAccessControl(owner, admins), initialProperties, extraData);
+        return APP_FACTORY.deployApp(
+            metadataURI,
+            sourceStampVerificationEnabled,
+            _deployAccessControl(owner, admins),
+            initialProperties,
+            extraData
+        );
     }
 
     function deployGroup(
-        string memory metadataURI,
+        string calldata metadataURI,
         address owner,
         address[] calldata admins,
         RuleConfiguration[] calldata rules,
@@ -113,7 +134,7 @@ contract LensFactory {
     }
 
     function deployFeed(
-        string memory metadataURI,
+        string calldata metadataURI,
         address owner,
         address[] calldata admins,
         RuleConfiguration[] calldata rules,
@@ -123,7 +144,7 @@ contract LensFactory {
     }
 
     function deployGraph(
-        string memory metadataURI,
+        string calldata metadataURI,
         address owner,
         address[] calldata admins,
         RuleConfiguration[] calldata rules,
@@ -133,14 +154,14 @@ contract LensFactory {
     }
 
     function deployUsername(
-        string memory namespace,
-        string memory metadataURI,
+        string calldata namespace,
+        string calldata metadataURI,
         address owner,
         address[] calldata admins,
         RuleConfiguration[] calldata rules,
         DataElement[] calldata extraData,
-        string memory nftName,
-        string memory nftSymbol
+        string calldata nftName,
+        string calldata nftSymbol
     ) external returns (address) {
         ITokenURIProvider tokenURIProvider = new LensUsernameTokenURIProvider(); // TODO!
         return USERNAME_FACTORY.deployUsername(

@@ -41,6 +41,11 @@ interface IApp is IMetadataBased {
     // Treasury
     event Lens_App_TreasurySet(address indexed treasury);
 
+    // Source Stamp Verification
+    event Lens_App_SourceStampVerificationSet(bool indexed isEnabled);
+
+    // Setters
+
     function addGroups(address[] memory groups) external;
     function removeGroups(address[] memory groups) external;
 
@@ -57,19 +62,34 @@ interface IApp is IMetadataBased {
 
     function setPaymaster(address paymaster) external;
 
+    function setTreasury(address treasury) external;
+
     function setExtraData(DataElement[] calldata extraDataToSet) external;
     function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external;
 
+    function setSourceStampVerification(bool isEnabled) external;
+
     // Getters
 
-    function getGraphs() external view returns (address[] memory);
-    function getFeeds() external view returns (address[] memory);
-    function getUsernames() external view returns (address[] memory);
     function getGroups() external view returns (address[] memory);
+
+    function getFeeds() external view returns (address[] memory);
+
+    function getGraphs() external view returns (address[] memory);
+
+    function getUsernames() external view returns (address[] memory);
+
+    function getSigners() external view returns (address[] memory);
+
+    function getPaymaster() external view returns (address);
+
+    function getTreasury() external view returns (address);
+
+    function getExtraData(bytes32 key) external view returns (DataElementValue memory);
+
     function getDefaultGraph() external view returns (address);
     function getDefaultFeed() external view returns (address);
     function getDefaultUsername() external view returns (address);
     function getDefaultGroup() external view returns (address);
-    function getSigners() external view returns (address[] memory);
-    function getExtraData(bytes32 key) external view returns (DataElementValue memory);
+    function getDefaultPaymaster() external view returns (address);
 }
