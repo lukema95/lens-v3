@@ -144,10 +144,10 @@ export default async function () {
   console.log('');
   console.log(`APP_FACTORY="${await appFactory.getAddress()}"`);
   console.log('');
+  console.log(`LENS_USERNAME="${lensUsernameAddress}"`);
   console.log(`USERNAME_FACTORY="${await usernameFactory.getAddress()}"`);
   console.log('');
-  console.log(`LENS_USERNAME="${lensUsernameAddress}"`);
-  console.log('');
+  console.log(`FEED_FACTORY="${await feedFactory.getAddress()}"`);
   console.log(`GLOBAL_FEED="${globalFeedAddress}"`);
   console.log('');
   console.log(`LENS_FACTORY="${await lensFactory.getAddress()}"`);
