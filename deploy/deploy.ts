@@ -1,4 +1,10 @@
-import { deployContract, getWallet, verifyLensFactoryDeployedPrimitive } from './utils';
+import {
+  deployContract,
+  getWallet,
+  verifyLensFactoryDeployedPrimitive,
+  verifyLensFactoryDeployedUsername,
+} from './utils';
+import * as hre from 'hardhat';
 
 export default async function () {
   // accessControl factory
@@ -119,13 +125,12 @@ export default async function () {
     admins,
     rules,
     extraData,
-    'lens',
-    'lens'
+    'Lens Usernames',
+    'LENS'
   );
-  const lensUsernameAddress = await verifyLensFactoryDeployedPrimitive({
+  const lensUsernameAddress = await verifyLensFactoryDeployedUsername({
     tx: usernameDeploymentTx,
-    lensContractArtifactName: 'Username',
-    metadataURIConstructorParam: metadataURI,
+    constructorParams: ['lens', metadataURI, ownerAddress, 'Lens Usernames', 'LENS'],
   });
 
   // TODO: Make this to be written into a file
