@@ -5,7 +5,9 @@ import {UsernameCore as Core} from "./UsernameCore.sol";
 import {IUsernameRule} from "./IUsernameRule.sol";
 import {IUsername} from "./IUsername.sol";
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
-import {DataElement, RuleExecutionData, RuleConfiguration, DataElementValue} from "./../../types/Types.sol";
+import {
+    DataElement, RuleExecutionData, RuleConfiguration, DataElementValue, SourceStamp
+} from "./../../types/Types.sol";
 import {RuleBasedUsername} from "./RuleBasedUsername.sol";
 import {AccessControlled} from "./../base/AccessControlled.sol";
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
@@ -13,6 +15,7 @@ import {RuleConfiguration} from "./../../types/Types.sol";
 import {Events} from "./../../types/Events.sol";
 import {LensERC721} from "../base/LensERC721.sol";
 import {ITokenURIProvider} from "../base/ITokenURIProvider.sol";
+import {ISource} from "../base/ISource.sol";
 
 contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled {
     // TODO: Do we want more granular resources here? Like add/update/remove PIDs? Or are we OK with the multi-purpose?
@@ -94,45 +97,68 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
 
     // Permissionless functions
 
-    function createUsername(address account, string calldata username, RuleExecutionData calldata data)
-        external
-        override
-    {
+    function createUsername(
+        address account,
+        string calldata username,
+        RuleExecutionData calldata data,
+        SourceStamp calldata sourceStamp
+    ) external override {
         require(msg.sender == account); // msg.sender must be the account
         uint256 id = _computeId(username);
         _safeMint(account, id);
         Core._createUsername(username);
+        if (sourceStamp.source != address(0)) {
+            ISource(sourceStamp.source).validateSource(sourceStamp);
+        }
         _processCreation(account, username, data);
         // _validateUsernameLength(username);
-        emit Lens_Username_Created(username, account, data);
+        emit Lens_Username_Created(username, account, data, sourceStamp.source);
     }
 
-    function removeUsername(string calldata username, RuleExecutionData calldata data) external override {
+    function removeUsername(string calldata username, RuleExecutionData calldata data, SourceStamp calldata sourceStamp)
+        external
+        override
+    {
         uint256 id = _computeId(username);
         address account = _ownerOf(id);
         require(msg.sender == account); // msg.sender must be the owner of the username
         _burn(id);
         Core._removeUsername(username);
+        if (sourceStamp.source != address(0)) {
+            ISource(sourceStamp.source).validateSource(sourceStamp);
+        }
         _processRemoval(account, username, data);
-        emit Lens_Username_Removed(username, account, data);
+        emit Lens_Username_Removed(username, account, data, sourceStamp.source);
     }
 
-    function assignUsername(address account, string calldata username, RuleExecutionData calldata data)
-        external
-        override
-    {
+    function assignUsername(
+        address account,
+        string calldata username,
+        RuleExecutionData calldata data,
+        SourceStamp calldata sourceStamp
+    ) external override {
         require(msg.sender == account); // msg.sender must be the account
         Core._assignUsername(account, username);
+        if (sourceStamp.source != address(0)) {
+            ISource(sourceStamp.source).validateSource(sourceStamp);
+        }
         _processAssigning(account, username, data);
-        emit Lens_Username_Assigned(username, account, data);
+        emit Lens_Username_Assigned(username, account, data, sourceStamp.source);
     }
 
-    function unassignUsername(string calldata username, RuleExecutionData calldata data) external override {
+    function unassignUsername(
+        string calldata username,
+        RuleExecutionData calldata data,
+        SourceStamp calldata sourceStamp
+    ) external override {
         address account = Core.$storage().usernameToAccount[username];
         require(msg.sender == account); // msg.sender must be the account
         Core._unassignUsername(username);
+        if (sourceStamp.source != address(0)) {
+            ISource(sourceStamp.source).validateSource(sourceStamp);
+        }
         _processUnassigning(account, username, data);
-        emit Lens_Username_Unassigned(username, account, data);
+        emit Lens_Username_Unassigned(username, account, data, sourceStamp.source);
     }
 
     // TODO: Decide if it worth to have a "before/after" hook for the rules, or if we are covered just with the "before"

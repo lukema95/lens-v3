@@ -4,10 +4,13 @@ pragma solidity ^0.8.0;
 import {Follow, IGraph} from "./IGraph.sol";
 import {GraphCore as Core} from "./GraphCore.sol";
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
-import {RuleConfiguration, RuleExecutionData, DataElement, DataElementValue} from "./../../types/Types.sol";
+import {
+    RuleConfiguration, RuleExecutionData, DataElement, DataElementValue, SourceStamp
+} from "./../../types/Types.sol";
 import {RuleBasedGraph} from "./RuleBasedGraph.sol";
 import {AccessControlled} from "./../base/AccessControlled.sol";
 import {Events} from "./../../types/Events.sol";
+import {ISource} from "./../base/ISource.sol";
 
 contract Graph is IGraph, RuleBasedGraph, AccessControlled {
     // Resource IDs involved in the contract
@@ -114,25 +117,35 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
         address accountToFollow,
         uint256 followId,
         RuleExecutionData calldata graphRulesData,
-        RuleExecutionData calldata followRulesData
+        RuleExecutionData calldata followRulesData,
+        SourceStamp calldata sourceStamp
     ) external override returns (uint256) {
         require(msg.sender == followerAccount);
         uint256 assignedFollowId = Core._follow(followerAccount, accountToFollow, followId);
+        if (sourceStamp.source != address(0)) {
+            ISource(sourceStamp.source).validateSource(sourceStamp);
+        }
         _graphProcessFollow(followerAccount, accountToFollow, followId, graphRulesData);
         _accountProcessFollow(followerAccount, accountToFollow, followId, followRulesData);
-        emit Lens_Graph_Followed(followerAccount, accountToFollow, assignedFollowId, graphRulesData, followRulesData);
+        emit Lens_Graph_Followed(
+            followerAccount, accountToFollow, assignedFollowId, graphRulesData, followRulesData, sourceStamp.source
+        );
         return assignedFollowId;
     }
 
-    function unfollow(address followerAccount, address accountToUnfollow, RuleExecutionData calldata graphRulesData)
-        external
-        override
-        returns (uint256)
-    {
+    function unfollow(
+        address followerAccount,
+        address accountToUnfollow,
+        RuleExecutionData calldata graphRulesData,
+        SourceStamp calldata sourceStamp
+    ) external override returns (uint256) {
         require(msg.sender == followerAccount);
         uint256 followId = Core._unfollow(followerAccount, accountToUnfollow);
+        if (sourceStamp.source != address(0)) {
+            ISource(sourceStamp.source).validateSource(sourceStamp);
+        }
         _graphProcessUnfollow(followerAccount, accountToUnfollow, followId, graphRulesData);
-        emit Lens_Graph_Unfollowed(followerAccount, accountToUnfollow, followId, graphRulesData);
+        emit Lens_Graph_Unfollowed(followerAccount, accountToUnfollow, followId, graphRulesData, sourceStamp.source);
         return followId;
     }
 

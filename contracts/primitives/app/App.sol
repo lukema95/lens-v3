@@ -4,9 +4,11 @@ pragma solidity ^0.8.0;
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
 import {IApp} from "./IApp.sol";
 import {AppCore as Core} from "./AppCore.sol";
-import {DataElement, DataElementValue} from "./../../types/Types.sol";
+import {DataElement, DataElementValue, SourceStamp} from "./../../types/Types.sol";
 import {AccessControlled} from "./../base/AccessControlled.sol";
 import {Events} from "./../../types/Events.sol";
+import {BaseSource} from "./../base/BaseSource.sol";
+import {ISource} from "./../base/ISource.sol";
 
 struct AppInitialProperties {
     address graph;
@@ -19,22 +21,26 @@ struct AppInitialProperties {
     address treasury;
 }
 
-contract App is IApp, AccessControlled {
+contract App is IApp, BaseSource, AccessControlled {
     // Resource IDs involved in the contract
+
     uint256 constant SET_PRIMITIVES_PID = uint256(keccak256("SET_PRIMITIVES"));
     uint256 constant SET_SIGNERS_PID = uint256(keccak256("SET_SIGNERS"));
     uint256 constant SET_TREASURY_PID = uint256(keccak256("SET_TREASURY"));
     uint256 constant SET_PAYMASTER_PID = uint256(keccak256("SET_PAYMASTER"));
     uint256 constant SET_EXTRA_DATA_PID = uint256(keccak256("SET_EXTRA_DATA"));
     uint256 constant SET_METADATA_PID = uint256(keccak256("SET_METADATA"));
+    uint256 constant SET_SOURCE_STAMP_VERIFICATION_PID = uint256(keccak256("SET_SOURCE_STAMP_VERIFICATION"));
 
     constructor(
         string memory metadataURI,
+        bool isSourceStampVerificationEnabled,
         IAccessControl accessControl,
         AppInitialProperties memory initialProps,
         DataElement[] memory extraData
     ) AccessControlled(accessControl) {
         _setMetadataURI(metadataURI);
+        _setSourceStampVerification(isSourceStampVerificationEnabled);
         _setTreasury(initialProps.treasury);
         _setGraph(initialProps.graph);
         _addFeeds(initialProps.feeds);
@@ -58,6 +64,27 @@ contract App is IApp, AccessControlled {
         emit Lens_PermissionId_Available(SET_PAYMASTER_PID, "SET_PAYMASTER");
         emit Lens_PermissionId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
         emit Lens_PermissionId_Available(SET_METADATA_PID, "SET_METADATA");
+    }
+
+    function _validateSource(SourceStamp calldata sourceStamp) internal virtual override {
+        // If source stamp verification is disabled, we don't need to verify the source stamp
+        if (!Core.$storage().sourceStampVerificationEnabled) {
+            super._validateSource(sourceStamp);
+        }
+    }
+
+    function _isValidSourceStampSigner(address signer) internal virtual override returns (bool) {
+        return Core.$storage().signerStorageHelper[signer].isSet; // TODO: What about the app's owner?
+    }
+
+    function _setSourceStampVerification(bool isEnabled) internal virtual {
+        Core.$storage().sourceStampVerificationEnabled = isEnabled;
+        emit Lens_App_SourceStampVerificationSet(isEnabled);
+    }
+
+    function setSourceStampVerification(bool isEnabled) external virtual override {
+        _requireAccess(msg.sender, SET_SOURCE_STAMP_VERIFICATION_PID);
+        _setSourceStampVerification(isEnabled);
     }
 
     ///////////////// Graph
@@ -242,7 +269,7 @@ contract App is IApp, AccessControlled {
         emit Lens_App_TreasurySet(treasury);
     }
 
-    function getTreasury() external view override returns (address) {
+    function getTreasury() external view override(IApp, ISource) returns (address) {
         return Core.$storage().treasury;
     }
 

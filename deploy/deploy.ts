@@ -1,6 +1,17 @@
 import { deployContract, getWallet, verifyLensFactoryDeployedPrimitive } from './utils';
 
 export default async function () {
+  // accessControl factory
+  const accessControlFactory_artifactName = 'AccessControlFactory';
+  const accessControlFactory_args: any[] = [];
+
+  const accessControlFactory = await deployContract(
+    accessControlFactory_artifactName,
+    accessControlFactory_args
+  );
+
+  console.log(`\n✔ AccessControlFactory deployed at ${await accessControlFactory.getAddress()}`);
+
   // username factory
   const usernameFactory_artifactName = 'UsernameFactory';
   const usernameFactory_args: any[] = [];
@@ -104,6 +115,8 @@ export default async function () {
   console.log('# CONTRACTS');
   console.log(`GRAPH_FACTORY="${await graphFactory.getAddress()}"`);
   console.log(`GLOBAL_GRAPH="${globalGraphAddress}"`);
+  console.log('');
+  console.log(`ACCESS_CONTROL_FACTORY="${await accessControlFactory.getAddress()}"`);
   console.log('');
   console.log(`ACCOUNT_FACTORY="${await accountFactory.getAddress()}"`);
   console.log('');
