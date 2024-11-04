@@ -60,6 +60,10 @@ contract Account is IAccount, Ownable {
         emit Lens_Account_AccountManagerUpdated(accountManager, accountManagerPermissions);
     }
 
+    function canExecuteTransactions(address accountManager) external view returns (bool) {
+        return _accountManagerPermissions[accountManager].canExecuteTransactions;
+    }
+
     function setMetadataURI(string calldata metadataURI, SourceStamp calldata sourceStamp) external override {
         if (msg.sender != owner()) {
             require(_accountManagerPermissions[msg.sender].canSetMetadataURI, "No permissions to set metadata URI");
