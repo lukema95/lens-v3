@@ -5,7 +5,7 @@ import {IFollowRule} from "../IFollowRule.sol";
 import {TokenGatedRule} from "../../base/TokenGatedRule.sol";
 
 contract TokenGatedFollowRule is TokenGatedRule, IFollowRule {
-    mapping(address graph => mapping(address account => TokenGateConfiguration configuration)) internal _configuration;
+    mapping(address => mapping(address => TokenGateConfiguration)) internal _configuration;
 
     function configure(address account, bytes calldata data) external {
         TokenGateConfiguration memory configuration = abi.decode(data, (TokenGateConfiguration));

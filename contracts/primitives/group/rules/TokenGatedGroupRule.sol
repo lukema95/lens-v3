@@ -5,7 +5,7 @@ import {IGroupRule} from "../IGroupRule.sol";
 import {TokenGatedRule} from "../../base/TokenGatedRule.sol";
 
 contract TokenGatedGroupRule is TokenGatedRule, IGroupRule {
-    mapping(address group => TokenGateConfiguration configuration) internal _configuration;
+    mapping(address => TokenGateConfiguration) internal _configuration;
 
     function configure(bytes calldata data) external {
         TokenGateConfiguration memory configuration = abi.decode(data, (TokenGateConfiguration));

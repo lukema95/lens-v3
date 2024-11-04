@@ -6,7 +6,7 @@ import {RuleConfiguration} from "../../../types/Types.sol";
 import {TokenGatedRule} from "../../base/TokenGatedRule.sol";
 
 contract TokenGatedGraphRule is TokenGatedRule, IGraphRule {
-    mapping(address graph => TokenGateConfiguration configuration) internal _configuration;
+    mapping(address => TokenGateConfiguration) internal _configuration;
 
     function configure(bytes calldata data) external override {
         TokenGateConfiguration memory configuration = abi.decode(data, (TokenGateConfiguration));

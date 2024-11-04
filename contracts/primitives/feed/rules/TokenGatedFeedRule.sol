@@ -7,7 +7,7 @@ import {RuleConfiguration} from "../../../types/Types.sol";
 import {TokenGatedRule} from "../../base/TokenGatedRule.sol";
 
 contract TokenGatedFeedRule is TokenGatedRule, IFeedRule {
-    mapping(address feed => TokenGateConfiguration configuration) internal _configuration;
+    mapping(address => TokenGateConfiguration) internal _configuration;
 
     function configure(bytes calldata data) external override {
         TokenGateConfiguration memory configuration = abi.decode(data, (TokenGateConfiguration));

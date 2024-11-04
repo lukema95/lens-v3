@@ -23,7 +23,7 @@ contract LengthUsernameRule is IUsernameRule {
         LengthRestrictions lengthRestrictions;
     }
 
-    mapping(address usernamePrimitive => Configuration configuration) internal _configuration;
+    mapping(address => Configuration) internal _configuration;
 
     constructor() {
         emit Events.Lens_PermissionId_Available(SKIP_MIN_LENGTH_PID, "SKIP_MIN_LENGTH");

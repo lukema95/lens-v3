@@ -13,7 +13,7 @@ contract FollowersOnlyPostRule is IPostRule {
         bool quotesRestricted;
     }
 
-    mapping(address feed => mapping(uint256 postId => Configuration configuration)) internal _configuration;
+    mapping(address => mapping(uint256 => Configuration)) internal _configuration;
 
     function configure(uint256 postId, bytes calldata data) external override {
         Configuration memory configuration = abi.decode(data, (Configuration));
