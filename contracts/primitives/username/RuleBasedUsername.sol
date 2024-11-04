@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IUsernameRule, UsernameRule} from "./IUsernameRule.sol";
+import {IUsernameRule} from "./IUsernameRule.sol";
 import {RulesStorage, RulesLib} from "./../base/RulesLib.sol";
 import {RuleConfiguration, RuleExecutionData} from "./../../types/Types.sol";
 

@@ -27,10 +27,10 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
 
     function _emitPIDs() internal override {
         super._emitPIDs();
-        emit Lens_PermissonId_Available(SET_RULES_PID, "SET_RULES");
-        emit Lens_PermissonId_Available(SET_METADATA_PID, "SET_METADATA");
-        emit Lens_PermissonId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
-        emit Lens_PermissonId_Available(DELETE_POST_PID, "DELETE_POST");
+        emit Events.Lens_PermissionId_Available(SET_RULES_PID, "SET_RULES");
+        emit Events.Lens_PermissionId_Available(SET_METADATA_PID, "SET_METADATA");
+        emit Events.Lens_PermissionId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
+        emit Events.Lens_PermissionId_Available(DELETE_POST_PID, "DELETE_POST");
     }
 
     // Access Controlled functions

@@ -8,7 +8,6 @@ contract AccessControlled {
     using AccessControlLib for IAccessControl;
     using AccessControlLib for address;
 
-    event Lens_PermissonId_Available(uint256 indexed permissionId, string name);
     event Lens_AccessControlAdded(address indexed accessControl, bytes32 indexed accessControlType);
     event Lens_AccessControlUpdated(address indexed accessControl, bytes32 indexed accessControlType);
 
