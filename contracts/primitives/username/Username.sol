@@ -24,13 +24,6 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
     uint256 constant SET_EXTRA_DATA_PID = uint256(keccak256("SET_EXTRA_DATA"));
     uint256 constant SET_TOKEN_URI_PROVIDER_PID = uint256(keccak256("SET_TOKEN_URI_PROVIDER"));
 
-    // TODO: This will be a mandatory rule now
-    // // Storage fields and structs
-    // struct LengthRestriction {
-    //     uint8 min;
-    //     uint8 max;
-    // }
-
     // TODO: We need initializer for all primitives to make them upgradeable
     constructor(
         string memory namespace,
@@ -111,7 +104,6 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
             ISource(sourceStamp.source).validateSource(sourceStamp);
         }
         _processCreation(account, username, data);
-        // _validateUsernameLength(username);
         emit Lens_Username_Created(username, account, data, sourceStamp.source);
     }
 
@@ -200,31 +192,6 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
     function _computeId(string memory username) internal pure returns (uint256) {
         return uint256(keccak256(bytes(username)));
     }
-
-    // function _validateUsernameLength(string memory username) internal pure {
-    //     // TODO: Add the PIDs for skipping length restrictions.
-    //     LengthRestriction memory lengthRestriction = $lengthRestriction();
-    //     uint256 usernameLength = bytes(username).length;
-    //     if (lengthRestriction.min != 0) {
-    //         require(usernameLength >= lengthRestriction.min, "Username: too short");
-    //     }
-    //     if (lengthRestriction.max != 0) {
-    //         // TODO: If no restriction, should be max(uint8), not unlimited! - API will be like that
-    //         require(usernameLength <= lengthRestriction.max, "Username: too long");
-    //     }
-    // }
-
-    // Storage utility & helper functions
-
-    // // keccak256('lens.username.storage.length.restriction')
-    // bytes32 constant LENGTH_RESTRICTION_STORAGE_SLOT =
-    //     0x2d828a00137871809f1a4bee7ddd78f42d45a25fe20299ceaf25638343e83134;
-
-    // function $lengthRestriction() internal pure returns (LengthRestriction storage _lengthRestriction) {
-    //     assembly {
-    //         _lengthRestriction.slot := LENGTH_RESTRICTION_STORAGE_SLOT
-    //     }
-    // }
 
     // Getters
 
