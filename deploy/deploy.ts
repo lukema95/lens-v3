@@ -110,6 +110,24 @@ export default async function () {
     metadataURIConstructorParam: metadataURI,
   });
 
+  // deploy lens username
+  console.log('Deploying Lens Username...');
+  const usernameDeploymentTx = await lensFactory.deployUsername(
+    'lens',
+    metadataURI,
+    ownerAddress,
+    admins,
+    rules,
+    extraData,
+    'lens',
+    'lens'
+  );
+  const lensUsernameAddress = await verifyLensFactoryDeployedPrimitive({
+    tx: usernameDeploymentTx,
+    lensContractArtifactName: 'App',
+    metadataURIConstructorParam: metadataURI,
+  });
+
   // TODO: Make this to be written into a file
   console.log('\n\n--- Indexer file ---\n\n');
   console.log('# CONTRACTS');
@@ -124,7 +142,9 @@ export default async function () {
   console.log('');
   console.log(`USERNAME_FACTORY="${await usernameFactory.getAddress()}"`);
   console.log('');
-  console.log(`FEED_FACTORY="${await feedFactory.getAddress()}"`);
+  console.log(`USERNAME_FACTORY="${await usernameFactory.getAddress()}"`);
+  console.log('');
+  console.log(`LENS_USERNAME="${lensUsernameAddress}"`);
   console.log(`GLOBAL_FEED="${globalFeedAddress}"`);
   console.log('');
   console.log(`LENS_FACTORY="${await lensFactory.getAddress()}"`);
