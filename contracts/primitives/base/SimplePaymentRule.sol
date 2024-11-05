@@ -16,7 +16,7 @@ abstract contract SimplePaymentRule {
         address recipient;
     }
 
-    mapping(address payer => mapping(address primitive => bool isTrusted)) internal _isTrusted;
+    mapping(address => mapping(address => bool)) internal _isTrusted;
 
     function setTrust(address primitive, bool isTrusted) external virtual {
         _isTrusted[msg.sender][primitive] = isTrusted;

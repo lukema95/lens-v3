@@ -5,7 +5,7 @@ import {IGroupRule} from "../IGroupRule.sol";
 import {SimplePaymentRule} from "../../base/SimplePaymentRule.sol";
 
 contract SimplePaymentGroupRule is SimplePaymentRule, IGroupRule {
-    mapping(address group => PaymentConfiguration configuration) internal _configuration;
+    mapping(address => PaymentConfiguration) internal _configuration;
 
     function configure(bytes calldata data) external {
         PaymentConfiguration memory configuration = abi.decode(data, (PaymentConfiguration));

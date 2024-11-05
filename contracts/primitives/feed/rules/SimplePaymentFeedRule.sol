@@ -7,7 +7,7 @@ import {RuleConfiguration} from "../../../types/Types.sol";
 import {SimplePaymentRule} from "../../base/SimplePaymentRule.sol";
 
 contract SimplePaymentFeedRule is SimplePaymentRule, IFeedRule {
-    mapping(address feed => PaymentConfiguration configuration) internal _configuration;
+    mapping(address => PaymentConfiguration) internal _configuration;
 
     function configure(bytes calldata data) external override {
         PaymentConfiguration memory configuration = abi.decode(data, (PaymentConfiguration));

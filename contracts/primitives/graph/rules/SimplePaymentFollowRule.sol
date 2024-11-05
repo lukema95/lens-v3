@@ -5,7 +5,7 @@ import {IFollowRule} from "../IFollowRule.sol";
 import {SimplePaymentRule} from "../../base/SimplePaymentRule.sol";
 
 contract SimplePaymentFollowRule is SimplePaymentRule, IFollowRule {
-    mapping(address graph => mapping(address account => PaymentConfiguration configuration)) internal _configuration;
+    mapping(address => mapping(address => PaymentConfiguration)) internal _configuration;
 
     function configure(address account, bytes calldata data) external {
         PaymentConfiguration memory configuration = abi.decode(data, (PaymentConfiguration));
