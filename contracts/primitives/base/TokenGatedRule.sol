@@ -23,9 +23,7 @@ abstract contract TokenGatedRule {
     }
 
     function _validateTokenGateConfiguration(TokenGateConfiguration memory configuration) internal view {
-        if (configuration.amount == 0) {
-            revert("Errors.CannotSetZeroAmount()");
-        }
+        require(configuration.amount > 0, "Errors.CannotSetZeroAmount()");
         if (configuration.tokenStandard == ERC20 || configuration.tokenStandard == ERC721) {
             // Expects token to support ERC-20/ERC-721 balanceOf by not reverting
             IToken(configuration.token).balanceOf(address(this));

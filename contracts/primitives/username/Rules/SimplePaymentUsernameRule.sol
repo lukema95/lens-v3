@@ -5,13 +5,13 @@ import {IAccessControl} from "./../../access-control/IAccessControl.sol";
 import {IUsernameRule} from "./../IUsernameRule.sol";
 import {AccessControlLib} from "./../../libraries/AccessControlLib.sol";
 import {Events} from "./../../../types/Events.sol";
-import {TokenGatedRule} from "../../base/TokenGatedRule.sol";
+import {SimplePaymentRule} from "../../base/SimplePaymentRule.sol";
 
-contract TokenGatedUsernameRule is TokenGatedRule, IUsernameRule {
+contract SimplePaymentUsernameRule is SimplePaymentRule, IUsernameRule {
     using AccessControlLib for IAccessControl;
     using AccessControlLib for address;
 
-    uint256 constant SKIP_TOKEN_GATE_PID = uint256(keccak256("SKIP_TOKEN_GATE"));
+    uint256 constant SKIP_PAYMENT_PID = uint256(keccak256("SKIP_PAYMENT"));
 
     struct RestrictionConfiguration {
         bool restrictCreation;
@@ -21,19 +21,19 @@ contract TokenGatedUsernameRule is TokenGatedRule, IUsernameRule {
     struct Configuration {
         address accessControl;
         RestrictionConfiguration restrictions;
-        TokenGateConfiguration tokenGate;
+        PaymentConfiguration paymentConfiguration;
     }
 
-    mapping(address => Configuration) internal _configuration;
+    mapping(address usernamePrimitive => Configuration configuration) internal _configuration;
 
     constructor() {
-        emit Events.Lens_PermissionId_Available(SKIP_TOKEN_GATE_PID, "SKIP_TOKEN_GATE");
+        emit Events.Lens_PermissionId_Available(SKIP_PAYMENT_PID, "SKIP_PAYMENT");
     }
 
     function configure(bytes calldata data) external {
         Configuration memory configuration = abi.decode(data, (Configuration));
         configuration.accessControl.verifyHasAccessFunction();
-        _validateTokenGateConfiguration(configuration.tokenGate);
+        _validatePaymentConfiguration(configuration.paymentConfiguration);
         require(
             configuration.restrictions.restrictCreation || configuration.restrictions.restrictAssigning,
             "Username: no restrictions"
@@ -41,40 +41,41 @@ contract TokenGatedUsernameRule is TokenGatedRule, IUsernameRule {
         _configuration[msg.sender] = configuration;
     }
 
-    function processCreation(address account, string calldata, /* username */ bytes calldata /* data */ )
+    function processCreation(address account, string calldata, /* username */ bytes calldata data)
         external
-        view
         returns (bool)
     {
-        return _validateTokenBalance(
+        return _processPayment(
             _configuration[msg.sender].restrictions.restrictCreation,
             _configuration[msg.sender].accessControl,
-            _configuration[msg.sender].tokenGate,
+            _configuration[msg.sender].paymentConfiguration,
+            abi.decode(data, (PaymentConfiguration)),
             account
         );
     }
 
-    function processAssigning(address account, string calldata, /* username */ bytes calldata /* data */ )
+    function processAssigning(address account, string calldata, /* username */ bytes calldata data)
         external
-        view
         returns (bool)
     {
-        return _validateTokenBalance(
+        return _processPayment(
             _configuration[msg.sender].restrictions.restrictAssigning,
             _configuration[msg.sender].accessControl,
-            _configuration[msg.sender].tokenGate,
+            _configuration[msg.sender].paymentConfiguration,
+            abi.decode(data, (PaymentConfiguration)),
             account
         );
     }
 
-    function _validateTokenBalance(
+    function _processPayment(
         bool isRestricted,
         address accessControl,
-        TokenGateConfiguration memory tokenGateConfiguration,
-        address account
-    ) internal view returns (bool) {
-        if (isRestricted && !accessControl.hasAccess(account, SKIP_TOKEN_GATE_PID)) {
-            _validateTokenBalance(tokenGateConfiguration, account);
+        PaymentConfiguration memory paymentConfiguration,
+        PaymentConfiguration memory expectedPaymentConfiguration,
+        address payer
+    ) internal returns (bool) {
+        if (isRestricted && !accessControl.hasAccess(payer, SKIP_PAYMENT_PID)) {
+            _processPayment(paymentConfiguration, expectedPaymentConfiguration, payer);
         }
         return true;
     }
