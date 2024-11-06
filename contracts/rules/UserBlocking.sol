@@ -11,7 +11,7 @@ contract UserBlocking is IFeedRule, IGraphRule {
     event Lens_UserBlocking_UserBlocked(address indexed source, address indexed target, uint256 timestamp);
     event Lens_UserBlocking_UserUnblocked(address indexed source, address indexed target);
 
-    mapping(address blockSource => mapping(address blockTarget => uint256 blockedTimestamp)) public userBlocks;
+    mapping(address => mapping(address => uint256)) public userBlocks;
 
     function configure(bytes calldata /*data*/ ) external pure override(IFeedRule, IGraphRule) {
         revert();
