@@ -190,6 +190,16 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
 
     // Internal
 
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal virtual override {
+        if (from != address(0) && to != address(0)) {
+            // TODO: What do we do, we cannot call rules here, we don't have the execution data...
+            // maybe we do not need IUsernameRule's porcess functions for unassign and remove, like the unfollow...
+            // either that, or we need to have a custom transfer function that call rules and have a source
+            Core._unassignUsername(username);
+            emit Lens_Username_Unassigned(username, account, data, address(0));
+        }
+    }
+
     function _computeId(string memory username) internal pure returns (uint256) {
         return uint256(keccak256(bytes(username)));
     }
