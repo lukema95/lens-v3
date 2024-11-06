@@ -18,11 +18,15 @@ import {ITokenURIProvider} from "../base/ITokenURIProvider.sol";
 import {ISource} from "../base/ISource.sol";
 
 contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled {
+    event Lens_Username_Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
+
     // TODO: Do we want more granular resources here? Like add/update/remove PIDs? Or are we OK with the multi-purpose?
     uint256 constant SET_RULES_PID = uint256(keccak256("SET_RULES"));
     uint256 constant SET_METADATA_PID = uint256(keccak256("SET_METADATA"));
     uint256 constant SET_EXTRA_DATA_PID = uint256(keccak256("SET_EXTRA_DATA"));
     uint256 constant SET_TOKEN_URI_PROVIDER_PID = uint256(keccak256("SET_TOKEN_URI_PROVIDER"));
+
+    mapping(uint256 => string) private _idToUsername; // TODO: Move to computed storage
 
     // TODO: We need initializer for all primitives to make them upgradeable
     constructor(
@@ -99,6 +103,7 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
         require(msg.sender == account); // msg.sender must be the account
         uint256 id = _computeId(username);
         _safeMint(account, id);
+        _idToUsername[id] = username;
         Core._createUsername(username);
         if (sourceStamp.source != address(0)) {
             ISource(sourceStamp.source).validateSource(sourceStamp);
@@ -195,9 +200,18 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
             // TODO: What do we do, we cannot call rules here, we don't have the execution data...
             // maybe we do not need IUsernameRule's porcess functions for unassign and remove, like the unfollow...
             // either that, or we need to have a custom transfer function that call rules and have a source
-            Core._unassignUsername(username);
-            emit Lens_Username_Unassigned(username, account, data, address(0));
+            string memory username = _idToUsername[tokenId];
+            if (Core.$storage().usernameToAccount[username] != address(0)) {
+                Core._unassignUsername(Core.$storage().accountToUsername[to]);
+                emit Lens_Username_Unassigned(
+                    username, from, RuleExecutionData(new bytes[](0), new bytes[](0)), address(0)
+                );
+            }
         }
+    }
+
+    function _afterTokenTransfer(address from, address to, uint256 tokenId) internal virtual override {
+        emit Lens_Username_Transfer(from, to, tokenId);
     }
 
     function _computeId(string memory username) internal pure returns (uint256) {
