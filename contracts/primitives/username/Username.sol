@@ -112,15 +112,15 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
         override
     {
         uint256 id = _computeId(username);
-        address account = _ownerOf(id);
-        require(msg.sender == account); // msg.sender must be the owner of the username
+        address owner = _ownerOf(id);
+        require(msg.sender == owner); // msg.sender must be the owner of the username
         _burn(id);
         Core._removeUsername(username);
         if (sourceStamp.source != address(0)) {
             ISource(sourceStamp.source).validateSource(sourceStamp);
         }
-        _processRemoval(account, username, data);
-        emit Lens_Username_Removed(username, account, data, sourceStamp.source);
+        _processRemoval(owner, username, data);
+        emit Lens_Username_Removed(username, owner, data, sourceStamp.source);
     }
 
     function assignUsername(
@@ -130,6 +130,7 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
         SourceStamp calldata sourceStamp
     ) external override {
         require(msg.sender == account); // msg.sender must be the account
+        require(account == _ownerOf(_computeId(username))); // account should own the tokenized username
         Core._assignUsername(account, username);
         if (sourceStamp.source != address(0)) {
             ISource(sourceStamp.source).validateSource(sourceStamp);
@@ -144,7 +145,7 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
         SourceStamp calldata sourceStamp
     ) external override {
         address account = Core.$storage().usernameToAccount[username];
-        require(msg.sender == account); // msg.sender must be the account
+        require(msg.sender == account || msg.sender == _ownerOf(_computeId(username)));
         Core._unassignUsername(username);
         if (sourceStamp.source != address(0)) {
             ISource(sourceStamp.source).validateSource(sourceStamp);
