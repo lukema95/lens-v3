@@ -64,6 +64,7 @@ contract App is IApp, BaseSource, AccessControlled {
         emit Lens_PermissionId_Available(SET_PAYMASTER_PID, "SET_PAYMASTER");
         emit Lens_PermissionId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
         emit Lens_PermissionId_Available(SET_METADATA_PID, "SET_METADATA");
+        emit Lens_PermissionId_Available(SET_SOURCE_STAMP_VERIFICATION_PID, "SET_SOURCE_STAMP_VERIFICATION");
     }
 
     function _validateSource(SourceStamp calldata sourceStamp) internal virtual override {
