@@ -1,64 +1,88 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./LensCollectedPost.sol";
-import "./LensCollectedPostTokenURIProvider.sol";
 import {
-    IBaseCollectAction,
-    BaseCollectActionConfigureParams,
-    BaseCollectActionData,
-    CollectFee
-} from "./IBaseCollectAction.sol";
+    ISimpleCollectAction,
+    CollectActionConfigureParams,
+    CollectActionExecutionParams,
+    CollectActionData,
+    CollectActionData
+} from "./ISimpleCollectAction.sol";
+import {IFeed} from "./../../../feed/IFeed.sol";
+
+import {LensCollectedPost} from "./LensCollectedPost.sol";
+
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {IFeed} from "../feed/IFeed.sol";
-import {IGraph} from "../graph/IGraph.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract SimpleCollectAction is IBaseCollectAction {
+contract SimpleCollectAction is ISimpleCollectAction {
     using SafeERC20 for IERC20;
 
-    uint16 internal constant BPS_MAX = 10000;
-
-    struct BaseCollectActionStorage {
-        mapping(address => mapping(uint256 => BaseCollectActionData)) collectData;
+    struct CollectActionStorage {
+        mapping(address => mapping(uint256 => CollectActionData)) collectData;
     }
 
-    // keccak256('lens.collect.action.storage')
-    bytes32 constant COLLECT_ACTION_STORAGE_SLOT = 0xe1f8cf4605de41364c4d03a174be3c746589cc2d9f5771f05a87d2038718aa33;
+    // keccak256('lens.simple.collect.action.storage')
+    bytes32 constant SIMPLE_COLLECT_ACTION_STORAGE_SLOT =
+        0xec3c61dac83a5e1c58a4edc68a1b1d187690a6379142dd5c3c7be1006dbe60f7;
 
-    function $collectDataStorage() private pure returns (BaseCollectActionStorage storage _storage) {
+    function $collectDataStorage() private pure returns (CollectActionStorage storage _storage) {
         assembly {
-            _storage.slot := COLLECT_ACTION_STORAGE_SLOT
+            _storage.slot := SIMPLE_COLLECT_ACTION_STORAGE_SLOT
         }
     }
 
     function configure(address feed, uint256 postId, bytes calldata data) external override returns (bytes memory) {
         _validateSenderIsAuthor(msg.sender, feed, postId);
 
-        BaseCollectActionConfigureParams memory baseConfigData = abi.decode(data, (BaseCollectActionConfigureParams));
-        _validateBaseConfigureParams(baseConfigData);
+        CollectActionConfigureParams memory configData = abi.decode(data, (CollectActionConfigureParams));
+        _validateConfigureParams(configData);
 
-        // create and deploy the Lens Collected Post contract
-        address collectionAddress = _deployLensCollectedPostContract(feed, postId, baseConfigData);
+        CollectActionData storage storedData = $collectDataStorage().collectData[feed][postId];
 
-        _storeBaseCollectParams(feed, postId, baseConfigData, collectionAddress);
-
-        emit Lens_PostAction_Configured(feed, postId, data, collectionAddress);
+        if (storedData.collectionAddress == address(0)) {
+            // First time?
+            // create and deploy the Lens Collected Post contract
+            address collectionAddress = address(new LensCollectedPost(feed, postId, configData.isImmutable));
+            _storeCollectParams(feed, postId, configData, collectionAddress);
+        } else {
+            // Editing existing collect action config
+            if (storedData.isImmutable) {
+                // TODO: Should we have two different bools? isImmutableConfig & isImmutableContentURI?
+                revert("Cannot edit immutable collect");
+            } else {
+                storedData.amount = configData.amount;
+                storedData.collectLimit = configData.collectLimit;
+                storedData.currency = configData.currency;
+                storedData.recipient = configData.recipient;
+                storedData.endTimestamp = configData.endTimestamp;
+                // storedData.isImmutable = configData.isImmutable;
+                // TODO: Cannot make it immutable if it wasn't before, because ContentURI is not immutable, unless we
+                // would figure out a way to trigger a switch in LensCollectedPost contract.
+            }
+        }
+        emit Lens_PostAction_Configured(feed, postId, abi.encode(data, storedData)); // TODO: Should we emit just one?
         return data;
     }
 
     function execute(address feed, uint256 postId, bytes calldata data) external override returns (bytes memory) {
-        (address graph, address referrer, address collector) = abi.decode(data, (address, address, address));
+        CollectActionExecutionParams memory expectedParams = abi.decode(data, (CollectActionExecutionParams));
 
-        _validateAndStoreCollect(collector, graph, feed, postId);
+        CollectActionData storage storedData = $collectDataStorage().collectData[feed][postId];
+        storedData.currentCollects++;
 
-        _processCollect(referrer, collector, feed, postId);
+        _validateCollect(feed, postId, expectedParams);
+
+        _processCollect(feed, postId);
+
+        // TODO: Might want to move inside _processCollect?
+        LensCollectedPost(storedData.collectionAddress).mint(msg.sender, storedData.currentCollects);
 
         emit Lens_PostAction_Executed(feed, postId, data);
         return data;
     }
 
-    function getCollectActionData(address feed, uint256 postId) external view returns (BaseCollectActionData memory) {
+    function getCollectActionData(address feed, uint256 postId) external view returns (CollectActionData memory) {
         return $collectDataStorage().collectData[feed][postId];
     }
 
@@ -68,116 +92,75 @@ contract SimpleCollectAction is IBaseCollectAction {
         }
     }
 
-    function _validateBaseConfigureParams(BaseCollectActionConfigureParams memory baseConfigData) internal virtual {
-        // validate fees are less than 10000
-        uint256 totalFees = 0;
-        for (uint256 i = 0; i < baseConfigData.fees.length; i++) {
-            totalFees += baseConfigData.fees[i].fee;
+    function _validateConfigureParams(CollectActionConfigureParams memory configData) internal virtual {
+        if (configData.amount == 0) {
+            require(configData.currency == address(0), "Invalid currency");
+        } else {
+            require(configData.currency != address(0), "Invalid currency");
         }
-        totalFees += baseConfigData.referralFee;
-        if (totalFees > BPS_MAX || baseConfigData.endTimestamp != 0 && baseConfigData.endTimestamp < block.timestamp) {
+        if (configData.endTimestamp != 0 && configData.endTimestamp < block.timestamp) {
             revert("Invalid params");
         }
     }
 
-    function _storeBaseCollectParams(
+    function _storeCollectParams(
         address feed,
         uint256 postId,
-        BaseCollectActionConfigureParams memory baseConfigData,
+        CollectActionConfigureParams memory configData,
         address collectionAddress
     ) internal virtual {
-        $collectDataStorage().collectData[feed][postId] = BaseCollectActionData({
-            amount: baseConfigData.amount,
-            collectLimit: baseConfigData.collectLimit,
-            currency: baseConfigData.currency,
-            recipient: baseConfigData.recipient,
-            referralFee: baseConfigData.referralFee,
-            followerOnly: baseConfigData.followerOnly,
-            endTimestamp: baseConfigData.endTimestamp,
-            fees: baseConfigData.fees,
+        $collectDataStorage().collectData[feed][postId] = CollectActionData({
+            amount: configData.amount,
+            collectLimit: configData.collectLimit,
+            currency: configData.currency,
+            currentCollects: 0,
+            recipient: configData.recipient,
+            endTimestamp: configData.endTimestamp,
             collectionAddress: collectionAddress,
-            currentCollects: 0
+            isImmutable: configData.isImmutable
         });
     }
 
-    function _validateAndStoreCollect(address collector, address graph, address feed, uint256 postId)
+    function _validateCollect(address feed, uint256 postId, CollectActionExecutionParams memory expectedParams)
         internal
         virtual
     {
-        BaseCollectActionData storage data = $collectDataStorage().collectData[feed][postId];
-        data.currentCollects++;
+        CollectActionData storage data = $collectDataStorage().collectData[feed][postId];
 
-        if (data.followerOnly && !IGraph(graph).isFollowing(collector, IFeed(feed).getPostAuthor(postId))) {
-            revert("Collector is not following the author");
-        }
-
-        if (data.collectLimit != 0 && data.currentCollects > data.collectLimit) {
-            revert("Collect limit exceeded");
-        }
+        require(data.collectionAddress != address(0), "Collect not configured for this post");
 
         if (data.endTimestamp != 0 && block.timestamp > data.endTimestamp) {
             revert("Collect expired");
         }
+
+        if (data.collectLimit != 0 && data.currentCollects + 1 > data.collectLimit) {
+            revert("Collect limit exceeded");
+        }
+
+        if (expectedParams.amount != data.amount || expectedParams.currency != data.currency) {
+            revert("Invalid expected amount and/or currency");
+        }
+
+        if (data.isImmutable) {
+            // TODO: There might be some edge-cases here (e.g. maybe also worth checking LensCollectedPost.isImmutable)
+            string memory contentURI = IFeed(feed).getPost(postId).contentURI;
+            require(
+                keccak256(bytes(contentURI))
+                    == keccak256(bytes(LensCollectedPost(data.collectionAddress).tokenURI(data.currentCollects))),
+                "Invalid content URI"
+            );
+        }
     }
 
-    function _processCollect(address referrer, address collector, address feed, uint256 postId) internal virtual {
-        BaseCollectActionData storage data = $collectDataStorage().collectData[feed][postId];
+    function _processCollect(address feed, uint256 postId) internal virtual {
+        CollectActionData storage data = $collectDataStorage().collectData[feed][postId];
+
         uint256 amount = data.amount;
         address currency = data.currency;
         address recipient = data.recipient;
-        CollectFee[] memory fees = data.fees;
 
-        uint256 adjustedAmountAfterFees = _transferToFeeCollectors(currency, collector, amount, fees);
-
-        if (referrer != collector) {
-            uint256 referralAmount = (adjustedAmountAfterFees * data.referralFee) / BPS_MAX;
-            adjustedAmountAfterFees -= _transferToRecipient(currency, collector, referrer, referralAmount);
-        }
-
-        _transferToRecipient(currency, collector, recipient, adjustedAmountAfterFees);
-    }
-
-    function _transferToRecipient(address currency, address collector, address recipient, uint256 amount)
-        internal
-        virtual
-        returns (uint256)
-    {
         if (amount > 0) {
-            IERC20(currency).safeTransferFrom(collector, recipient, amount);
+            IERC20(currency).safeTransferFrom(msg.sender, recipient, amount);
         }
-
-        return amount;
-    }
-
-    function _transferToFeeCollectors(address currency, address collector, uint256 amount, CollectFee[] memory fees)
-        internal
-        virtual
-        returns (uint256)
-    {
-        uint256 adjustedAmount = amount;
-
-        for (uint256 i = 0; i < fees.length; i++) {
-            uint256 feeAmount = (amount * fees[i].fee) / BPS_MAX;
-            if (feeAmount > 0) {
-                _transferToRecipient(currency, collector, fees[i].collector, feeAmount);
-            }
-            adjustedAmount -= feeAmount;
-        }
-
-        return adjustedAmount;
-    }
-
-    function _deployLensCollectedPostContract(
-        address feed,
-        uint256 postId,
-        BaseCollectActionConfigureParams memory baseConfigData
-    ) internal virtual returns (address) {
-        LensCollectedPost lensCollectedPost = new LensCollectedPost(
-            "Collected Post", // TODO: Something more specific here?
-            "LCP",
-            new LensCollectedPostTokenURIProvider(feed, postId)
-        );
-
-        return address(lensCollectedPost);
     }
 }
