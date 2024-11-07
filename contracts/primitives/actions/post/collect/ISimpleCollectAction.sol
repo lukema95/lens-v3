@@ -17,6 +17,7 @@ struct CollectActionConfigureParams {
     uint96 collectLimit;
     address currency;
     uint72 endTimestamp;
+    address followerOnlyGraph;
     address recipient;
     bool isImmutable;
 }
@@ -44,6 +45,7 @@ struct CollectActionData {
     uint96 currentCollects;
     address recipient;
     uint72 endTimestamp;
+    address followerOnlyGraph;
     address collectionAddress;
     bool isImmutable;
 }

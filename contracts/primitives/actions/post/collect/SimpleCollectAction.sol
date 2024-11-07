@@ -9,6 +9,7 @@ import {
     CollectActionData
 } from "./ISimpleCollectAction.sol";
 import {IFeed} from "./../../../feed/IFeed.sol";
+import {IGraph} from "./../../../graph/IGraph.sol";
 
 import {LensCollectedPost} from "./LensCollectedPost.sol";
 
@@ -55,6 +56,7 @@ contract SimpleCollectAction is ISimpleCollectAction {
                 storedData.collectLimit = configData.collectLimit;
                 storedData.currency = configData.currency;
                 storedData.recipient = configData.recipient;
+                storedData.followerOnlyGraph = configData.followerOnlyGraph;
                 storedData.endTimestamp = configData.endTimestamp;
                 // storedData.isImmutable = configData.isImmutable;
                 // TODO: Cannot make it immutable if it wasn't before, because ContentURI is not immutable, unless we
@@ -101,6 +103,10 @@ contract SimpleCollectAction is ISimpleCollectAction {
         if (configData.endTimestamp != 0 && configData.endTimestamp < block.timestamp) {
             revert("Invalid params");
         }
+        if (configData.followerOnlyGraph != address(0)) {
+            // Check if the Graph supports isFollowing() interface
+            IGraph(configData.followerOnlyGraph).isFollowing(address(this), msg.sender);
+        }
     }
 
     function _storeCollectParams(
@@ -116,6 +122,7 @@ contract SimpleCollectAction is ISimpleCollectAction {
             currentCollects: 0,
             recipient: configData.recipient,
             endTimestamp: configData.endTimestamp,
+            followerOnlyGraph: configData.followerOnlyGraph,
             collectionAddress: collectionAddress,
             isImmutable: configData.isImmutable
         });
@@ -139,6 +146,13 @@ contract SimpleCollectAction is ISimpleCollectAction {
 
         if (expectedParams.amount != data.amount || expectedParams.currency != data.currency) {
             revert("Invalid expected amount and/or currency");
+        }
+
+        if (data.followerOnlyGraph != address(0)) {
+            require(
+                IGraph(data.followerOnlyGraph).isFollowing(msg.sender, IFeed(feed).getPostAuthor(postId)),
+                "Not following"
+            );
         }
 
         if (data.isImmutable) {
