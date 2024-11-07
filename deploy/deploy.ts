@@ -1,4 +1,9 @@
-import { deployContract, getWallet, verifyLensFactoryDeployedPrimitive } from './utils';
+import {
+  deployContract,
+  getWallet,
+  verifyLensFactoryDeployedPrimitive,
+  verifyLensFactoryDeployedUsername,
+} from './utils';
 
 export default async function () {
   // accessControl factory
@@ -110,6 +115,23 @@ export default async function () {
     metadataURIConstructorParam: metadataURI,
   });
 
+  // deploy lens username
+  console.log('Deploying Lens Username...');
+  const usernameDeploymentTx = await lensFactory.deployUsername(
+    'lens',
+    metadataURI,
+    ownerAddress,
+    admins,
+    rules,
+    extraData,
+    'Lens Usernames',
+    'LENS'
+  );
+  const lensUsernameAddress = await verifyLensFactoryDeployedUsername({
+    tx: usernameDeploymentTx,
+    constructorParams: ['lens', metadataURI, ownerAddress, 'Lens Usernames', 'LENS'],
+  });
+
   // TODO: Make this to be written into a file
   console.log('\n\n--- Indexer file ---\n\n');
   console.log('# CONTRACTS');
@@ -122,6 +144,7 @@ export default async function () {
   console.log('');
   console.log(`APP_FACTORY="${await appFactory.getAddress()}"`);
   console.log('');
+  console.log(`LENS_USERNAME="${lensUsernameAddress}"`);
   console.log(`USERNAME_FACTORY="${await usernameFactory.getAddress()}"`);
   console.log('');
   console.log(`FEED_FACTORY="${await feedFactory.getAddress()}"`);

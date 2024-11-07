@@ -62,13 +62,13 @@ library UsernameCore {
 
     function _removeUsername(string memory username) internal {
         require($storage().usernameExists[username]); // Username must exist
-        require($storage().usernameToAccount[username] == address(0)); // Username must not be linked
+        require($storage().usernameToAccount[username] == address(0)); // Username must not be assigned
         $storage().usernameExists[username] = false;
     }
 
     function _assignUsername(address account, string memory username) internal {
         require($storage().usernameExists[username]); // Username must exist
-        require($storage().usernameToAccount[username] == address(0)); // Username must not be linked yet
+        require($storage().usernameToAccount[username] == address(0)); // Username must not be assigned yet
         require(bytes($storage().accountToUsername[account]).length == 0); // Account must not have a username yet
         $storage().usernameToAccount[username] = account;
         $storage().accountToUsername[account] = username;
@@ -76,7 +76,7 @@ library UsernameCore {
 
     function _unassignUsername(string memory username) internal {
         address account = $storage().usernameToAccount[username];
-        require(account != address(0)); // Username must be linked
+        require(account != address(0)); // Username must be assigned
         delete $storage().accountToUsername[account];
         delete $storage().usernameToAccount[username];
     }

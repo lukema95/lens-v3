@@ -82,7 +82,7 @@ abstract contract RestrictedSignersRule {
         }
     }
 
-    function _validateRestricteSignerMessage(
+    function _validateRestrictedSignerMessage(
         bytes4 functionSelector,
         bytes memory abiEncodedFunctionParams,
         EIP712Signature memory signature

@@ -14,7 +14,3 @@ interface IUsernameRule {
         external
         returns (bool);
 }
-
-contract UsernameRule {
-    function processUnassigning(address account, string calldata username, bytes calldata data) internal {}
-}

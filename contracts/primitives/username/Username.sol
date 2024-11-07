@@ -18,18 +18,15 @@ import {ITokenURIProvider} from "../base/ITokenURIProvider.sol";
 import {ISource} from "../base/ISource.sol";
 
 contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled {
+    event Lens_Username_Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
+
     // TODO: Do we want more granular resources here? Like add/update/remove PIDs? Or are we OK with the multi-purpose?
     uint256 constant SET_RULES_PID = uint256(keccak256("SET_RULES"));
     uint256 constant SET_METADATA_PID = uint256(keccak256("SET_METADATA"));
     uint256 constant SET_EXTRA_DATA_PID = uint256(keccak256("SET_EXTRA_DATA"));
     uint256 constant SET_TOKEN_URI_PROVIDER_PID = uint256(keccak256("SET_TOKEN_URI_PROVIDER"));
 
-    // TODO: This will be a mandatory rule now
-    // // Storage fields and structs
-    // struct LengthRestriction {
-    //     uint8 min;
-    //     uint8 max;
-    // }
+    mapping(uint256 => string) private _idToUsername; // TODO: Move to computed storage
 
     // TODO: We need initializer for all primitives to make them upgradeable
     constructor(
@@ -49,10 +46,10 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
 
     function _emitPIDs() internal override {
         super._emitPIDs();
-        emit Lens_PermissionId_Available(SET_RULES_PID, "SET_RULES");
-        emit Lens_PermissionId_Available(SET_METADATA_PID, "SET_METADATA");
-        emit Lens_PermissionId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
-        emit Lens_PermissionId_Available(SET_TOKEN_URI_PROVIDER_PID, "SET_TOKEN_URI_PROVIDER");
+        emit Events.Lens_PermissionId_Available(SET_RULES_PID, "SET_RULES");
+        emit Events.Lens_PermissionId_Available(SET_METADATA_PID, "SET_METADATA");
+        emit Events.Lens_PermissionId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
+        emit Events.Lens_PermissionId_Available(SET_TOKEN_URI_PROVIDER_PID, "SET_TOKEN_URI_PROVIDER");
     }
 
     function _beforeTokenURIProviderSet(ITokenURIProvider /* tokenURIProvider */ ) internal view override {
@@ -106,12 +103,12 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
         require(msg.sender == account); // msg.sender must be the account
         uint256 id = _computeId(username);
         _safeMint(account, id);
+        _idToUsername[id] = username;
         Core._createUsername(username);
         if (sourceStamp.source != address(0)) {
             ISource(sourceStamp.source).validateSource(sourceStamp);
         }
         _processCreation(account, username, data);
-        // _validateUsernameLength(username);
         emit Lens_Username_Created(username, account, data, sourceStamp.source);
     }
 
@@ -120,15 +117,15 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
         override
     {
         uint256 id = _computeId(username);
-        address account = _ownerOf(id);
-        require(msg.sender == account); // msg.sender must be the owner of the username
+        address owner = _ownerOf(id);
+        require(msg.sender == owner); // msg.sender must be the owner of the username
         _burn(id);
         Core._removeUsername(username);
         if (sourceStamp.source != address(0)) {
             ISource(sourceStamp.source).validateSource(sourceStamp);
         }
-        _processRemoval(account, username, data);
-        emit Lens_Username_Removed(username, account, data, sourceStamp.source);
+        _processRemoval(owner, username, data);
+        emit Lens_Username_Removed(username, owner, data, sourceStamp.source);
     }
 
     function assignUsername(
@@ -138,6 +135,7 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
         SourceStamp calldata sourceStamp
     ) external override {
         require(msg.sender == account); // msg.sender must be the account
+        require(account == _ownerOf(_computeId(username))); // account should own the tokenized username
         Core._assignUsername(account, username);
         if (sourceStamp.source != address(0)) {
             ISource(sourceStamp.source).validateSource(sourceStamp);
@@ -152,7 +150,7 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
         SourceStamp calldata sourceStamp
     ) external override {
         address account = Core.$storage().usernameToAccount[username];
-        require(msg.sender == account); // msg.sender must be the account
+        require(msg.sender == account || msg.sender == _ownerOf(_computeId(username)));
         Core._unassignUsername(username);
         if (sourceStamp.source != address(0)) {
             ISource(sourceStamp.source).validateSource(sourceStamp);
@@ -197,34 +195,28 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
 
     // Internal
 
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal virtual override {
+        if (from != address(0) && to != address(0)) {
+            // TODO: What do we do, we cannot call rules here, we don't have the execution data...
+            // maybe we do not need IUsernameRule's porcess functions for unassign and remove, like the unfollow...
+            // either that, or we need to have a custom transfer function that call rules and have a source
+            string memory username = _idToUsername[tokenId];
+            if (Core.$storage().usernameToAccount[username] != address(0)) {
+                Core._unassignUsername(Core.$storage().accountToUsername[to]);
+                emit Lens_Username_Unassigned(
+                    username, from, RuleExecutionData(new bytes[](0), new bytes[](0)), address(0)
+                );
+            }
+        }
+    }
+
+    function _afterTokenTransfer(address from, address to, uint256 tokenId) internal virtual override {
+        emit Lens_Username_Transfer(from, to, tokenId);
+    }
+
     function _computeId(string memory username) internal pure returns (uint256) {
         return uint256(keccak256(bytes(username)));
     }
-
-    // function _validateUsernameLength(string memory username) internal pure {
-    //     // TODO: Add the PIDs for skipping length restrictions.
-    //     LengthRestriction memory lengthRestriction = $lengthRestriction();
-    //     uint256 usernameLength = bytes(username).length;
-    //     if (lengthRestriction.min != 0) {
-    //         require(usernameLength >= lengthRestriction.min, "Username: too short");
-    //     }
-    //     if (lengthRestriction.max != 0) {
-    //         // TODO: If no restriction, should be max(uint8), not unlimited! - API will be like that
-    //         require(usernameLength <= lengthRestriction.max, "Username: too long");
-    //     }
-    // }
-
-    // Storage utility & helper functions
-
-    // // keccak256('lens.username.storage.length.restriction')
-    // bytes32 constant LENGTH_RESTRICTION_STORAGE_SLOT =
-    //     0x2d828a00137871809f1a4bee7ddd78f42d45a25fe20299ceaf25638343e83134;
-
-    // function $lengthRestriction() internal pure returns (LengthRestriction storage _lengthRestriction) {
-    //     assembly {
-    //         _lengthRestriction.slot := LENGTH_RESTRICTION_STORAGE_SLOT
-    //     }
-    // }
 
     // Getters
 

@@ -6,7 +6,7 @@ import {RuleConfiguration} from "./../../types/Types.sol";
 interface IGraphRule {
     function configure(bytes calldata data) external;
 
-    function processFollow(address followerAcount, address accountToFollow, uint256 followId, bytes calldata data)
+    function processFollow(address followerAccount, address accountToFollow, uint256 followId, bytes calldata data)
         external
         returns (bool);
 
@@ -19,11 +19,6 @@ interface IGraphRule {
         uint256 followId,
         bytes calldata data
     ) external returns (bool);
-
-    // TODO: We will try to implement this using a registry
-    // function processBlock(address account, bytes calldata data) external returns(bool);
-
-    // function processUnblock(address account, bytes calldata data) external returns(bool);
 
     function processFollowRulesChange(address account, RuleConfiguration[] calldata followRules, bytes calldata data)
         external

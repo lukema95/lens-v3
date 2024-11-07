@@ -7,7 +7,7 @@ const config: HardhatUserConfig = {
   defaultNetwork: 'lensSepoliaTestnet',
   networks: {
     lensSepoliaTestnet: {
-      url: 'https://sepolia.rpc.lens.dev',
+      url: 'https://api.staging.lens.zksync.dev',
       chainId: 37111,
       zksync: true,
       ethNetwork: 'sepolia',
@@ -35,7 +35,7 @@ const config: HardhatUserConfig = {
     },
   },
   solidity: {
-    version: '0.8.18',
+    version: '0.8.17',
   },
 };
 

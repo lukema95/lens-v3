@@ -58,13 +58,13 @@ contract App is IApp, BaseSource, AccessControlled {
 
     function _emitPIDs() internal override {
         super._emitPIDs();
-        emit Lens_PermissionId_Available(SET_PRIMITIVES_PID, "SET_PRIMITIVES");
-        emit Lens_PermissionId_Available(SET_SIGNERS_PID, "SET_SIGNERS");
-        emit Lens_PermissionId_Available(SET_TREASURY_PID, "SET_TREASURY");
-        emit Lens_PermissionId_Available(SET_PAYMASTER_PID, "SET_PAYMASTER");
-        emit Lens_PermissionId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
-        emit Lens_PermissionId_Available(SET_METADATA_PID, "SET_METADATA");
-        emit Lens_PermissionId_Available(SET_SOURCE_STAMP_VERIFICATION_PID, "SET_SOURCE_STAMP_VERIFICATION");
+        emit Events.Lens_PermissionId_Available(SET_PRIMITIVES_PID, "SET_PRIMITIVES");
+        emit Events.Lens_PermissionId_Available(SET_SIGNERS_PID, "SET_SIGNERS");
+        emit Events.Lens_PermissionId_Available(SET_TREASURY_PID, "SET_TREASURY");
+        emit Events.Lens_PermissionId_Available(SET_PAYMASTER_PID, "SET_PAYMASTER");
+        emit Events.Lens_PermissionId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
+        emit Events.Lens_PermissionId_Available(SET_METADATA_PID, "SET_METADATA");
+        emit Events.Lens_PermissionId_Available(SET_SOURCE_STAMP_VERIFICATION_PID, "SET_SOURCE_STAMP_VERIFICATION");
     }
 
     function _validateSource(SourceStamp calldata sourceStamp) internal virtual override {
@@ -97,20 +97,16 @@ contract App is IApp, BaseSource, AccessControlled {
 
     // In this implementation we allow to have a single graph only.
     function _setGraph(address graph) internal {
-        if (graph == address(0)) {
-            Core._removeGraph(Core.$storage().defaultGraph); // Will fail if no graph was set
-            Core._setDefaultGraph(address(0));
-            emit Lens_App_GraphRemoved(graph);
-        } else {
-            address graphPreviouslySet = Core.$storage().defaultGraph;
-            bool wasAValueAlreadySet = Core._setDefaultGraph(graph);
-            if (wasAValueAlreadySet) {
-                Core._removeGraph(graphPreviouslySet);
-                emit Lens_App_GraphRemoved(graphPreviouslySet);
-            }
+        address graphPreviouslySet = Core.$storage().defaultGraph;
+        if (graphPreviouslySet != address(0)) {
+            Core._removeGraph(graphPreviouslySet);
+            emit Lens_App_GraphRemoved(graphPreviouslySet);
+        }
+        if (graph != address(0)) {
             emit Lens_App_GraphAdded(graph);
             Core._addGraph(graph);
         }
+        Core._setDefaultGraph(graph);
     }
 
     ///////////////// Feed
@@ -162,19 +158,16 @@ contract App is IApp, BaseSource, AccessControlled {
 
     // In this implementation we allow to have a single graph only.
     function _setUsername(address username) internal {
-        if (username == address(0)) {
-            Core._removeUsername(Core.$storage().defaultUsername); // Will fail if no username was set
-            emit Lens_App_UsernameRemoved(username);
-        } else {
-            address usernamePreviouslySet = Core.$storage().defaultUsername;
-            bool wasAValueAlreadySet = Core._setDefaultUsername(username);
-            if (wasAValueAlreadySet) {
-                Core._removeUsername(usernamePreviouslySet);
-                emit Lens_App_UsernameRemoved(usernamePreviouslySet);
-                emit Lens_App_UsernameAdded(username);
-            }
+        address usernamePreviouslySet = Core.$storage().defaultUsername;
+        if (usernamePreviouslySet != address(0)) {
+            Core._removeUsername(usernamePreviouslySet);
+            emit Lens_App_UsernameRemoved(usernamePreviouslySet);
+        }
+        if (username != address(0)) {
+            emit Lens_App_UsernameAdded(username);
             Core._addUsername(username);
         }
+        Core._setDefaultUsername(username);
     }
 
     ///////////////// Group
@@ -238,20 +231,16 @@ contract App is IApp, BaseSource, AccessControlled {
 
     // In this implementation we allow to have a single paymaster only.
     function _setPaymaster(address paymaster) internal {
-        if (paymaster == address(0)) {
-            Core._removePaymaster(Core.$storage().defaultPaymaster); // Will fail if no paymaster was set
-            Core._setDefaultPaymaster(address(0));
-            emit Lens_App_PaymasterRemoved(paymaster);
-        } else {
-            address paymasterPreviouslySet = Core.$storage().defaultPaymaster;
-            bool wasAValueAlreadySet = Core._setDefaultPaymaster(paymaster);
-            if (wasAValueAlreadySet) {
-                Core._removePaymaster(paymasterPreviouslySet);
-                emit Lens_App_PaymasterRemoved(paymasterPreviouslySet);
-            }
+        address paymasterPreviouslySet = Core.$storage().defaultPaymaster;
+        if (paymasterPreviouslySet != address(0)) {
+            Core._removePaymaster(paymasterPreviouslySet);
+            emit Lens_App_PaymasterRemoved(paymasterPreviouslySet);
+        }
+        if (paymaster != address(0)) {
             emit Lens_App_PaymasterAdded(paymaster);
             Core._addPaymaster(paymaster);
         }
+        Core._setDefaultPaymaster(paymaster);
     }
 
     function getPaymaster() external view override returns (address) {

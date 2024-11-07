@@ -12,8 +12,8 @@
     "test": "hardhat test --network hardhat",
     "prepare": "husky",
     "format": "forge fmt",
-    "abis": "forge build --out ./out/__ABIS__ --extra-output-files abi && ts-node ./parseAbisToBackendFolders.ts",
-    "bind": "forge bind --bindings-path ./out/__BINDINGS__ --alloy --skip 'test/**/*.sol'",
+    "abis": "forge build --out ./out/__ABIS__ --extra-output-files abi --via-ir && ts-node ./parseAbisToBackendFolders.ts",
+    "bind": "forge bind --bindings-path ./out/__BINDINGS__ --alloy --skip 'test/**/*.sol' --via-ir",
     "build-and-bind": "npm run bind && npm run abis"
   },
   "devDependencies": {
