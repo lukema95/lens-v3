@@ -2,9 +2,7 @@
 pragma solidity ^0.8.0;
 
 interface IPostAction {
-    event Lens_PostAction_Configured(
-        address indexed feed, uint256 indexed postId, bytes data, address indexed collectionAddress
-    );
+    event Lens_PostAction_Configured(address indexed feed, uint256 indexed postId, bytes data);
 
     event Lens_PostAction_Executed(address indexed feed, uint256 indexed postId, bytes data);
 
