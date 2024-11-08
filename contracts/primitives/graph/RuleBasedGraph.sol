@@ -93,37 +93,42 @@ contract RuleBasedGraph {
 
     function _internalGraphProcessFollow(
         address rule,
-        address followerAcount,
+        address followerAccount,
         address accountToFollow,
         uint256 followId,
         bytes calldata data
     ) internal returns (bool, bytes memory) {
-        return rule.call(abi.encodeCall(IGraphRule.processFollow, (followerAcount, accountToFollow, followId, data)));
+        return rule.call(abi.encodeCall(IGraphRule.processFollow, (followerAccount, accountToFollow, followId, data)));
     }
 
     function _graphProcessFollow(
-        address followerAcount,
+        address followerAccount,
         address accountToFollow,
         uint256 followId,
         RuleExecutionData calldata graphRulesData
     ) internal {
         _processFollow(
-            $graphRulesStorage(), _internalGraphProcessFollow, followerAcount, accountToFollow, followId, graphRulesData
+            $graphRulesStorage(),
+            _internalGraphProcessFollow,
+            followerAccount,
+            accountToFollow,
+            followId,
+            graphRulesData
         );
     }
 
     function _internalAccountProcessFollow(
         address rule,
-        address followerAcount,
+        address followerAccount,
         address accountToFollow,
         uint256 followId,
         bytes calldata data
     ) internal returns (bool, bytes memory) {
-        return rule.call(abi.encodeCall(IFollowRule.processFollow, (followerAcount, accountToFollow, followId, data)));
+        return rule.call(abi.encodeCall(IFollowRule.processFollow, (followerAccount, accountToFollow, followId, data)));
     }
 
     function _accountProcessFollow(
-        address followerAcount,
+        address followerAccount,
         address accountToFollow,
         uint256 followId,
         RuleExecutionData calldata followRulesData
@@ -131,7 +136,7 @@ contract RuleBasedGraph {
         _processFollow(
             $followRulesStorage(accountToFollow),
             _internalAccountProcessFollow,
-            followerAcount,
+            followerAccount,
             accountToFollow,
             followId,
             followRulesData
@@ -141,7 +146,7 @@ contract RuleBasedGraph {
     function _processFollow(
         RulesStorage storage rulesStorage,
         function(address,address,address,uint256,bytes calldata) internal returns (bool,bytes memory) func,
-        address followerAcount,
+        address followerAccount,
         address accountToFollow,
         uint256 followId,
         RuleExecutionData calldata data
@@ -149,7 +154,7 @@ contract RuleBasedGraph {
         // Check required rules (AND-combined rules)
         for (uint256 i = 0; i < rulesStorage.requiredRules.length; i++) {
             (bool callNotReverted,) = func(
-                rulesStorage.requiredRules[i], followerAcount, accountToFollow, followId, data.dataForRequiredRules[i]
+                rulesStorage.requiredRules[i], followerAccount, accountToFollow, followId, data.dataForRequiredRules[i]
             );
             require(callNotReverted, "Some required rule failed");
         }
@@ -159,7 +164,7 @@ contract RuleBasedGraph {
         }
         for (uint256 i = 0; i < rulesStorage.anyOfRules.length; i++) {
             (bool callNotReverted, bytes memory returnData) =
-                func(rulesStorage.anyOfRules[i], followerAcount, accountToFollow, followId, data.dataForAnyOfRules[i]);
+                func(rulesStorage.anyOfRules[i], followerAccount, accountToFollow, followId, data.dataForAnyOfRules[i]);
             if (callNotReverted && abi.decode(returnData, (bool))) {
                 // Note: abi.decode would fail if call reverted, so don't put this out of the brackets!
                 return; // If any of the OR-combined rules passed, it means they succeed and we can return

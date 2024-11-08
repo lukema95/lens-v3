@@ -7,11 +7,11 @@ const config: HardhatUserConfig = {
   defaultNetwork: 'lensSepoliaTestnet',
   networks: {
     lensSepoliaTestnet: {
-      url: 'https://sepolia.rpc.lens.dev',
+      url: 'https://rpc.testnet.lens.dev',
       chainId: 37111,
       zksync: true,
       ethNetwork: 'sepolia',
-      verifyURL: 'https://api-explorer-verify.staging.lens.zksync.dev/contract_verification',
+      verifyURL: 'https://block-explorer-verify.testnet.lens.dev/contract_verification',
     },
     dockerizedNode: {
       url: 'http://localhost:3050',
@@ -35,7 +35,7 @@ const config: HardhatUserConfig = {
     },
   },
   solidity: {
-    version: '0.8.18',
+    version: '0.8.17',
   },
 };
 

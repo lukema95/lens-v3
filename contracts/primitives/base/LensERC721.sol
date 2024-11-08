@@ -12,7 +12,6 @@ pragma solidity ^0.8.0;
 contract LensERC721 is IERC721 {
     using AddressUpgradeable for address;
 
-    event Lens_ERC721_Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
     event Lens_ERC721_TokenURIProviderSet(address indexed tokenURIProvider);
 
     struct ERC721Storage {
@@ -342,7 +341,6 @@ contract LensERC721 is IERC721 {
         $erc721Storage().owners[tokenId] = to;
 
         emit Transfer(from, to, tokenId);
-        emit Lens_ERC721_Transfer(from, to, tokenId);
 
         _afterTokenTransfer(from, to, tokenId);
     }

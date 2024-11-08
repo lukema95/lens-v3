@@ -4,10 +4,13 @@ pragma solidity ^0.8.0;
 import {IGroup} from "./IGroup.sol";
 import {GroupCore as Core} from "./GroupCore.sol";
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
-import {RuleConfiguration, RuleExecutionData, DataElement, DataElementValue} from "./../../types/Types.sol";
+import {
+    RuleConfiguration, RuleExecutionData, DataElement, DataElementValue, SourceStamp
+} from "./../../types/Types.sol";
 import {RuleBasedGroup} from "./RuleBasedGroup.sol";
 import {AccessControlled} from "./../base/AccessControlled.sol";
 import {Events} from "./../../types/Events.sol";
+import {ISource} from "./../base/ISource.sol";
 
 contract Group is IGroup, RuleBasedGroup, AccessControlled {
     // Resource IDs involved in the contract
@@ -25,10 +28,10 @@ contract Group is IGroup, RuleBasedGroup, AccessControlled {
 
     function _emitPIDs() internal override {
         super._emitPIDs();
-        emit Lens_PermissonId_Available(SET_RULES_PID, "SET_RULES");
-        emit Lens_PermissonId_Available(SET_METADATA_PID, "SET_METADATA");
-        emit Lens_PermissonId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
-        emit Lens_PermissonId_Available(REMOVE_MEMBER_PID, "REMOVE_MEMBER");
+        emit Events.Lens_PermissionId_Available(SET_RULES_PID, "SET_RULES");
+        emit Events.Lens_PermissionId_Available(SET_METADATA_PID, "SET_METADATA");
+        emit Events.Lens_PermissionId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
+        emit Events.Lens_PermissionId_Available(REMOVE_MEMBER_PID, "REMOVE_MEMBER");
     }
 
     // Access Controlled functions
@@ -87,27 +90,45 @@ contract Group is IGroup, RuleBasedGroup, AccessControlled {
 
     // Public functions
 
-    function joinGroup(address account, RuleExecutionData calldata groupRulesData) external override {
+    function joinGroup(address account, RuleExecutionData calldata groupRulesData, SourceStamp calldata sourceStamp)
+        external
+        override
+    {
         require(msg.sender == account);
-        uint256 membershipId = Core._grantMembership(account);
+        uint256 membershipId = Core._grantMembership(account, sourceStamp.source);
         _processJoining(account, membershipId, groupRulesData);
-        emit Lens_Group_MemberJoined(account, membershipId, groupRulesData);
+        if (sourceStamp.source != address(0)) {
+            ISource(sourceStamp.source).validateSource(sourceStamp);
+        }
+        emit Lens_Group_MemberJoined(account, membershipId, groupRulesData, sourceStamp.source);
     }
 
-    function leaveGroup(address account, RuleExecutionData calldata groupRulesData) external override {
+    function leaveGroup(address account, RuleExecutionData calldata groupRulesData, SourceStamp calldata sourceStamp)
+        external
+        override
+    {
         require(msg.sender == account);
         uint256 membershipId = Core._revokeMembership(account);
         _processLeaving(account, membershipId, groupRulesData);
-        emit Lens_Group_MemberLeft(account, membershipId, groupRulesData);
+        if (sourceStamp.source != address(0)) {
+            ISource(sourceStamp.source).validateSource(sourceStamp);
+        }
+        emit Lens_Group_MemberLeft(account, membershipId, groupRulesData, sourceStamp.source);
     }
 
     // TODO: Why don't we have addMember? Because we don't want to kidnap someone into the group?
 
-    function removeMember(address account, RuleExecutionData calldata groupRulesData) external override {
+    function removeMember(address account, RuleExecutionData calldata groupRulesData, SourceStamp calldata sourceStamp)
+        external
+        override
+    {
         _requireAccess(msg.sender, REMOVE_MEMBER_PID);
         uint256 membershipId = Core._revokeMembership(account);
         _processRemoval(account, membershipId, groupRulesData);
-        emit Lens_Group_MemberRemoved(account, membershipId, groupRulesData);
+        if (sourceStamp.source != address(0)) {
+            ISource(sourceStamp.source).validateSource(sourceStamp);
+        }
+        emit Lens_Group_MemberRemoved(account, membershipId, groupRulesData, sourceStamp.source);
     }
 
     // Getters

@@ -1,6 +1,22 @@
-import { deployContract, getWallet, verifyLensFactoryDeployedPrimitive } from './utils';
+import {
+  deployContract,
+  getWallet,
+  verifyLensFactoryDeployedPrimitive,
+  verifyLensFactoryDeployedUsername,
+} from './utils';
 
 export default async function () {
+  // accessControl factory
+  const accessControlFactory_artifactName = 'AccessControlFactory';
+  const accessControlFactory_args: any[] = [];
+
+  const accessControlFactory = await deployContract(
+    accessControlFactory_artifactName,
+    accessControlFactory_args
+  );
+
+  console.log(`\n✔ AccessControlFactory deployed at ${await accessControlFactory.getAddress()}`);
+
   // username factory
   const usernameFactory_artifactName = 'UsernameFactory';
   const usernameFactory_args: any[] = [];
@@ -99,16 +115,36 @@ export default async function () {
     metadataURIConstructorParam: metadataURI,
   });
 
+  // deploy lens username
+  console.log('Deploying Lens Username...');
+  const usernameDeploymentTx = await lensFactory.deployUsername(
+    'lens',
+    metadataURI,
+    ownerAddress,
+    admins,
+    rules,
+    extraData,
+    'Lens Usernames',
+    'LENS'
+  );
+  const lensUsernameAddress = await verifyLensFactoryDeployedUsername({
+    tx: usernameDeploymentTx,
+    constructorParams: ['lens', metadataURI, ownerAddress, 'Lens Usernames', 'LENS'],
+  });
+
   // TODO: Make this to be written into a file
   console.log('\n\n--- Indexer file ---\n\n');
   console.log('# CONTRACTS');
   console.log(`GRAPH_FACTORY="${await graphFactory.getAddress()}"`);
   console.log(`GLOBAL_GRAPH="${globalGraphAddress}"`);
   console.log('');
+  console.log(`ACCESS_CONTROL_FACTORY="${await accessControlFactory.getAddress()}"`);
+  console.log('');
   console.log(`ACCOUNT_FACTORY="${await accountFactory.getAddress()}"`);
   console.log('');
   console.log(`APP_FACTORY="${await appFactory.getAddress()}"`);
   console.log('');
+  console.log(`LENS_USERNAME="${lensUsernameAddress}"`);
   console.log(`USERNAME_FACTORY="${await usernameFactory.getAddress()}"`);
   console.log('');
   console.log(`FEED_FACTORY="${await feedFactory.getAddress()}"`);

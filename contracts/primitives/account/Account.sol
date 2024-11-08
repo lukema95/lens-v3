@@ -5,12 +5,14 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {Events} from "./../../types/Events.sol";
 import {IAccount, AccountManagerPermissions} from "./IAccount.sol";
+import {SourceStamp} from "./../../types/Types.sol";
+import {ISource} from "./../../primitives/base/ISource.sol";
 
 contract Account is IAccount, Ownable {
     // TODO: Think how long the timelock should be and should it be configurable
     uint256 constant SPENDING_TIMELOCK = 1 hours;
 
-    string internal _metadataURI; // TODO: Add getter/setter/internal etc
+    mapping(address => string) internal _metadataURI; // TODO: Add getter/setter/internal etc
     mapping(address => AccountManagerPermissions) internal _accountManagerPermissions; // TODO: Add getter/setter/internal etc
     uint256 internal _allowNonOwnerSpendingTimestamp; // TODO: Think of a better name
 
@@ -18,15 +20,19 @@ contract Account is IAccount, Ownable {
         address owner,
         string memory metadataURI,
         address[] memory accountManagers,
-        AccountManagerPermissions[] memory accountManagerPermissions
+        AccountManagerPermissions[] memory accountManagerPermissions,
+        SourceStamp memory sourceStamp
     ) Ownable() {
-        _metadataURI = metadataURI;
+        _metadataURI[sourceStamp.source] = metadataURI;
+        if (sourceStamp.source != address(0)) {
+            ISource(sourceStamp.source).validateSource(sourceStamp);
+        }
         for (uint256 i = 0; i < accountManagers.length; i++) {
             _accountManagerPermissions[accountManagers[i]] = accountManagerPermissions[i];
             emit Lens_Account_AccountManagerAdded(accountManagers[i], accountManagerPermissions[i]);
         }
         _transferOwnership(owner);
-        emit Lens_Account_MetadataURISet(metadataURI);
+        emit Lens_Account_MetadataURISet(metadataURI, sourceStamp.source);
         emit Events.Lens_Contract_Deployed("account", "lens.account", "account", "lens.account");
     }
 
@@ -48,13 +54,13 @@ contract Account is IAccount, Ownable {
         override
         onlyOwner
     {
-        require(!_accountManagerPermissions[accountManager].canExecuteTansactions, "Account manager already exists");
+        require(!_accountManagerPermissions[accountManager].canExecuteTransactions, "Account manager already exists");
         _accountManagerPermissions[accountManager] = accountManagerPermissions;
         emit Lens_Account_AccountManagerAdded(accountManager, accountManagerPermissions);
     }
 
     function removeAccountManager(address accountManager) external override onlyOwner {
-        require(_accountManagerPermissions[accountManager].canExecuteTansactions, "Account manager already exists");
+        require(_accountManagerPermissions[accountManager].canExecuteTransactions, "Account manager already exists");
         delete _accountManagerPermissions[accountManager];
         emit Lens_Account_AccountManagerRemoved(accountManager);
     }
@@ -63,24 +69,35 @@ contract Account is IAccount, Ownable {
         address accountManager,
         AccountManagerPermissions calldata accountManagerPermissions
     ) external override onlyOwner {
-        require(_accountManagerPermissions[accountManager].canExecuteTansactions, "Account manager does not exist");
-        require(accountManagerPermissions.canExecuteTansactions, "Cannot remove execution permissions");
+        require(_accountManagerPermissions[accountManager].canExecuteTransactions, "Account manager does not exist");
+        require(accountManagerPermissions.canExecuteTransactions, "Cannot remove execution permissions");
         _accountManagerPermissions[accountManager] = accountManagerPermissions;
         emit Lens_Account_AccountManagerUpdated(accountManager, accountManagerPermissions);
     }
 
-    function setMetadataURI(string calldata metadataURI) external override {
+    function canExecuteTransactions(address accountManager) external view returns (bool) {
+        return _accountManagerPermissions[accountManager].canExecuteTransactions;
+    }
+
+    function setMetadataURI(string calldata metadataURI, SourceStamp calldata sourceStamp) external override {
         if (msg.sender != owner()) {
             require(_accountManagerPermissions[msg.sender].canSetMetadataURI, "No permissions to set metadata URI");
         }
-        _metadataURI = metadataURI;
-        emit Lens_Account_MetadataURISet(metadataURI);
+        _metadataURI[sourceStamp.source] = metadataURI;
+        if (sourceStamp.source != address(0)) {
+            ISource(sourceStamp.source).validateSource(sourceStamp);
+        }
+        emit Lens_Account_MetadataURISet(metadataURI, sourceStamp.source);
+    }
+
+    function getMetadataURI(address source) external view override returns (string memory) {
+        return _metadataURI[source];
     }
 
     function executeTransaction(address to, uint256 value, bytes calldata data) external payable override {
         if (msg.sender != owner()) {
             require(
-                _accountManagerPermissions[msg.sender].canExecuteTansactions, "No permissions to execute transactions"
+                _accountManagerPermissions[msg.sender].canExecuteTransactions, "No permissions to execute transactions"
             );
             if (value > 0) {
                 require(

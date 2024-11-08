@@ -118,14 +118,56 @@ export const verifyLensFactoryDeployedPrimitive = async (data: {
   const deployedAddress = events.filter(
     (e) => e?.primitive === data.lensContractArtifactName.toLowerCase()
   )[0]!.address;
-  const accessControlAddress = events.filter((e) => e?.primitive === 'access-control')[0]!.address;
+  const accessControlAddress = events.filter((e) => e?.primitive === 'access-control')[0]?.address;
 
-  const deployedArtifact = await hre.artifacts.readArtifact(data.lensContractArtifactName);
+  if (accessControlAddress === undefined) {
+    const deployedArtifact = await hre.artifacts.readArtifact(data.lensContractArtifactName);
+
+    await verifyDeployedContract({
+      address: deployedAddress,
+      artifact: deployedArtifact,
+      constructorArguments: [data.metadataURIConstructorParam, accessControlAddress],
+    });
+  }
+
+  return deployedAddress;
+};
+
+export const verifyLensFactoryDeployedUsername = async (data: {
+  tx: any;
+  constructorParams: any[];
+}) => {
+  const txReceipt = (await data.tx.wait()) as ethers.TransactionReceipt;
+
+  const eventInterface = new ethers.Interface([
+    'event Lens_Contract_Deployed(string indexed indexedContractType, string indexed indexedFlavour, string contractType, string flavour)',
+  ]);
+
+  // Parse event logs
+  const events = txReceipt.logs.map((log) => {
+    try {
+      const decodedLog = eventInterface.decodeEventLog(
+        'Lens_Contract_Deployed',
+        log.data,
+        log.topics
+      );
+      return { primitive: decodedLog[2], primitiveType: decodedLog[3], address: log.address };
+    } catch (e) {
+      return null;
+    }
+  });
+
+  const deployedAddress = events.filter((e) => e?.primitive === 'username')[0]!.address;
+  const tokenUriProviderAddress = events.filter(
+    (e) => e?.primitive === 'username-token-uri-provider'
+  )[0]?.address;
+
+  const deployedArtifact = await hre.artifacts.readArtifact('Username');
 
   await verifyDeployedContract({
     address: deployedAddress,
     artifact: deployedArtifact,
-    constructorArguments: [data.metadataURIConstructorParam, accessControlAddress],
+    constructorArguments: [...data.constructorParams, tokenUriProviderAddress],
   });
 
   return deployedAddress;
@@ -198,6 +240,26 @@ export const deployContract = async (
 
   return contract;
 };
+
+export const deploy = async (artifactName: string, args: any[]): Promise<string> => {
+  // accessControl factory
+  const accessControlFactory_artifactName = artifactName;
+  const accessControlFactory_args: any[] = [];
+
+  const accessControlFactory = await deployContract(
+    accessControlFactory_artifactName,
+    accessControlFactory_args
+  );
+
+  console.log(`\n✔ ${artifactName} deployed at ${await accessControlFactory.getAddress()}`);
+  return await accessControlFactory.getAddress();
+};
+
+export function camelToAllCaps(camelCase: string): string {
+  return camelCase
+    .replace(/([a-z])([A-Z])/g, '$1_$2') // Insert underscore between lowercase and uppercase letters
+    .toUpperCase(); // Convert to uppercase
+}
 
 /**
  * Rich wallets can be used for testing purposes.

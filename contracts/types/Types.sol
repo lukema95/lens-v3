@@ -22,3 +22,10 @@ struct RuleExecutionData {
     bytes[] dataForRequiredRules;
     bytes[] dataForAnyOfRules;
 }
+
+struct SourceStamp {
+    address source;
+    uint256 nonce;
+    uint256 deadline;
+    bytes signature;
+}

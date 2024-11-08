@@ -4,9 +4,11 @@ pragma solidity ^0.8.0;
 import {IAccessControl} from "./../access-control/IAccessControl.sol";
 import {IApp} from "./IApp.sol";
 import {AppCore as Core} from "./AppCore.sol";
-import {DataElement, DataElementValue} from "./../../types/Types.sol";
+import {DataElement, DataElementValue, SourceStamp} from "./../../types/Types.sol";
 import {AccessControlled} from "./../base/AccessControlled.sol";
 import {Events} from "./../../types/Events.sol";
+import {BaseSource} from "./../base/BaseSource.sol";
+import {ISource} from "./../base/ISource.sol";
 
 struct AppInitialProperties {
     address graph;
@@ -19,22 +21,26 @@ struct AppInitialProperties {
     address treasury;
 }
 
-contract App is IApp, AccessControlled {
+contract App is IApp, BaseSource, AccessControlled {
     // Resource IDs involved in the contract
+
     uint256 constant SET_PRIMITIVES_PID = uint256(keccak256("SET_PRIMITIVES"));
     uint256 constant SET_SIGNERS_PID = uint256(keccak256("SET_SIGNERS"));
     uint256 constant SET_TREASURY_PID = uint256(keccak256("SET_TREASURY"));
     uint256 constant SET_PAYMASTER_PID = uint256(keccak256("SET_PAYMASTER"));
     uint256 constant SET_EXTRA_DATA_PID = uint256(keccak256("SET_EXTRA_DATA"));
     uint256 constant SET_METADATA_PID = uint256(keccak256("SET_METADATA"));
+    uint256 constant SET_SOURCE_STAMP_VERIFICATION_PID = uint256(keccak256("SET_SOURCE_STAMP_VERIFICATION"));
 
     constructor(
         string memory metadataURI,
+        bool isSourceStampVerificationEnabled,
         IAccessControl accessControl,
         AppInitialProperties memory initialProps,
         DataElement[] memory extraData
     ) AccessControlled(accessControl) {
         _setMetadataURI(metadataURI);
+        _setSourceStampVerification(isSourceStampVerificationEnabled);
         _setTreasury(initialProps.treasury);
         _setGraph(initialProps.graph);
         _addFeeds(initialProps.feeds);
@@ -52,12 +58,34 @@ contract App is IApp, AccessControlled {
 
     function _emitPIDs() internal override {
         super._emitPIDs();
-        emit Lens_PermissonId_Available(SET_PRIMITIVES_PID, "SET_PRIMITIVES");
-        emit Lens_PermissonId_Available(SET_SIGNERS_PID, "SET_SIGNERS");
-        emit Lens_PermissonId_Available(SET_TREASURY_PID, "SET_TREASURY");
-        emit Lens_PermissonId_Available(SET_PAYMASTER_PID, "SET_PAYMASTER");
-        emit Lens_PermissonId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
-        emit Lens_PermissonId_Available(SET_METADATA_PID, "SET_METADATA");
+        emit Events.Lens_PermissionId_Available(SET_PRIMITIVES_PID, "SET_PRIMITIVES");
+        emit Events.Lens_PermissionId_Available(SET_SIGNERS_PID, "SET_SIGNERS");
+        emit Events.Lens_PermissionId_Available(SET_TREASURY_PID, "SET_TREASURY");
+        emit Events.Lens_PermissionId_Available(SET_PAYMASTER_PID, "SET_PAYMASTER");
+        emit Events.Lens_PermissionId_Available(SET_EXTRA_DATA_PID, "SET_EXTRA_DATA");
+        emit Events.Lens_PermissionId_Available(SET_METADATA_PID, "SET_METADATA");
+        emit Events.Lens_PermissionId_Available(SET_SOURCE_STAMP_VERIFICATION_PID, "SET_SOURCE_STAMP_VERIFICATION");
+    }
+
+    function _validateSource(SourceStamp calldata sourceStamp) internal virtual override {
+        // If source stamp verification is disabled, we don't need to verify the source stamp
+        if (!Core.$storage().sourceStampVerificationEnabled) {
+            super._validateSource(sourceStamp);
+        }
+    }
+
+    function _isValidSourceStampSigner(address signer) internal virtual override returns (bool) {
+        return Core.$storage().signerStorageHelper[signer].isSet; // TODO: What about the app's owner?
+    }
+
+    function _setSourceStampVerification(bool isEnabled) internal virtual {
+        Core.$storage().sourceStampVerificationEnabled = isEnabled;
+        emit Lens_App_SourceStampVerificationSet(isEnabled);
+    }
+
+    function setSourceStampVerification(bool isEnabled) external virtual override {
+        _requireAccess(msg.sender, SET_SOURCE_STAMP_VERIFICATION_PID);
+        _setSourceStampVerification(isEnabled);
     }
 
     ///////////////// Graph
@@ -69,20 +97,16 @@ contract App is IApp, AccessControlled {
 
     // In this implementation we allow to have a single graph only.
     function _setGraph(address graph) internal {
-        if (graph == address(0)) {
-            Core._removeGraph(Core.$storage().defaultGraph); // Will fail if no graph was set
-            Core._setDefaultGraph(address(0));
-            emit Lens_App_GraphRemoved(graph);
-        } else {
-            address graphPreviouslySet = Core.$storage().defaultGraph;
-            bool wasAValueAlreadySet = Core._setDefaultGraph(graph);
-            if (wasAValueAlreadySet) {
-                Core._removeGraph(graphPreviouslySet);
-                emit Lens_App_GraphRemoved(graphPreviouslySet);
-            }
+        address graphPreviouslySet = Core.$storage().defaultGraph;
+        if (graphPreviouslySet != address(0)) {
+            Core._removeGraph(graphPreviouslySet);
+            emit Lens_App_GraphRemoved(graphPreviouslySet);
+        }
+        if (graph != address(0)) {
             emit Lens_App_GraphAdded(graph);
             Core._addGraph(graph);
         }
+        Core._setDefaultGraph(graph);
     }
 
     ///////////////// Feed
@@ -134,19 +158,16 @@ contract App is IApp, AccessControlled {
 
     // In this implementation we allow to have a single graph only.
     function _setUsername(address username) internal {
-        if (username == address(0)) {
-            Core._removeUsername(Core.$storage().defaultUsername); // Will fail if no username was set
-            emit Lens_App_UsernameRemoved(username);
-        } else {
-            address usernamePreviouslySet = Core.$storage().defaultUsername;
-            bool wasAValueAlreadySet = Core._setDefaultUsername(username);
-            if (wasAValueAlreadySet) {
-                Core._removeUsername(usernamePreviouslySet);
-                emit Lens_App_UsernameRemoved(usernamePreviouslySet);
-                emit Lens_App_UsernameAdded(username);
-            }
+        address usernamePreviouslySet = Core.$storage().defaultUsername;
+        if (usernamePreviouslySet != address(0)) {
+            Core._removeUsername(usernamePreviouslySet);
+            emit Lens_App_UsernameRemoved(usernamePreviouslySet);
+        }
+        if (username != address(0)) {
+            emit Lens_App_UsernameAdded(username);
             Core._addUsername(username);
         }
+        Core._setDefaultUsername(username);
     }
 
     ///////////////// Group
@@ -210,20 +231,16 @@ contract App is IApp, AccessControlled {
 
     // In this implementation we allow to have a single paymaster only.
     function _setPaymaster(address paymaster) internal {
-        if (paymaster == address(0)) {
-            Core._removePaymaster(Core.$storage().defaultPaymaster); // Will fail if no paymaster was set
-            Core._setDefaultPaymaster(address(0));
-            emit Lens_App_PaymasterRemoved(paymaster);
-        } else {
-            address paymasterPreviouslySet = Core.$storage().defaultPaymaster;
-            bool wasAValueAlreadySet = Core._setDefaultPaymaster(paymaster);
-            if (wasAValueAlreadySet) {
-                Core._removePaymaster(paymasterPreviouslySet);
-                emit Lens_App_PaymasterRemoved(paymasterPreviouslySet);
-            }
+        address paymasterPreviouslySet = Core.$storage().defaultPaymaster;
+        if (paymasterPreviouslySet != address(0)) {
+            Core._removePaymaster(paymasterPreviouslySet);
+            emit Lens_App_PaymasterRemoved(paymasterPreviouslySet);
+        }
+        if (paymaster != address(0)) {
             emit Lens_App_PaymasterAdded(paymaster);
             Core._addPaymaster(paymaster);
         }
+        Core._setDefaultPaymaster(paymaster);
     }
 
     function getPaymaster() external view override returns (address) {
@@ -242,7 +259,7 @@ contract App is IApp, AccessControlled {
         emit Lens_App_TreasurySet(treasury);
     }
 
-    function getTreasury() external view override returns (address) {
+    function getTreasury() external view override(IApp, ISource) returns (address) {
         return Core.$storage().treasury;
     }
 

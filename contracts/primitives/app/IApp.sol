@@ -41,6 +41,9 @@ interface IApp is IMetadataBased {
     // Treasury
     event Lens_App_TreasurySet(address indexed treasury);
 
+    // Source Stamp Verification
+    event Lens_App_SourceStampVerificationSet(bool indexed isEnabled);
+
     // Setters
 
     function addGroups(address[] memory groups) external;
@@ -63,6 +66,8 @@ interface IApp is IMetadataBased {
 
     function setExtraData(DataElement[] calldata extraDataToSet) external;
     function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external;
+
+    function setSourceStampVerification(bool isEnabled) external;
 
     // Getters
 
