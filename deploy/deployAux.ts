@@ -4,6 +4,7 @@ import {
   parseLensContractDeployedEventsFromReceipt,
   getAddressFromEvents,
   verifyPrimitive,
+  deployContract,
 } from './utils';
 import { ethers, ZeroAddress } from 'ethers';
 
@@ -28,8 +29,8 @@ interface AppInitialProperties {
 }
 
 export default async function () {
-  await deployPrimitives('0x1812224a23133A52929368A2F16aeA7FED64e384');
-  await deployAccessControl('0xEFc75361dB437bD18E04192Cf90A952F3f425Abb');
+  await deployPrimitives('0x0D68809ccC9638CC8B15dA9F86B0249b4edDc60A');
+  await deployAccessControl('0xd3CF2F709d4338Ec5aa38B001a4996543B79fB95');
 }
 
 export async function deployPrimitives(lensFactoryAddress: string) {
@@ -46,6 +47,7 @@ export async function deployPrimitives(lensFactoryAddress: string) {
   );
 
   const account = await deployAccount(lensFactory);
+  console.log(`Account deployed: ${account}`);
   const feed = await deployFeed(lensFactory);
   const group = await deployGroup(lensFactory);
   const graph = await deployGraph(lensFactory);
@@ -58,13 +60,15 @@ export async function deployPrimitives(lensFactoryAddress: string) {
     groups: [group],
     defaultFeed: feed,
     signers: [],
-    paymaster: ZeroAddress,
-    treasury: ZeroAddress,
+    paymaster: getWallet().address,
+    treasury: getWallet().address,
   };
+
   const app = await deployApp(lensFactory, initialProperties);
 }
 
 async function deployAccount(lensFactory: ethers.Contract): Promise<string> {
+  console.log('Deploying Account');
   const transaction = await lensFactory.deployAccount(
     metadataURI,
     getWallet().address,
@@ -89,6 +93,7 @@ async function deployAccount(lensFactory: ethers.Contract): Promise<string> {
 }
 
 async function deployFeed(lensFactory: ethers.Contract): Promise<string> {
+  console.log('Deploying Feed');
   const transaction = await lensFactory.deployFeed(metadataURI, getWallet().address, [], [], []);
 
   const txReceipt = (await transaction.wait()) as ethers.TransactionReceipt;
@@ -102,6 +107,7 @@ async function deployFeed(lensFactory: ethers.Contract): Promise<string> {
 }
 
 async function deployGroup(lensFactory: ethers.Contract): Promise<string> {
+  console.log('Deploying Group');
   const transaction = await lensFactory.deployGroup(metadataURI, getWallet().address, [], [], []);
 
   const txReceipt = (await transaction.wait()) as ethers.TransactionReceipt;
@@ -115,6 +121,7 @@ async function deployGroup(lensFactory: ethers.Contract): Promise<string> {
 }
 
 async function deployGraph(lensFactory: ethers.Contract): Promise<string> {
+  console.log('Deploying Graph');
   const transaction = await lensFactory.deployGraph(metadataURI, getWallet().address, [], [], []);
 
   const txReceipt = (await transaction.wait()) as ethers.TransactionReceipt;
@@ -128,6 +135,7 @@ async function deployGraph(lensFactory: ethers.Contract): Promise<string> {
 }
 
 async function deployUsername(lensFactory: ethers.Contract): Promise<string> {
+  console.log('Deploying Username');
   const namespace = 'lens';
   const nftName = 'nftName';
   const nftSymbol = 'nftSymbol';
@@ -168,6 +176,9 @@ async function deployApp(
   lensFactory: ethers.Contract,
   initialProperties: AppInitialProperties
 ): Promise<string> {
+  console.log('Deploying App');
+  console.log('Using the following initial properties:');
+  console.log(initialProperties);
   const transaction = await lensFactory.deployApp(
     metadataURI,
     false,
@@ -178,16 +189,24 @@ async function deployApp(
   );
 
   const txReceipt = (await transaction.wait()) as ethers.TransactionReceipt;
+
   const events = parseLensContractDeployedEventsFromReceipt(txReceipt);
   const appAddress = getAddressFromEvents(events, 'app');
   const accessControlAddress = getAddressFromEvents(events, 'access-control');
 
-  await verifyPrimitive('App', appAddress, [metadataURI, accessControlAddress]);
+  await verifyPrimitive('App', appAddress, [
+    metadataURI,
+    false,
+    accessControlAddress,
+    initialProperties,
+    [],
+  ]);
 
   return appAddress;
 }
 
 export async function deployAccessControl(accessControlFactoryAddress: string) {
+  console.log('Deploying Access Control');
   const accessControlFactoryArtifact = await hre.artifacts.readArtifact('AccessControlFactory');
 
   const accessControlFactory = new ethers.Contract(
