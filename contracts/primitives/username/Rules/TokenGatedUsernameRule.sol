@@ -76,7 +76,7 @@ contract TokenGatedUsernameRule is TokenGatedRule, IUsernameRule {
         if (isRestricted && !accessControl.hasAccess(account, SKIP_TOKEN_GATE_PID)) {
             _validateTokenBalance(tokenGateConfiguration, account);
         }
-        return true;
+        return isRestricted;
     }
 
     function processRemoval(address, /* account */ string calldata, /* username */ bytes calldata /* data */ )
