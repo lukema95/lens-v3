@@ -22,7 +22,7 @@ export default async function () {
   const contracts: DeployContract[] = [
     // Actions
     { contractName: 'TippingAccountAction', contractType: ContractType.AccountAction },
-    // { contractName: 'PostAction', contractType: ContractType.PostAction },
+    { contractName: 'SimpleCollectAction', contractType: ContractType.PostAction },
     // Feed Rules
     { contractName: 'GroupGatedFeedRule', contractType: ContractType.FeedRule },
     { contractName: 'RestrictedSignersFeedRule', contractType: ContractType.FeedRule },
