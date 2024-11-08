@@ -173,6 +173,70 @@ export const verifyLensFactoryDeployedUsername = async (data: {
   return deployedAddress;
 };
 
+interface ParsedEvent {
+  primitive: string;
+  primitiveType: string;
+  address: string;
+}
+
+export function parseLensContractDeployedEventsFromReceipt(
+  txReceipt: ethers.TransactionReceipt
+): ParsedEvent[] {
+  const eventInterface = new ethers.Interface([
+    'event Lens_Contract_Deployed(string indexed indexedContractType, string indexed indexedFlavour, string contractType, string flavour)',
+  ]);
+
+  // Parse event logs
+  const events = txReceipt.logs.reduce<ParsedEvent[]>((acc, log) => {
+    try {
+      const decodedLog = eventInterface.decodeEventLog(
+        'Lens_Contract_Deployed',
+        log.data,
+        log.topics
+      );
+      acc.push({
+        primitive: decodedLog[2],
+        primitiveType: decodedLog[3],
+        address: log.address,
+      });
+    } catch (e) {
+      // Skip logs that can't be decoded
+    }
+    return acc;
+  }, []);
+
+  return events;
+}
+
+export const getAddressFromEvents = (events: ParsedEvent[], primitiveName: string) => {
+  return events.filter((e) => e?.primitive === primitiveName)[0]!.address;
+};
+
+export async function verifyPrimitive(
+  primitiveName: string,
+  primitiveAddress: string,
+  constructorArgs: any[]
+) {
+  // Load compiled contract info
+  const primitiveArtifact = await hre.artifacts.readArtifact(primitiveName);
+
+  const deployer = new Deployer(hre, getWallet());
+  const artifact = await deployer.loadArtifact(primitiveName);
+
+  // Initialize contract instance for interaction
+  const primitive = new ethers.Contract(primitiveAddress, primitiveArtifact.abi);
+
+  const encodedConstructorArgs = primitive.interface.encodeDeploy(constructorArgs);
+  const fullContractSource = `${artifact.sourceName}:${artifact.contractName}`;
+
+  await verifyContract({
+    address: primitiveAddress,
+    contract: fullContractSource,
+    constructorArguments: encodedConstructorArgs,
+    bytecode: artifact.bytecode,
+  });
+}
+
 type DeployContractOptions = {
   /**
    * If true, the deployment process will not print any logs

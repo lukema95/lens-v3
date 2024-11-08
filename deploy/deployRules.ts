@@ -18,7 +18,7 @@ interface DeployContract {
   address?: string;
 }
 
-export default async function () {
+export async function deployRules() {
   const contracts: DeployContract[] = [
     // Actions
     { contractName: 'TippingAccountAction', contractType: ContractType.AccountAction },
