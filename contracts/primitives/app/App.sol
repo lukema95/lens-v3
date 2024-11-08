@@ -283,7 +283,6 @@ contract App is IApp, BaseSource, AccessControlled {
     }
 
     function _setExtraData(DataElement[] memory extraDataToSet) internal {
-        _requireAccess(msg.sender, SET_EXTRA_DATA_PID);
         for (uint256 i = 0; i < extraDataToSet.length; i++) {
             bool wasExtraDataAlreadySet = Core._setExtraData(extraDataToSet[i]);
             if (wasExtraDataAlreadySet) {
