@@ -7,9 +7,12 @@ import {Events} from "./../../types/Events.sol";
 import {IAccount, AccountManagerPermissions} from "./IAccount.sol";
 
 contract Account is IAccount, Ownable {
+    // TODO: Think how long the timelock should be and should it be configurable
+    uint256 constant SPENDING_TIMELOCK = 1 hours;
+
     string internal _metadataURI; // TODO: Add getter/setter/internal etc
     mapping(address => AccountManagerPermissions) internal _accountManagerPermissions; // TODO: Add getter/setter/internal etc
-    bool internal _allowNonOwnerSpending; // TODO: Think of a better name
+    uint256 internal _allowNonOwnerSpendingTimestamp; // TODO: Think of a better name
 
     constructor(
         address owner,
@@ -30,8 +33,14 @@ contract Account is IAccount, Ownable {
     // Owner Only functions
 
     function allowNonOwnerSpending(bool allow) external onlyOwner {
-        _allowNonOwnerSpending = allow;
-        emit Lens_Account_AllowNonOwnerSpending(allow);
+        if (allow) {
+            require(_allowNonOwnerSpendingTimestamp == 0, "Non-Owner Spending Already Allowed");
+            _allowNonOwnerSpendingTimestamp = block.timestamp;
+        } else {
+            require(_allowNonOwnerSpendingTimestamp > 0, "Non-Owner Spending Already Not Allowed");
+            delete _allowNonOwnerSpendingTimestamp;
+        }
+        emit Lens_Account_AllowNonOwnerSpending(allow, allow ? block.timestamp : 0);
     }
 
     function addAccountManager(address accountManager, AccountManagerPermissions calldata accountManagerPermissions)
@@ -79,7 +88,11 @@ contract Account is IAccount, Ownable {
                 );
             }
             if (_isTransferRelatedSelector(bytes4(data[:4]))) {
-                require(_allowNonOwnerSpending, "Spender Lock ON: Non-owner spending not allowed");
+                require(
+                    _allowNonOwnerSpendingTimestamp > 0
+                        && block.timestamp - _allowNonOwnerSpendingTimestamp > SPENDING_TIMELOCK,
+                    "Spender Lock ON: Non-owner spending not allowed"
+                );
                 require(_accountManagerPermissions[msg.sender].canTransferTokens, "No permissions to transfer tokens");
             }
         }
