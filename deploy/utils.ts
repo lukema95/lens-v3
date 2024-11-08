@@ -241,6 +241,26 @@ export const deployContract = async (
   return contract;
 };
 
+export const deploy = async (artifactName: string, args: any[]): Promise<string> => {
+  // accessControl factory
+  const accessControlFactory_artifactName = artifactName;
+  const accessControlFactory_args: any[] = [];
+
+  const accessControlFactory = await deployContract(
+    accessControlFactory_artifactName,
+    accessControlFactory_args
+  );
+
+  console.log(`\n✔ ${artifactName} deployed at ${await accessControlFactory.getAddress()}`);
+  return await accessControlFactory.getAddress();
+};
+
+export function camelToAllCaps(camelCase: string): string {
+  return camelCase
+    .replace(/([a-z])([A-Z])/g, '$1_$2') // Insert underscore between lowercase and uppercase letters
+    .toUpperCase(); // Convert to uppercase
+}
+
 /**
  * Rich wallets can be used for testing purposes.
  * Available on ZKsync In-memory node and Dockerized node.
