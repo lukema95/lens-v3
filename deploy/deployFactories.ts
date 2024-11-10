@@ -138,8 +138,7 @@ export default async function deployFactories(): Promise<{
   // TODO: Make this to be written into a file
   console.log('\n\n--- Indexer file ---\n\n');
   console.log('# CONTRACTS');
-  console.log(`GRAPH_FACTORY="${await graphFactory.getAddress()}"`);
-  console.log(`GLOBAL_GRAPH="${globalGraphAddress}"`);
+  console.log(`LENS_FACTORY="${await lensFactory.getAddress()}"`);
   console.log('');
   console.log(`ACCESS_CONTROL_FACTORY="${await accessControlFactory.getAddress()}"`);
   console.log('');
@@ -147,15 +146,17 @@ export default async function deployFactories(): Promise<{
   console.log('');
   console.log(`APP_FACTORY="${await appFactory.getAddress()}"`);
   console.log('');
-  console.log(`LENS_USERNAME="${lensUsernameAddress}"`);
+  console.log(`FEED_FACTORY="${await feedFactory.getAddress()}"`);
+  console.log('');
+  console.log(`GRAPH_FACTORY="${await graphFactory.getAddress()}"`);
+  console.log('');
   console.log(`USERNAME_FACTORY="${await usernameFactory.getAddress()}"`);
   console.log('');
-  console.log(`FEED_FACTORY="${await feedFactory.getAddress()}"`);
-  console.log(`GLOBAL_FEED="${globalFeedAddress}"`);
-  console.log('');
-  console.log(`LENS_FACTORY="${await lensFactory.getAddress()}"`);
   console.log('');
   console.log(`GROUP_FACTORY="${await groupFactory.getAddress()}"`);
+  console.log(`GLOBAL_GRAPH="${globalGraphAddress}"`);
+  console.log(`GLOBAL_FEED="${globalFeedAddress}"`);
+  console.log(`LENS_USERNAME="${lensUsernameAddress}"`);
 
   return {
     lensFactory: await lensFactory.getAddress(),
