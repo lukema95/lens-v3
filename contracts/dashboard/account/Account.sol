@@ -76,8 +76,8 @@ contract Account is IAccount, Ownable, IERC721Receiver {
         emit Lens_Account_AccountManagerUpdated(accountManager, accountManagerPermissions);
     }
 
-    function canExecuteTransactions(address accountManager) external view returns (bool) {
-        return _accountManagerPermissions[accountManager].canExecuteTransactions;
+    function canExecuteTransactions(address executor) external view returns (bool) {
+        return _accountManagerPermissions[executor].canExecuteTransactions || executor == owner();
     }
 
     function setMetadataURI(string calldata metadataURI, SourceStamp calldata sourceStamp) external override {
