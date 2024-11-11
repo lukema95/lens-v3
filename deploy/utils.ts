@@ -120,7 +120,7 @@ export const verifyLensFactoryDeployedPrimitive = async (data: {
   )[0]!.address;
   const accessControlAddress = events.filter((e) => e?.primitive === 'access-control')[0]?.address;
 
-  if (accessControlAddress === undefined) {
+  if (accessControlAddress) {
     const deployedArtifact = await hre.artifacts.readArtifact(data.lensContractArtifactName);
 
     await verifyDeployedContract({

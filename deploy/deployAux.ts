@@ -29,8 +29,11 @@ interface AppInitialProperties {
 }
 
 export default async function () {
-  await deployPrimitives('0x0D68809ccC9638CC8B15dA9F86B0249b4edDc60A');
-  await deployAccessControl('0xd3CF2F709d4338Ec5aa38B001a4996543B79fB95');
+  const lensFactoryAddress = '0x0D68809ccC9638CC8B15dA9F86B0249b4edDc60A';
+  const accessControlFactoryAddress = '0xd3CF2F709d4338Ec5aa38B001a4996543B79fB95';
+
+  await deployPrimitives(lensFactoryAddress);
+  await deployAccessControl(accessControlFactoryAddress);
 }
 
 export async function deployPrimitives(lensFactoryAddress: string) {
@@ -49,9 +52,13 @@ export async function deployPrimitives(lensFactoryAddress: string) {
   const account = await deployAccount(lensFactory);
   console.log(`Account deployed: ${account}`);
   const feed = await deployFeed(lensFactory);
+  console.log(`Feed deployed: ${feed}`);
   const group = await deployGroup(lensFactory);
+  console.log(`Group deployed: ${group}`);
   const graph = await deployGraph(lensFactory);
+  console.log(`Graph deployed: ${graph}`);
   const username = await deployUsername(lensFactory);
+  console.log(`Username deployed: ${username}`);
 
   const initialProperties: AppInitialProperties = {
     graph,
@@ -65,6 +72,7 @@ export async function deployPrimitives(lensFactoryAddress: string) {
   };
 
   const app = await deployApp(lensFactory, initialProperties);
+  console.log(`App deployed: ${app}`);
 }
 
 async function deployAccount(lensFactory: ethers.Contract): Promise<string> {
