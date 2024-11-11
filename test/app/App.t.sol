@@ -2,10 +2,10 @@
 pragma solidity 0.8.17;
 
 import "forge-std/Test.sol";
-import {App, AppInitialProperties} from "../../contracts/primitives/app/App.sol";
-import {IAccessControl} from "../../contracts/primitives/access-control/IAccessControl.sol";
-import {DataElement} from "../../contracts/types/Types.sol";
-import {OwnerAdminOnlyAccessControl} from "../../contracts/primitives/access-control/OwnerAdminOnlyAccessControl.sol";
+import {App, AppInitialProperties} from "../../contracts/dashboard/primitives/app/App.sol";
+import {IAccessControl} from "../../contracts/core/interfaces/IAccessControl.sol";
+import {DataElement} from "../../contracts/core/types/Types.sol";
+import {OwnerAdminOnlyAccessControl} from "../../contracts/dashboard/access/OwnerAdminOnlyAccessControl.sol";
 
 // struct AppInitialProperties {
 //     address graph;

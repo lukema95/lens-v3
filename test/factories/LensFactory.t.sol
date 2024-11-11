@@ -1,16 +1,16 @@
 pragma solidity 0.8.17;
 
 import "forge-std/Test.sol";
-import {LensFactory} from "../../contracts/factories/LensFactory.sol";
-import {AccountFactory} from "../../contracts/factories/AccountFactory.sol";
-import {AppFactory} from "../../contracts/factories/AppFactory.sol";
-import {GroupFactory} from "../../contracts/factories/GroupFactory.sol";
-import {FeedFactory} from "../../contracts/factories/FeedFactory.sol";
-import {GraphFactory} from "../../contracts/factories/GraphFactory.sol";
-import {UsernameFactory} from "../../contracts/factories/UsernameFactory.sol";
-import {Username} from "../../contracts/primitives/username/Username.sol";
-import {RuleConfiguration, DataElement, SourceStamp, RuleExecutionData} from "../../contracts/types/Types.sol";
-import {AccountManagerPermissions} from "../../contracts/primitives/account/Account.sol";
+import {LensFactory} from "../../contracts/dashboard/factories/LensFactory.sol";
+import {AccountFactory} from "../../contracts/dashboard/factories/AccountFactory.sol";
+import {AppFactory} from "../../contracts/dashboard/factories/AppFactory.sol";
+import {GroupFactory} from "../../contracts/dashboard/factories/GroupFactory.sol";
+import {FeedFactory} from "../../contracts/dashboard/factories/FeedFactory.sol";
+import {GraphFactory} from "../../contracts/dashboard/factories/GraphFactory.sol";
+import {UsernameFactory} from "../../contracts/dashboard/factories/UsernameFactory.sol";
+import {Username} from "../../contracts/core/primitives/username/Username.sol";
+import {RuleConfiguration, DataElement, SourceStamp, RuleExecutionData} from "../../contracts/core/types/Types.sol";
+import {AccountManagerPermissions} from "../../contracts/dashboard/account/Account.sol";
 
 contract LensFactoryTest is Test {
     LensFactory lensFactory;
