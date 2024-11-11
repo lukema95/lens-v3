@@ -33,7 +33,13 @@
 ### 1. Clone the Repository
 
 ```
-git clone git@github.com:lens-protocol/core.git
+git clone git@github.com:lens-protocol/lens-v3.git
+```
+
+or
+
+```
+git clone https://github.com/lens-protocol/lens-v3.git
 ```
 
 ### 2. Install dependencies
