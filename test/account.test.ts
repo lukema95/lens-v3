@@ -1,29 +1,43 @@
 import { expect } from 'chai';
+import * as hre from 'hardhat';
 import { Contract, Wallet } from 'zksync-ethers';
-import { getWallet, deployContract, LOCAL_RICH_WALLETS } from '../deploy/utils';
+import { ZeroAddress } from 'ethers';
+import {
+  getWallet,
+  deployContract,
+  LOCAL_RICH_WALLETS,
+  parseLensContractDeployedEventsFromReceipt,
+  getAddressFromEvents,
+} from '../deploy/utils';
+import { deployUsername } from '../deploy/deployAux';
 import * as ethers from 'ethers';
 
 describe('Account', function () {
   let accountContract: Contract;
   let accountFactoryContract: Contract;
-  let accessControlContract: Contract;
+  let feedFactoryContract: Contract;
   let feedContract: Contract;
   let usernameContract: Contract;
-  let lensFactoryContract: Contract;
+  let lensFactory: Contract;
   let ownerWallet: Wallet;
   let managerWallet: Wallet;
   let usernameAccountOwnerWallet: Wallet;
+  let usernameFactoryContract: Contract;
+  let username: string;
+
+  const metadataURI = 'https://ipfs.io/ipfs/QmZ';
+
+  const emptySourceStamp = {
+    source: ZeroAddress,
+    nonce: 0,
+    deadline: 0,
+    signature: '0x',
+  };
 
   before(async function () {
     ownerWallet = getWallet(LOCAL_RICH_WALLETS[0].privateKey);
     managerWallet = getWallet(LOCAL_RICH_WALLETS[1].privateKey);
     usernameAccountOwnerWallet = getWallet(LOCAL_RICH_WALLETS[2].privateKey);
-
-    accountContract = await deployContract(
-      'contracts/primitives/account/Account.sol:Account',
-      [await ownerWallet.getAddress(), 'someMetadata', [await managerWallet.getAddress()]],
-      { wallet: ownerWallet, silent: true }
-    );
 
     accountFactoryContract = await deployContract(
       'contracts/factories/AccountFactory.sol:AccountFactory',
@@ -31,76 +45,132 @@ describe('Account', function () {
       {
         wallet: ownerWallet,
         silent: true,
+        noVerify: true,
       }
     );
 
-    lensFactoryContract = await deployContract(
+    feedFactoryContract = await deployContract(
+      'contracts/factories/FeedFactory.sol:FeedFactory',
+      [],
+      {
+        wallet: ownerWallet,
+        silent: true,
+        noVerify: true,
+      }
+    );
+
+    usernameFactoryContract = await deployContract(
+      'contracts/factories/UsernameFactory.sol:UsernameFactory',
+      [],
+      {
+        wallet: ownerWallet,
+        silent: true,
+        noVerify: true,
+      }
+    );
+
+    lensFactory = await deployContract(
       'LensFactory',
       [
         await accountFactoryContract.getAddress(),
-        ethers.ZeroAddress,
-        ethers.ZeroAddress,
-        ethers.ZeroAddress,
-        ethers.ZeroAddress,
-        ethers.ZeroAddress,
+        ethers.ZeroAddress, // App
+        ethers.ZeroAddress, // Group
+        await feedFactoryContract.getAddress(), // Feed
+        ethers.ZeroAddress, // Graph
+        await usernameFactoryContract.getAddress(),
       ],
       {
         wallet: ownerWallet,
         silent: true,
+        noVerify: true,
       }
     );
+    console.log(`LensFactory deployed: ${await lensFactory.getAddress()}`);
 
-    accessControlContract = await deployContract(
-      'OwnerOnlyAccessControl',
-      [await ownerWallet.getAddress()],
-      { wallet: ownerWallet, silent: true }
+    username = await deployUsername(lensFactory, true);
+    console.log(`Username deployed: ${username}`);
+
+    const usernameArtifact = await hre.artifacts.readArtifact('Username');
+
+    usernameContract = new ethers.Contract(
+      username,
+      usernameArtifact.abi,
+      ownerWallet // Interact with the contract on behalf of this wallet
     );
 
-    feedContract = await deployContract(
-      'Feed',
-      ['feedMetadata', await accessControlContract.getAddress()],
-      { wallet: ownerWallet, silent: true }
+    const transaction = await lensFactory.deployAccount(
+      metadataURI,
+      ownerWallet.address,
+      [managerWallet.address],
+      [
+        {
+          canExecuteTransactions: true,
+          canTransferTokens: true,
+          canTransferNative: true,
+          canSetMetadataURI: true,
+        },
+      ],
+      emptySourceStamp
     );
 
-    usernameContract = await deployContract(
-      'Username',
-      ['lens', 'usernameMetadata', await accessControlContract.getAddress()],
-      { wallet: ownerWallet, silent: true }
+    const txReceipt = (await transaction.wait()) as ethers.TransactionReceipt;
+    const events = parseLensContractDeployedEventsFromReceipt(txReceipt);
+
+    const accountArtifact = await hre.artifacts.readArtifact('Account');
+    const accountAddress = getAddressFromEvents(events, 'account');
+
+    accountContract = new ethers.Contract(
+      accountAddress,
+      accountArtifact.abi,
+      ownerWallet // Interact with the contract on behalf of this wallet
+    );
+
+    const transaction2 = await lensFactory.deployFeed(metadataURI, ownerWallet.address, [], [], []);
+
+    const txReceipt2 = (await transaction2.wait()) as ethers.TransactionReceipt;
+    const events2 = parseLensContractDeployedEventsFromReceipt(txReceipt2);
+
+    const feedArtifact = await hre.artifacts.readArtifact('Feed');
+    const feedAddress = getAddressFromEvents(events2, 'feed');
+
+    feedContract = new ethers.Contract(
+      feedAddress,
+      feedArtifact.abi,
+      ownerWallet // Interact with the contract on behalf of this wallet
     );
   });
 
   it('Should make a post from Account (via owner tx)', async function () {
     console.log(`Account contract address: ${await accountContract.getAddress()}`);
 
-    const postTx = (await feedContract.createPost.populateTransaction({
-      author: await accountContract.getAddress(),
-      source: '0x0000000000000000000000000000000000000000',
-      contentURI: 'Post from SmartAccount (by owner)',
-      quotedPostId: 0,
-      parentPostId: 0,
-      rules: [],
-      feedRulesData: {
-        dataForRequiredRules: [],
-        dataForAnyOfRules: [],
+    const postTx = (await feedContract.createPost.populateTransaction(
+      {
+        author: await accountContract.getAddress(),
+        contentURI: 'Post from SmartAccount (by owner)',
+        repostedPostId: 0,
+        quotedPostId: 0,
+        repliedPostId: 0,
+        rules: [],
+        feedRulesData: {
+          dataForRequiredRules: [],
+          dataForAnyOfRules: [],
+        },
+        repostedPostRulesData: {
+          dataForRequiredRules: [],
+          dataForAnyOfRules: [],
+        },
+        quotedPostRulesData: {
+          dataForRequiredRules: [],
+          dataForAnyOfRules: [],
+        },
+        repliedPostRulesData: {
+          dataForRequiredRules: [],
+          dataForAnyOfRules: [],
+        },
+        extraData: [],
       },
-      changeRulesQuotePostRulesData: {
-        dataForRequiredRules: [],
-        dataForAnyOfRules: [],
-      },
-      changeRulesParentPostRulesData: {
-        dataForRequiredRules: [],
-        dataForAnyOfRules: [],
-      },
-      quotesPostRulesData: {
-        dataForRequiredRules: [],
-        dataForAnyOfRules: [],
-      },
-      parentsPostRulesData: {
-        dataForRequiredRules: [],
-        dataForAnyOfRules: [],
-      },
-      extraData: [],
-    })) as ethers.ContractTransaction;
+      emptySourceStamp
+    )) as ethers.ContractTransaction;
 
     const tx = await accountContract.executeTransaction(postTx.to, 0, postTx.data);
     const txReceipt = (await tx.wait()) as ethers.TransactionReceipt;
@@ -134,35 +204,34 @@ describe('Account', function () {
   it('Should make a post from Account (via accountManager tx)', async function () {
     console.log(`Account contract address: ${await accountContract.getAddress()}`);
 
-    const postTx = (await feedContract.createPost.populateTransaction({
-      author: await accountContract.getAddress(),
-      source: '0x0000000000000000000000000000000000000000',
-      contentURI: 'Post from SmartAccount (by AccountManager)',
-      quotedPostId: 0,
-      parentPostId: 0,
-      rules: [],
-      feedRulesData: {
-        dataForRequiredRules: [],
-        dataForAnyOfRules: [],
+    const postTx = (await feedContract.createPost.populateTransaction(
+      {
+        author: await accountContract.getAddress(),
+        contentURI: 'Post from SmartAccount (by AccountManager)',
+        repostedPostId: 0,
+        quotedPostId: 0,
+        repliedPostId: 0,
+        rules: [],
+        feedRulesData: {
+          dataForRequiredRules: [],
+          dataForAnyOfRules: [],
+        },
+        repostedPostRulesData: {
+          dataForRequiredRules: [],
+          dataForAnyOfRules: [],
+        },
+        quotedPostRulesData: {
+          dataForRequiredRules: [],
+          dataForAnyOfRules: [],
+        },
+        repliedPostRulesData: {
+          dataForRequiredRules: [],
+          dataForAnyOfRules: [],
+        },
+        extraData: [],
       },
-      changeRulesQuotePostRulesData: {
-        dataForRequiredRules: [],
-        dataForAnyOfRules: [],
-      },
-      changeRulesParentPostRulesData: {
-        dataForRequiredRules: [],
-        dataForAnyOfRules: [],
-      },
-      quotesPostRulesData: {
-        dataForRequiredRules: [],
-        dataForAnyOfRules: [],
-      },
-      parentsPostRulesData: {
-        dataForRequiredRules: [],
-        dataForAnyOfRules: [],
-      },
-      extraData: [],
-    })) as ethers.ContractTransaction;
+      emptySourceStamp
+    )) as ethers.ContractTransaction;
 
     const tx = await (accountContract.connect(managerWallet) as Contract).executeTransaction(
       postTx.to,
@@ -198,13 +267,25 @@ describe('Account', function () {
   });
 
   it('Should create an account with a username', async function () {
-    const tx = await lensFactoryContract.createAccountWithUsernameFree(
+    const tx = await lensFactory.createAccountWithUsernameFree(
       'someMetadata',
-      await usernameAccountOwnerWallet.getAddress(),
-      [await managerWallet.getAddress()],
-      await usernameContract.getAddress(),
-      'testusername',
-      { dataForRequiredRules: [], dataForAnyOfRules: [] }
+      ownerWallet.address,
+      [managerWallet.address],
+      [
+        {
+          canExecuteTransactions: true,
+          canTransferTokens: true,
+          canTransferNative: true,
+          canSetMetadataURI: true,
+        },
+      ],
+      username,
+      'testusername2',
+      { dataForRequiredRules: [], dataForAnyOfRules: [] },
+      { dataForRequiredRules: [], dataForAnyOfRules: [] },
+      emptySourceStamp,
+      emptySourceStamp,
+      emptySourceStamp
     );
 
     const txReceipt = (await tx.wait()) as ethers.TransactionReceipt;
