@@ -2,13 +2,14 @@
 pragma solidity ^0.8.12;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 import {Events} from "./../../types/Events.sol";
 import {IAccount, AccountManagerPermissions} from "./IAccount.sol";
 import {SourceStamp} from "./../../types/Types.sol";
 import {ISource} from "./../../primitives/base/ISource.sol";
 
-contract Account is IAccount, Ownable {
+contract Account is IAccount, Ownable, IERC721Receiver {
     // TODO: Think how long the timelock should be and should it be configurable
     uint256 constant SPENDING_TIMELOCK = 1 hours;
 
@@ -135,5 +136,13 @@ contract Account is IAccount, Ownable {
     function _transferOwnership(address newOwner) internal override {
         super._transferOwnership(newOwner);
         emit Lens_Account_OwnerTransferred(newOwner);
+    }
+
+    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data)
+        external
+        override
+        returns (bytes4)
+    {
+        return this.onERC721Received.selector;
     }
 }
