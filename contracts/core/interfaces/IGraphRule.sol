@@ -10,16 +10,6 @@ interface IGraphRule {
         external
         returns (bool);
 
-    // TODO: Should this exist? Maybe not, so it cannot prevent the unfollow...
-    // Maybe the function should exist but not being called by `unfollow` but by the user in a separate tx later.
-    // We could even do wrappers for this, given that all the accounts are smart contracts
-    function processUnfollow(
-        address unfollowerAccount,
-        address accountToUnfollow,
-        uint256 followId,
-        bytes calldata data
-    ) external returns (bool);
-
     function processFollowRulesChange(address account, RuleConfiguration[] calldata followRules, bytes calldata data)
         external
         returns (bool);

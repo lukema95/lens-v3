@@ -78,20 +78,4 @@ contract TokenGatedUsernameRule is TokenGatedRule, IUsernameRule {
         }
         return isRestricted;
     }
-
-    function processRemoval(address, /* account */ string calldata, /* username */ bytes calldata /* data */ )
-        external
-        pure
-        returns (bool)
-    {
-        return false;
-    }
-
-    function processUnassigning(address, /* account */ string calldata, /* username */ bytes calldata /* data */ )
-        external
-        pure
-        returns (bool)
-    {
-        return false;
-    }
 }

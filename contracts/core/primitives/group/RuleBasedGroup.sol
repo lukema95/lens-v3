@@ -61,17 +61,6 @@ contract RuleBasedGroup {
         _processGroupRule(_internalProcessRemoval, account, membershipId, data);
     }
 
-    function _internalProcessLeaving(address rule, address account, uint256 membershipId, bytes calldata data)
-        internal
-        returns (bool, bytes memory)
-    {
-        return rule.call(abi.encodeCall(IGroupRule.processLeaving, (account, membershipId, data)));
-    }
-
-    function _processLeaving(address account, uint256 membershipId, RuleExecutionData calldata data) internal {
-        _processGroupRule(_internalProcessLeaving, account, membershipId, data);
-    }
-
     function _processGroupRule(
         function(address,address,uint256,bytes calldata) internal returns (bool,bytes memory) func,
         address account,

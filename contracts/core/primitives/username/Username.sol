@@ -124,7 +124,6 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
         if (sourceStamp.source != address(0)) {
             ISource(sourceStamp.source).validateSource(sourceStamp);
         }
-        _processRemoval(owner, username, data);
         emit Lens_Username_Removed(username, owner, data, sourceStamp.source);
     }
 
@@ -155,19 +154,8 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
         if (sourceStamp.source != address(0)) {
             ISource(sourceStamp.source).validateSource(sourceStamp);
         }
-        _processUnassigning(account, username, data);
         emit Lens_Username_Unassigned(username, account, data, sourceStamp.source);
     }
-
-    // TODO: Decide if it worth to have a "before/after" hook for the rules, or if we are covered just with the "before"
-    // Think about CEI pattern and if we are OK with the "before", because it looks more like CIE than CEI.
-    // function assignUsername(address account, string memory username, bytes calldata data) external {
-    //     require(msg.sender == account); // msg.sender must be the account
-    //     IUsernameRule(Core.$storage().usernameRules).beforeAssigning(msg.sender, account, username, data);
-    //     Core._assignUsername(account, username);
-    //     IUsernameRule(Core.$storage().usernameRules).afterAssigning(msg.sender, account, username, data);
-    //     emit Lens_Username_Assigned(username, account, data);
-    // }
 
     function setExtraData(DataElement[] calldata extraDataToSet) external override {
         _requireAccess(msg.sender, SET_EXTRA_DATA_PID);
@@ -197,9 +185,6 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
 
     function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal virtual override {
         if (from != address(0) && to != address(0)) {
-            // TODO: What do we do, we cannot call rules here, we don't have the execution data...
-            // maybe we do not need IUsernameRule's porcess functions for unassign and remove, like the unfollow...
-            // either that, or we need to have a custom transfer function that call rules and have a source
             string memory username = _idToUsername[tokenId];
             if (Core.$storage().usernameToAccount[username] != address(0)) {
                 Core._unassignUsername(Core.$storage().accountToUsername[to]);
@@ -220,12 +205,10 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
 
     // Getters
 
-    // TODO: getUsernameOf?
     function usernameOf(address user) external view returns (string memory) {
         return Core.$storage().accountToUsername[user];
     }
 
-    // TODO: getAccountOf?
     function accountOf(string memory name) external view returns (address) {
         return Core.$storage().usernameToAccount[name];
     }

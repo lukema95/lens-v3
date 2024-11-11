@@ -7,6 +7,4 @@ interface IGroupRule {
     function processJoining(address account, uint256 membershipId, bytes calldata data) external returns (bool);
 
     function processRemoval(address account, uint256 membershipId, bytes calldata data) external returns (bool);
-
-    function processLeaving(address account, uint256 membershipId, bytes calldata data) external returns (bool);
 }

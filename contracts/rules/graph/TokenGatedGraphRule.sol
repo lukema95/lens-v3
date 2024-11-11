@@ -30,15 +30,6 @@ contract TokenGatedGraphRule is TokenGatedRule, IGraphRule {
         return true;
     }
 
-    function processUnfollow(
-        address, /* unfollowerAccount */
-        address, /* accountToUnfollow */
-        uint256, /* followId */
-        bytes calldata /* data*/
-    ) external pure returns (bool) {
-        return false;
-    }
-
     function processFollowRulesChange(
         address, /* account*/
         RuleConfiguration[] calldata, /*followRules*/

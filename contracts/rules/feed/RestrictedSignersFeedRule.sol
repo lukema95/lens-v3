@@ -11,56 +11,40 @@ contract RestrictedSignersFeedRule is RestrictedSignersRule, IFeedRule {
         _configure(data);
     }
 
-    function processCreatePost(
-        uint256 postId,
-        uint256 localSequentialId,
-        CreatePostParams calldata postParams,
-        bytes calldata data
-    ) external override returns (bool) {
-        _validateRestrictedSignerMessage({
-            functionSelector: IFeedRule.processCreatePost.selector,
-            abiEncodedFunctionParams: abi.encode(postId, localSequentialId, postParams),
-            signature: abi.decode(data, (EIP712Signature))
-        });
-        return true;
-    }
-
-    function processEditPost(
-        uint256 postId,
-        uint256 localSequentialId,
-        EditPostParams calldata editPostParams,
-        bytes calldata data
-    ) external override returns (bool) {
-        _validateRestrictedSignerMessage({
-            functionSelector: IFeedRule.processEditPost.selector,
-            abiEncodedFunctionParams: abi.encode(postId, localSequentialId, editPostParams),
-            signature: abi.decode(data, (EIP712Signature))
-        });
-        return true;
-    }
-
-    function processDeletePost(uint256 postId, uint256 localSequentialId, bytes calldata data)
+    function processCreatePost(uint256 postId, CreatePostParams calldata postParams, bytes calldata data)
         external
         override
         returns (bool)
     {
         _validateRestrictedSignerMessage({
-            functionSelector: IFeedRule.processDeletePost.selector,
-            abiEncodedFunctionParams: abi.encode(postId, localSequentialId),
+            functionSelector: IFeedRule.processCreatePost.selector,
+            abiEncodedFunctionParams: abi.encode(postId, postParams),
             signature: abi.decode(data, (EIP712Signature))
         });
         return true;
     }
 
-    function processPostRulesChanged(
-        uint256 postId,
-        uint256 localSequentialId,
-        RuleConfiguration[] calldata newPostRules,
-        bytes calldata data
-    ) external override returns (bool) {
+    function processEditPost(uint256 postId, EditPostParams calldata editPostParams, bytes calldata data)
+        external
+        override
+        returns (bool)
+    {
+        _validateRestrictedSignerMessage({
+            functionSelector: IFeedRule.processEditPost.selector,
+            abiEncodedFunctionParams: abi.encode(postId, editPostParams),
+            signature: abi.decode(data, (EIP712Signature))
+        });
+        return true;
+    }
+
+    function processPostRulesChanged(uint256 postId, RuleConfiguration[] calldata newPostRules, bytes calldata data)
+        external
+        override
+        returns (bool)
+    {
         _validateRestrictedSignerMessage({
             functionSelector: IFeedRule.processPostRulesChanged.selector,
-            abiEncodedFunctionParams: abi.encode(postId, localSequentialId, newPostRules),
+            abiEncodedFunctionParams: abi.encode(postId, newPostRules),
             signature: abi.decode(data, (EIP712Signature))
         });
         return true;

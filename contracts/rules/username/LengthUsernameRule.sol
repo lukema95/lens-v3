@@ -62,23 +62,7 @@ contract LengthUsernameRule is IUsernameRule {
         return true;
     }
 
-    function processRemoval(address, /* account */ string calldata, /* username */ bytes calldata /* data */ )
-        external
-        pure
-        returns (bool)
-    {
-        return false;
-    }
-
     function processAssigning(address, /* account */ string calldata, /* username */ bytes calldata /* data */ )
-        external
-        pure
-        returns (bool)
-    {
-        return false;
-    }
-
-    function processUnassigning(address, /* account */ string calldata, /* username */ bytes calldata /* data */ )
         external
         pure
         returns (bool)

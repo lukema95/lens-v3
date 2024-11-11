@@ -13,37 +13,26 @@ contract GroupGatedFeedRule is IFeedRule {
         _groupGate[msg.sender] = abi.decode(data, (address));
     }
 
-    function processCreatePost(
-        uint256, /* postId */
-        uint256, /* localSequentialId */
-        CreatePostParams calldata postParams,
-        bytes calldata /* data */
-    ) external view override returns (bool) {
+    function processCreatePost(uint256, /* postId */ CreatePostParams calldata postParams, bytes calldata /* data */ )
+        external
+        view
+        override
+        returns (bool)
+    {
         require(IGroup(_groupGate[msg.sender]).getMembershipId(postParams.author) != 0, "NotAMember()");
         return true;
     }
 
     function processEditPost(
         uint256, /* postId */
-        uint256, /* localSequentialId */
         EditPostParams calldata, /* editPostParams */
         bytes calldata /* data */
     ) external pure override returns (bool) {
         return false;
     }
 
-    function processDeletePost(uint256, /* postId */ uint256, /* localSequentialId */ bytes calldata /* data */ )
-        external
-        pure
-        override
-        returns (bool)
-    {
-        return false;
-    }
-
     function processPostRulesChanged(
         uint256, /* postId */
-        uint256, /* localSequentialId */
         RuleConfiguration[] calldata, /* newPostRules */
         bytes calldata /* data */
     ) external pure override returns (bool) {

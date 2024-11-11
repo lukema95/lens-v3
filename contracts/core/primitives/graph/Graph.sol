@@ -144,7 +144,6 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
         if (sourceStamp.source != address(0)) {
             ISource(sourceStamp.source).validateSource(sourceStamp);
         }
-        _graphProcessUnfollow(followerAccount, accountToUnfollow, followId, graphRulesData);
         emit Lens_Graph_Unfollowed(followerAccount, accountToUnfollow, followId, graphRulesData, sourceStamp.source);
         return followId;
     }

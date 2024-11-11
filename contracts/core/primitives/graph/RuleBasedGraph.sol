@@ -173,41 +173,6 @@ contract RuleBasedGraph {
         revert("All of the any-of rules failed");
     }
 
-    function _graphProcessUnfollow(
-        address unfollowerAccount,
-        address accountToUnfollow,
-        uint256 followId,
-        RuleExecutionData calldata graphRulesData
-    ) internal {
-        // Check required rules (AND-combined rules)
-        for (uint256 i = 0; i < $graphRulesStorage().requiredRules.length; i++) {
-            (bool callNotReverted,) = $graphRulesStorage().requiredRules[i].call(
-                abi.encodeCall(
-                    IGraphRule.processUnfollow,
-                    (unfollowerAccount, accountToUnfollow, followId, graphRulesData.dataForRequiredRules[i])
-                )
-            );
-            require(callNotReverted, "Some required rule failed");
-        }
-        // Check any-of rules (OR-combined rules)
-        if ($graphRulesStorage().anyOfRules.length == 0) {
-            return; // If there are no OR-combined rules, we can return
-        }
-        for (uint256 i = 0; i < $graphRulesStorage().anyOfRules.length; i++) {
-            (bool callNotReverted, bytes memory returnData) = $graphRulesStorage().anyOfRules[i].call(
-                abi.encodeCall(
-                    IGraphRule.processUnfollow,
-                    (unfollowerAccount, accountToUnfollow, followId, graphRulesData.dataForAnyOfRules[i])
-                )
-            );
-            if (callNotReverted && abi.decode(returnData, (bool))) {
-                // Note: abi.decode would fail if call reverted, so don't put this out of the brackets!
-                return; // If any of the OR-combined rules passed, it means they succeed and we can return
-            }
-        }
-        revert("All of the any-of rules failed");
-    }
-
     function _getGraphRules(bool isRequired) internal view returns (address[] memory) {
         return $graphRulesStorage().getRulesArray(isRequired);
     }

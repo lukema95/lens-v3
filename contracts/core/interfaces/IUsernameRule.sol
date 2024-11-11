@@ -6,11 +6,5 @@ interface IUsernameRule {
 
     function processCreation(address account, string calldata username, bytes calldata data) external returns (bool);
 
-    function processRemoval(address account, string calldata username, bytes calldata data) external returns (bool);
-
     function processAssigning(address account, string calldata username, bytes calldata data) external returns (bool);
-
-    function processUnassigning(address account, string calldata username, bytes calldata data)
-        external
-        returns (bool);
 }

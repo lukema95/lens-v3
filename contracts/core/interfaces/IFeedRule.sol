@@ -7,28 +7,15 @@ import {RuleConfiguration} from "./../types/Types.sol";
 interface IFeedRule {
     function configure(bytes calldata data) external;
 
-    function processCreatePost(
-        uint256 postId,
-        uint256 localSequentialId,
-        CreatePostParams calldata postParams,
-        bytes calldata data
-    ) external returns (bool);
-
-    function processEditPost(
-        uint256 postId,
-        uint256 localSequentialId,
-        EditPostParams calldata editPostParams,
-        bytes calldata data
-    ) external returns (bool);
-
-    function processDeletePost(uint256 postId, uint256 localSequentialId, bytes calldata data)
+    function processCreatePost(uint256 postId, CreatePostParams calldata postParams, bytes calldata data)
         external
         returns (bool);
 
-    function processPostRulesChanged(
-        uint256 postId,
-        uint256 localSequentialId,
-        RuleConfiguration[] calldata newPostRules,
-        bytes calldata data
-    ) external returns (bool);
+    function processEditPost(uint256 postId, EditPostParams calldata editPostParams, bytes calldata data)
+        external
+        returns (bool);
+
+    function processPostRulesChanged(uint256 postId, RuleConfiguration[] calldata newPostRules, bytes calldata data)
+        external
+        returns (bool);
 }

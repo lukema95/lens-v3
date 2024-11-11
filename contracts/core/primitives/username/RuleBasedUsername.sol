@@ -51,17 +51,6 @@ contract RuleBasedUsername {
         _processUsernameRule(_internalProcessCreation, account, username, data);
     }
 
-    function _internalProcessRemoval(address rule, address account, string calldata username, bytes calldata data)
-        internal
-        returns (bool, bytes memory)
-    {
-        return rule.call(abi.encodeCall(IUsernameRule.processRemoval, (account, username, data)));
-    }
-
-    function _processRemoval(address account, string calldata username, RuleExecutionData calldata data) internal {
-        _processUsernameRule(_internalProcessRemoval, account, username, data);
-    }
-
     function _internalProcessAssigning(address rule, address account, string calldata username, bytes calldata data)
         internal
         returns (bool, bytes memory)
@@ -71,17 +60,6 @@ contract RuleBasedUsername {
 
     function _processAssigning(address account, string calldata username, RuleExecutionData calldata data) internal {
         _processUsernameRule(_internalProcessAssigning, account, username, data);
-    }
-
-    function _internalProcessUnassigning(address rule, address account, string calldata username, bytes calldata data)
-        internal
-        returns (bool, bytes memory)
-    {
-        return rule.call(abi.encodeCall(IUsernameRule.processUnassigning, (account, username, data)));
-    }
-
-    function _processUnassigning(address account, string calldata username, RuleExecutionData calldata data) internal {
-        _processUsernameRule(_internalProcessUnassigning, account, username, data);
     }
 
     function _processUsernameRule(

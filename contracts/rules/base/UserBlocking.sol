@@ -28,12 +28,11 @@ contract UserBlocking is IFeedRule, IGraphRule {
         userBlocks[msg.sender][target] = 0;
     }
 
-    function processCreatePost(
-        uint256 postId,
-        uint256, /* localSequentialId */
-        CreatePostParams calldata postParams,
-        bytes calldata /* data */
-    ) external view returns (bool) {
+    function processCreatePost(uint256 postId, CreatePostParams calldata postParams, bytes calldata /* data */ )
+        external
+        view
+        returns (bool)
+    {
         if (postParams.repliedPostId != 0) {
             address author = postParams.author;
             address repliedToAuthor = IFeed(msg.sender).getPostAuthor(postParams.repliedPostId);
@@ -73,34 +72,15 @@ contract UserBlocking is IFeedRule, IGraphRule {
 
     function processEditPost(
         uint256, /* postId */
-        uint256, /* localSequentialId */
         EditPostParams calldata, /* editPostParams */
         bytes calldata /* data */
     ) external pure returns (bool) {
         return false;
     }
 
-    function processDeletePost(uint256, /* postId */ uint256, /* localSequentialId */ bytes calldata /* data */ )
-        external
-        pure
-        returns (bool)
-    {
-        return false;
-    }
-
     function processPostRulesChanged(
         uint256, /* postId */
-        uint256, /* localSequentialId */
         RuleConfiguration[] calldata, /* newPostRules */
-        bytes calldata /* data */
-    ) external pure returns (bool) {
-        return false;
-    }
-
-    function processUnfollow(
-        address, /* unfollowerAccount */
-        address, /* accountToUnfollow */
-        uint256, /* followId */
         bytes calldata /* data */
     ) external pure returns (bool) {
         return false;

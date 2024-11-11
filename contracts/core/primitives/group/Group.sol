@@ -109,7 +109,6 @@ contract Group is IGroup, RuleBasedGroup, AccessControlled {
     {
         require(msg.sender == account);
         uint256 membershipId = Core._revokeMembership(account);
-        _processLeaving(account, membershipId, groupRulesData);
         if (sourceStamp.source != address(0)) {
             ISource(sourceStamp.source).validateSource(sourceStamp);
         }

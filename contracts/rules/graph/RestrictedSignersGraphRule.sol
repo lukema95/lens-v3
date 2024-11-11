@@ -23,20 +23,6 @@ contract RestrictedSignersGraphRule is RestrictedSignersRule, IGraphRule {
         return true;
     }
 
-    function processUnfollow(
-        address unfollowerAccount,
-        address accountToUnfollow,
-        uint256 followId,
-        bytes calldata data
-    ) external override returns (bool) {
-        _validateRestrictedSignerMessage({
-            functionSelector: IGraphRule.processUnfollow.selector,
-            abiEncodedFunctionParams: abi.encode(unfollowerAccount, accountToUnfollow, followId),
-            signature: abi.decode(data, (EIP712Signature))
-        });
-        return true;
-    }
-
     function processFollowRulesChange(address account, RuleConfiguration[] calldata followRules, bytes calldata data)
         external
         override

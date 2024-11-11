@@ -29,12 +29,4 @@ contract TokenGatedGroupRule is TokenGatedRule, IGroupRule {
     {
         return false;
     }
-
-    function processLeaving(address, /* account */ uint256, /* membershipId */ bytes calldata /*data*/ )
-        external
-        pure
-        returns (bool)
-    {
-        return false;
-    }
 }
