@@ -142,7 +142,10 @@ async function deployGraph(lensFactory: ethers.Contract): Promise<string> {
   return graphAddress;
 }
 
-async function deployUsername(lensFactory: ethers.Contract): Promise<string> {
+export async function deployUsername(
+  lensFactory: ethers.Contract,
+  noVerify: Boolean = false
+): Promise<string> {
   console.log('Deploying Username');
   const namespace = 'lens';
   const nftName = 'nftName';
@@ -168,14 +171,16 @@ async function deployUsername(lensFactory: ethers.Contract): Promise<string> {
     'username-token-uri-provider'
   );
 
-  await verifyPrimitive('Username', usernameAddress, [
-    namespace,
-    metadataURI,
-    accessControlAddress,
-    nftName,
-    nftSymbol,
-    lensUsernameTokenURIProviderAddress,
-  ]);
+  if (!noVerify) {
+    await verifyPrimitive('Username', usernameAddress, [
+      namespace,
+      metadataURI,
+      accessControlAddress,
+      nftName,
+      nftSymbol,
+      lensUsernameTokenURIProviderAddress,
+    ]);
+  }
 
   return usernameAddress;
 }
