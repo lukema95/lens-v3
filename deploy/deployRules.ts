@@ -112,7 +112,7 @@ export async function deployRules() {
     });
 
   const output = outputLines.join('\n');
-  writeFileSync('deployed_contracts.txt', output);
+  writeFileSync('deployed_rules.txt', output);
 
   console.log(`\n\nDeployed Contracts:\n`);
   console.log(output);

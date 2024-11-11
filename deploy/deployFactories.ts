@@ -4,11 +4,16 @@ import {
   verifyLensFactoryDeployedPrimitive,
   verifyLensFactoryDeployedUsername,
 } from './utils';
+import { writeFileSync } from 'fs';
 
 export default async function deployFactories(): Promise<{
   lensFactory: string;
   accessControlFactory: string;
 }> {
+  const outputLines: string[] = [];
+  outputLines.push('\n\n--- Indexer file ---\n\n');
+  outputLines.push('# CONTRACTS');
+
   // accessControl factory
   const accessControlFactory_artifactName = 'AccessControlFactory';
   const accessControlFactory_args: any[] = [];
@@ -19,6 +24,7 @@ export default async function deployFactories(): Promise<{
   );
 
   console.log(`\n✔ AccessControlFactory deployed at ${await accessControlFactory.getAddress()}`);
+  outputLines.push(`ACCESS_CONTROL_FACTORY="${await accessControlFactory.getAddress()}"`);
 
   // username factory
   const usernameFactory_artifactName = 'UsernameFactory';
@@ -27,6 +33,7 @@ export default async function deployFactories(): Promise<{
   const usernameFactory = await deployContract(usernameFactory_artifactName, usernameFactory_args);
 
   console.log(`\n✔ UsernameFactory deployed at ${await usernameFactory.getAddress()}`);
+  outputLines.push(`USERNAME_FACTORY="${await usernameFactory.getAddress()}"`);
 
   // graph factory
   const graphFactory_artifactName = 'GraphFactory';
@@ -35,6 +42,7 @@ export default async function deployFactories(): Promise<{
   const graphFactory = await deployContract(graphFactory_artifactName, graphFactory_args);
 
   console.log(`\n✔ GraphFactory deployed at ${await graphFactory.getAddress()}`);
+  outputLines.push(`GRAPH_FACTORY="${await graphFactory.getAddress()}"`);
 
   // feed factory
   const feedFactory_artifactName = 'FeedFactory';
@@ -43,6 +51,7 @@ export default async function deployFactories(): Promise<{
   const feedFactory = await deployContract(feedFactory_artifactName, feedFactory_args);
 
   console.log(`\n✔ FeedFactory deployed at ${await feedFactory.getAddress()}`);
+  outputLines.push(`FEED_FACTORY="${await feedFactory.getAddress()}"`);
 
   // group factory
   const groupFactory_artifactName = 'GroupFactory';
@@ -51,6 +60,7 @@ export default async function deployFactories(): Promise<{
   const groupFactory = await deployContract(groupFactory_artifactName, groupFactory_args);
 
   console.log(`\n✔ GroupFactory deployed at ${await groupFactory.getAddress()}`);
+  outputLines.push(`GROUP_FACTORY="${await groupFactory.getAddress()}"`);
 
   // account factory
   const accountFactory_artifactName = 'AccountFactory';
@@ -59,6 +69,7 @@ export default async function deployFactories(): Promise<{
   const accountFactory = await deployContract(accountFactory_artifactName, accountFactory_args);
 
   console.log(`\n✔ AccountFactory deployed at ${await accountFactory.getAddress()}`);
+  outputLines.push(`ACCOUNT_FACTORY="${await accountFactory.getAddress()}"`);
 
   // app factory
   const appFactory_artifactName = 'AppFactory';
@@ -67,6 +78,7 @@ export default async function deployFactories(): Promise<{
   const appFactory = await deployContract(appFactory_artifactName, appFactory_args);
 
   console.log(`\n✔ AppFactory deployed at ${await appFactory.getAddress()}`);
+  outputLines.push(`APP_FACTORY="${await appFactory.getAddress()}"`);
 
   // lens factory
   const lensFactory_artifactName = 'LensFactory';
@@ -82,6 +94,7 @@ export default async function deployFactories(): Promise<{
   const lensFactory = await deployContract(lensFactory_artifactName, lensFactory_args);
 
   console.log(`\n✔ LensFactory deployed at ${await lensFactory.getAddress()}`);
+  outputLines.push(`LENS_FACTORY="${await lensFactory.getAddress()}"`);
 
   // deploy global feed
   console.log('Deploying Global Feed...');
@@ -102,6 +115,7 @@ export default async function deployFactories(): Promise<{
     lensContractArtifactName: 'Feed',
     metadataURIConstructorParam: metadataURI,
   });
+  outputLines.push(`GLOBAL_FEED="${globalFeedAddress}"`);
 
   // deploy global graph
   console.log('Deploying Global Graph...');
@@ -117,6 +131,7 @@ export default async function deployFactories(): Promise<{
     lensContractArtifactName: 'Graph',
     metadataURIConstructorParam: metadataURI,
   });
+  outputLines.push(`GLOBAL_GRAPH="${globalGraphAddress}"`);
 
   // deploy lens username
   console.log('Deploying Lens Username...');
@@ -134,29 +149,11 @@ export default async function deployFactories(): Promise<{
     tx: usernameDeploymentTx,
     constructorParams: ['lens', metadataURI, ownerAddress, 'Lens Usernames', 'LENS'],
   });
+  outputLines.push(`LENS_USERNAME="${lensUsernameAddress}"`);
 
-  // TODO: Make this to be written into a file
-  console.log('\n\n--- Indexer file ---\n\n');
-  console.log('# CONTRACTS');
-  console.log(`LENS_FACTORY="${await lensFactory.getAddress()}"`);
-  console.log('');
-  console.log(`ACCESS_CONTROL_FACTORY="${await accessControlFactory.getAddress()}"`);
-  console.log('');
-  console.log(`ACCOUNT_FACTORY="${await accountFactory.getAddress()}"`);
-  console.log('');
-  console.log(`APP_FACTORY="${await appFactory.getAddress()}"`);
-  console.log('');
-  console.log(`FEED_FACTORY="${await feedFactory.getAddress()}"`);
-  console.log('');
-  console.log(`GRAPH_FACTORY="${await graphFactory.getAddress()}"`);
-  console.log('');
-  console.log(`USERNAME_FACTORY="${await usernameFactory.getAddress()}"`);
-  console.log('');
-  console.log('');
-  console.log(`GROUP_FACTORY="${await groupFactory.getAddress()}"`);
-  console.log(`GLOBAL_GRAPH="${globalGraphAddress}"`);
-  console.log(`GLOBAL_FEED="${globalFeedAddress}"`);
-  console.log(`LENS_USERNAME="${lensUsernameAddress}"`);
+  const output = outputLines.join('\n');
+  writeFileSync('deployed_primitives.txt', output);
+  console.log(output);
 
   return {
     lensFactory: await lensFactory.getAddress(),
