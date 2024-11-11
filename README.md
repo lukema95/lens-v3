@@ -76,7 +76,7 @@ yarn run deploy
 
 ## Project Structure
 
-The `contracts/` directory is dived into four main directories: `core/`, `dashboard/`, `rules/`, and `actions/`. In the future, each directory might live under its own repository; during this early stages of Lens Protocol V3 development they coexist in the same one.
+The `contracts/` directory is divided into four main directories: `core/`, `dashboard/`, `rules/`, and `actions/`. In the future, each directory might live under its own repository; during this early stages of Lens Protocol V3 development they coexist in the same one.
 
 ### Core
 
