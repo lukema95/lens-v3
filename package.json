@@ -3,7 +3,7 @@
   "description": "The lens v3 contracts",
   "private": true,
   "author": "avara",
-  "license": "MIT",
+  "license": "UNLICENSED. Copyright (C) 2024 Lens Labs. All Rights Reserved.",
   "scripts": {
     "deploy": "hardhat deploy-zksync --script deploy.ts",
     "interact": "hardhat deploy-zksync --script interact.ts",
