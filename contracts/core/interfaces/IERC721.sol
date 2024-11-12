@@ -1,4 +1,5 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
+// Copyright (C) 2024 Lens Labs. All Rights Reserved.
 // Modified from OpenZeppelin's v4.9.0 contracts
 
 pragma solidity ^0.8.0;

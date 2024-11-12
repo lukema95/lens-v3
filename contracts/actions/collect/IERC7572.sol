@@ -1,4 +1,5 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
+// Copyright (C) 2024 Lens Labs. All Rights Reserved.
 // As appears in https://eips.ethereum.org/EIPS/eip-7572
 
 pragma solidity ^0.8.0;
