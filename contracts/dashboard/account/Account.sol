@@ -96,7 +96,12 @@ contract Account is IAccount, Ownable, IERC721Receiver {
         return _metadataURI[source];
     }
 
-    function executeTransaction(address to, uint256 value, bytes calldata data) external payable override {
+    function executeTransaction(address to, uint256 value, bytes calldata data)
+        external
+        payable
+        override
+        returns (bytes memory)
+    {
         if (msg.sender != owner()) {
             require(
                 _accountManagerPermissions[msg.sender].canExecuteTransactions, "No permissions to execute transactions"
@@ -115,9 +120,10 @@ contract Account is IAccount, Ownable, IERC721Receiver {
                 require(_accountManagerPermissions[msg.sender].canTransferTokens, "No permissions to transfer tokens");
             }
         }
-        (bool success,) = to.call{value: value}(data);
+        (bool success, bytes memory ret) = to.call{value: value}(data);
         require(success, "Transaction execution failed");
         emit Lens_Account_TransactionExecuted(to, value, data, msg.sender);
+        return ret;
     }
 
     receive() external payable override {}

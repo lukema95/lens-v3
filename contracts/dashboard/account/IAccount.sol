@@ -28,7 +28,10 @@ interface IAccount {
         AccountManagerPermissions calldata accountManagerPermissions
     ) external;
     function setMetadataURI(string calldata _metadataURI, SourceStamp calldata sourceStamp) external;
-    function executeTransaction(address to, uint256 value, bytes calldata data) external payable;
+    function executeTransaction(address to, uint256 value, bytes calldata data)
+        external
+        payable
+        returns (bytes memory);
     function getMetadataURI(address source) external view returns (string memory);
 
     receive() external payable;
