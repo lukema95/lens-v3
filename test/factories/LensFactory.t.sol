@@ -40,7 +40,7 @@ contract LensFactoryTest is Test {
         );
     }
 
-    function testItYeahYeahWhoohoooo() public {
+    function testCreateAccountWithUsernameFree() public {
         lensFactory.createAccountWithUsernameFree({
             metadataURI: "someMetadataURI",
             owner: address(this),
