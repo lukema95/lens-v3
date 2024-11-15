@@ -28,11 +28,11 @@ contract RuleBasedGroup {
 
     // Internal
 
-    function _addGroupRule(RuleConfiguration calldata rule) internal {
+    function _addGroupRule(RuleConfiguration memory rule) internal {
         $groupRulesStorage().addRule(rule, abi.encodeCall(IGroupRule.configure, (rule.configData)));
     }
 
-    function _updateGroupRule(RuleConfiguration calldata rule) internal {
+    function _updateGroupRule(RuleConfiguration memory rule) internal {
         $groupRulesStorage().updateRule(rule, abi.encodeCall(IGroupRule.configure, (rule.configData)));
     }
 

@@ -2,7 +2,7 @@
 // Copyright (C) 2024 Lens Labs. All Rights Reserved.
 pragma solidity ^0.8.0;
 
-import {DataElement, RuleConfiguration, RuleExecutionData, DataElementValue} from "./../types/Types.sol";
+import {DataElement, RuleChange, RuleExecutionData, DataElementValue} from "./../types/Types.sol";
 import {IMetadataBased} from "./IMetadataBased.sol";
 import {SourceStamp} from "./../types/Types.sol";
 
@@ -27,11 +27,7 @@ interface IGroup is IMetadataBased {
 
     event Lens_Group_MetadataURISet(string metadataURI);
 
-    function addGroupRules(RuleConfiguration[] calldata rules) external;
-
-    function updateGroupRules(RuleConfiguration[] calldata rules) external;
-
-    function removeGroupRules(address[] calldata rules) external;
+    function changeGroupRules(RuleChange[] calldata ruleChanges) external;
 
     function setExtraData(DataElement[] calldata extraDataToSet) external;
 

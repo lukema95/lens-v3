@@ -3,7 +3,7 @@
 pragma solidity ^0.8.0;
 
 import {CreatePostParams, EditPostParams} from "./IFeed.sol";
-import {RuleConfiguration} from "./../types/Types.sol";
+import {RuleChange} from "./../types/Types.sol";
 
 interface IFeedRule {
     function configure(bytes calldata data) external;
@@ -16,7 +16,7 @@ interface IFeedRule {
         external
         returns (bool);
 
-    function processPostRulesChanged(uint256 postId, RuleConfiguration[] calldata newPostRules, bytes calldata data)
+    function processPostRuleChanges(uint256 postId, RuleChange[] calldata ruleChanges, bytes calldata data)
         external
         returns (bool);
 }

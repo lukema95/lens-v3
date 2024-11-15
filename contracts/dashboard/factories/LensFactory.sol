@@ -7,7 +7,7 @@ import {IAccessControl} from "./../../core/interfaces/IAccessControl.sol";
 import {Group} from "./../../core/primitives/group/Group.sol";
 import {RoleBasedAccessControl} from "./../../core/access/RoleBasedAccessControl.sol";
 import {RoleBasedAccessControl} from "./../../core/access/RoleBasedAccessControl.sol";
-import {RuleConfiguration, RuleExecutionData, DataElement, SourceStamp} from "./../../core/types/Types.sol";
+import {RuleChange, RuleExecutionData, DataElement, SourceStamp} from "./../../core/types/Types.sol";
 import {GroupFactory} from "./GroupFactory.sol";
 import {FeedFactory} from "./FeedFactory.sol";
 import {GraphFactory} from "./GraphFactory.sol";
@@ -128,7 +128,7 @@ contract LensFactory {
         string calldata metadataURI,
         address owner,
         address[] calldata admins,
-        RuleConfiguration[] calldata rules,
+        RuleChange[] calldata rules,
         DataElement[] calldata extraData
     ) external returns (address) {
         return GROUP_FACTORY.deployGroup(metadataURI, _deployAccessControl(owner, admins), rules, extraData);
@@ -138,7 +138,7 @@ contract LensFactory {
         string calldata metadataURI,
         address owner,
         address[] calldata admins,
-        RuleConfiguration[] calldata rules,
+        RuleChange[] calldata rules,
         DataElement[] calldata extraData
     ) external returns (address) {
         return FEED_FACTORY.deployFeed(metadataURI, _deployAccessControl(owner, admins), rules, extraData);
@@ -148,7 +148,7 @@ contract LensFactory {
         string calldata metadataURI,
         address owner,
         address[] calldata admins,
-        RuleConfiguration[] calldata rules,
+        RuleChange[] calldata rules,
         DataElement[] calldata extraData
     ) external returns (address) {
         return GRAPH_FACTORY.deployGraph(metadataURI, _deployAccessControl(owner, admins), rules, extraData);
@@ -159,7 +159,7 @@ contract LensFactory {
         string calldata metadataURI,
         address owner,
         address[] calldata admins,
-        RuleConfiguration[] calldata rules,
+        RuleChange[] calldata rules,
         DataElement[] calldata extraData,
         string calldata nftName,
         string calldata nftSymbol

@@ -19,6 +19,17 @@ struct RuleConfiguration {
     bool isRequired;
 }
 
+enum RuleOperation {
+    ADD,
+    UPDATE,
+    REMOVE
+}
+
+struct RuleChange {
+    RuleConfiguration configuration;
+    RuleOperation operation;
+}
+
 struct RuleExecutionData {
     bytes[] dataForRequiredRules;
     bytes[] dataForAnyOfRules;

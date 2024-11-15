@@ -6,7 +6,13 @@ import {IGroup} from "./../../interfaces/IGroup.sol";
 import {GroupCore as Core} from "./GroupCore.sol";
 import {IAccessControl} from "./../../interfaces/IAccessControl.sol";
 import {
-    RuleConfiguration, RuleExecutionData, DataElement, DataElementValue, SourceStamp
+    RuleConfiguration,
+    RuleOperation,
+    RuleChange,
+    RuleExecutionData,
+    DataElement,
+    DataElementValue,
+    SourceStamp
 } from "./../../types/Types.sol";
 import {RuleBasedGroup} from "./RuleBasedGroup.sol";
 import {AccessControlled} from "./../../access//AccessControlled.sol";
@@ -43,27 +49,20 @@ contract Group is IGroup, RuleBasedGroup, AccessControlled {
         emit Lens_Group_MetadataURISet(metadataURI);
     }
 
-    function addGroupRules(RuleConfiguration[] calldata rules) external override {
+    function changeGroupRules(RuleChange[] calldata ruleChanges) external override {
         _requireAccess(msg.sender, SET_RULES_PID);
-        for (uint256 i = 0; i < rules.length; i++) {
-            _addGroupRule(rules[i]);
-            emit Lens_Group_RuleAdded(rules[i].ruleAddress, rules[i].configData, rules[i].isRequired);
-        }
-    }
-
-    function updateGroupRules(RuleConfiguration[] calldata rules) external override {
-        _requireAccess(msg.sender, SET_RULES_PID);
-        for (uint256 i = 0; i < rules.length; i++) {
-            _updateGroupRule(rules[i]);
-            emit Lens_Group_RuleUpdated(rules[i].ruleAddress, rules[i].configData, rules[i].isRequired);
-        }
-    }
-
-    function removeGroupRules(address[] calldata rules) external override {
-        _requireAccess(msg.sender, SET_RULES_PID);
-        for (uint256 i = 0; i < rules.length; i++) {
-            _removeGroupRule(rules[i]);
-            emit Lens_Group_RuleRemoved(rules[i]);
+        for (uint256 i = 0; i < ruleChanges.length; i++) {
+            RuleConfiguration memory ruleConfig = ruleChanges[i].configuration;
+            if (ruleChanges[i].operation == RuleOperation.ADD) {
+                _addGroupRule(ruleConfig);
+                emit Lens_Group_RuleAdded(ruleConfig.ruleAddress, ruleConfig.configData, ruleConfig.isRequired);
+            } else if (ruleChanges[i].operation == RuleOperation.UPDATE) {
+                _updateGroupRule(ruleConfig);
+                emit Lens_Group_RuleUpdated(ruleConfig.ruleAddress, ruleConfig.configData, ruleConfig.isRequired);
+            } else {
+                _removeGroupRule(ruleConfig.ruleAddress);
+                emit Lens_Group_RuleRemoved(ruleConfig.ruleAddress);
+            }
         }
     }
 

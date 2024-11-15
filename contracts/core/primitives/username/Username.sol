@@ -3,16 +3,20 @@
 pragma solidity ^0.8.0;
 
 import {UsernameCore as Core} from "./UsernameCore.sol";
-import {IUsernameRule} from "./../../interfaces/IUsernameRule.sol";
 import {IUsername} from "./../../interfaces/IUsername.sol";
 import {IAccessControl} from "./../../interfaces/IAccessControl.sol";
 import {
-    DataElement, RuleExecutionData, RuleConfiguration, DataElementValue, SourceStamp
+    DataElement,
+    RuleExecutionData,
+    RuleOperation,
+    RuleChange,
+    RuleConfiguration,
+    DataElementValue,
+    SourceStamp
 } from "./../../types/Types.sol";
 import {RuleBasedUsername} from "./RuleBasedUsername.sol";
 import {AccessControlled} from "./../../access/AccessControlled.sol";
 import {IAccessControl} from "./../../interfaces/IAccessControl.sol";
-import {RuleConfiguration} from "./../../types/Types.sol";
 import {Events} from "./../../types/Events.sol";
 import {LensERC721} from "./../../base/LensERC721.sol";
 import {ITokenURIProvider} from "./../../interfaces/ITokenURIProvider.sol";
@@ -65,31 +69,20 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
         emit Lens_Username_MetadataURISet(metadataURI);
     }
 
-    function addUsernameRules(RuleConfiguration[] calldata ruleConfigurations) external {
+    function changeUsernameRules(RuleChange[] calldata ruleChanges) external override {
         _requireAccess(msg.sender, SET_RULES_PID);
-        for (uint256 i = 0; i < ruleConfigurations.length; i++) {
-            _addUsernameRule(ruleConfigurations[i]);
-            emit Lens_Username_RuleAdded(
-                ruleConfigurations[i].ruleAddress, ruleConfigurations[i].configData, ruleConfigurations[i].isRequired
-            );
-        }
-    }
-
-    function updateUsernameRules(RuleConfiguration[] calldata ruleConfigurations) external {
-        _requireAccess(msg.sender, SET_RULES_PID);
-        for (uint256 i = 0; i < ruleConfigurations.length; i++) {
-            _updateUsernameRule(ruleConfigurations[i]);
-            emit Lens_Username_RuleUpdated(
-                ruleConfigurations[i].ruleAddress, ruleConfigurations[i].configData, ruleConfigurations[i].isRequired
-            );
-        }
-    }
-
-    function removeUsernameRules(address[] calldata rules) external {
-        _requireAccess(msg.sender, SET_RULES_PID);
-        for (uint256 i = 0; i < rules.length; i++) {
-            _removeUsernameRule(rules[i]);
-            emit Lens_Username_RuleRemoved(rules[i]);
+        for (uint256 i = 0; i < ruleChanges.length; i++) {
+            RuleConfiguration memory ruleConfig = ruleChanges[i].configuration;
+            if (ruleChanges[i].operation == RuleOperation.ADD) {
+                _addUsernameRule(ruleConfig);
+                emit Lens_Username_RuleAdded(ruleConfig.ruleAddress, ruleConfig.configData, ruleConfig.isRequired);
+            } else if (ruleChanges[i].operation == RuleOperation.UPDATE) {
+                _updateUsernameRule(ruleConfig);
+                emit Lens_Username_RuleUpdated(ruleConfig.ruleAddress, ruleConfig.configData, ruleConfig.isRequired);
+            } else {
+                _removeUsernameRule(ruleConfig.ruleAddress);
+                emit Lens_Username_RuleRemoved(ruleConfig.ruleAddress);
+            }
         }
     }
 

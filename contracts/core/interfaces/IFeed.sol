@@ -2,7 +2,14 @@
 // Copyright (C) 2024 Lens Labs. All Rights Reserved.
 pragma solidity ^0.8.0;
 
-import {DataElement, RuleConfiguration, RuleExecutionData, DataElementValue, SourceStamp} from "./../types/Types.sol";
+import {
+    DataElement,
+    RuleConfiguration,
+    RuleChange,
+    RuleExecutionData,
+    DataElementValue,
+    SourceStamp
+} from "./../types/Types.sol";
 import {IMetadataBased} from "./../interfaces/IMetadataBased.sol";
 
 // TODO: Discuss if there's a need for anything else to be added here
@@ -90,11 +97,7 @@ interface IFeed is IMetadataBased {
 
     event Lens_Feed_MetadataURISet(string metadataURI);
 
-    function addFeedRules(RuleConfiguration[] calldata rules) external;
-
-    function updateFeedRules(RuleConfiguration[] calldata rules) external;
-
-    function removeFeedRules(address[] calldata rules) external;
+    function changeFeedRules(RuleChange[] calldata ruleChanges) external;
 
     function createPost(CreatePostParams calldata postParams, SourceStamp calldata source) external returns (uint256);
 
@@ -114,18 +117,9 @@ interface IFeed is IMetadataBased {
         SourceStamp calldata source
     ) external;
 
-    function addPostRules(uint256 postId, RuleConfiguration[] calldata rules, RuleExecutionData calldata feedRulesData)
-        external;
-
-    function updatePostRules(
+    function changePostRules(
         uint256 postId,
-        RuleConfiguration[] calldata rules,
-        RuleExecutionData calldata feedRulesData
-    ) external;
-
-    function removePostRules(
-        uint256 postId,
-        RuleConfiguration[] calldata rules,
+        RuleChange[] calldata ruleChanges,
         RuleExecutionData calldata feedRulesData
     ) external;
 

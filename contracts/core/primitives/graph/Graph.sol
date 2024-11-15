@@ -6,7 +6,13 @@ import {Follow, IGraph} from "./../../interfaces/IGraph.sol";
 import {GraphCore as Core} from "./GraphCore.sol";
 import {IAccessControl} from "./../../interfaces/IAccessControl.sol";
 import {
-    RuleConfiguration, RuleExecutionData, DataElement, DataElementValue, SourceStamp
+    RuleConfiguration,
+    RuleOperation,
+    RuleChange,
+    RuleExecutionData,
+    DataElement,
+    DataElementValue,
+    SourceStamp
 } from "./../../types/Types.sol";
 import {RuleBasedGraph} from "./RuleBasedGraph.sol";
 import {AccessControlled} from "./../../access/AccessControlled.sol";
@@ -15,7 +21,7 @@ import {ISource} from "./../../interfaces/ISource.sol";
 
 contract Graph is IGraph, RuleBasedGraph, AccessControlled {
     // Resource IDs involved in the contract
-    uint256 constant SET_RULES_PID = uint256(keccak256("SET_RULES"));
+    uint256 constant SET_RULES_PID = uint256(keccak256("SET_RULES")); // TODO: Rename?
     uint256 constant SET_METADATA_PID = uint256(keccak256("SET_METADATA"));
     uint256 constant SET_EXTRA_DATA_PID = uint256(keccak256("SET_EXTRA_DATA"));
 
@@ -43,74 +49,50 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
         emit Lens_Graph_MetadataURISet(metadataURI);
     }
 
-    function addGraphRules(RuleConfiguration[] calldata rules) external override {
+    function changeGraphRules(RuleChange[] calldata ruleChanges) external override {
         _requireAccess(msg.sender, SET_RULES_PID);
-        for (uint256 i = 0; i < rules.length; i++) {
-            _addGraphRule(rules[i]);
-            emit Lens_Graph_RuleAdded(rules[i].ruleAddress, rules[i].configData, rules[i].isRequired);
-        }
-    }
-
-    function updateGraphRules(RuleConfiguration[] calldata rules) external override {
-        _requireAccess(msg.sender, SET_RULES_PID);
-        for (uint256 i = 0; i < rules.length; i++) {
-            _updateGraphRule(rules[i]);
-            emit Lens_Graph_RuleUpdated(rules[i].ruleAddress, rules[i].configData, rules[i].isRequired);
-        }
-    }
-
-    function removeGraphRules(address[] calldata rules) external override {
-        _requireAccess(msg.sender, SET_RULES_PID);
-        for (uint256 i = 0; i < rules.length; i++) {
-            _removeGraphRule(rules[i]);
-            emit Lens_Graph_RuleRemoved(rules[i]);
+        for (uint256 i = 0; i < ruleChanges.length; i++) {
+            RuleConfiguration memory ruleConfig = ruleChanges[i].configuration;
+            if (ruleChanges[i].operation == RuleOperation.ADD) {
+                _addGraphRule(ruleConfig);
+                emit Lens_Graph_RuleAdded(ruleConfig.ruleAddress, ruleConfig.configData, ruleConfig.isRequired);
+            } else if (ruleChanges[i].operation == RuleOperation.UPDATE) {
+                _updateGraphRule(ruleConfig);
+                emit Lens_Graph_RuleUpdated(ruleConfig.ruleAddress, ruleConfig.configData, ruleConfig.isRequired);
+            } else {
+                _removeGraphRule(ruleConfig.ruleAddress);
+                emit Lens_Graph_RuleRemoved(ruleConfig.ruleAddress);
+            }
         }
     }
 
     // Public functions
 
-    function addFollowRules(
+    function changeFollowRules(
         address account,
-        RuleConfiguration[] calldata rules,
+        RuleChange[] calldata ruleChanges,
         RuleExecutionData calldata graphRulesData
     ) external override {
         // TODO: Decide if we want a PID to skip checks for owners/admins
         // require(msg.sender == account || _hasAccess(SKIP_FOLLOW_RULES_CHECKS_PID));
         require(msg.sender == account);
-        for (uint256 i = 0; i < rules.length; i++) {
-            _addFollowRule(account, rules[i]);
-            emit Lens_Graph_Follow_RuleAdded(account, rules[i].ruleAddress, rules[i]);
+        for (uint256 i = 0; i < ruleChanges.length; i++) {
+            RuleConfiguration memory ruleConfig = ruleChanges[i].configuration;
+            if (ruleChanges[i].operation == RuleOperation.ADD) {
+                _addFollowRule(account, ruleConfig);
+                emit Lens_Graph_Follow_RuleAdded(account, ruleConfig.ruleAddress, ruleConfig);
+            } else if (ruleChanges[i].operation == RuleOperation.UPDATE) {
+                _updateFollowRule(account, ruleConfig);
+                emit Lens_Graph_Follow_RuleUpdated(account, ruleConfig.ruleAddress, ruleConfig);
+            } else {
+                _removeFollowRule(account, ruleConfig.ruleAddress);
+                emit Lens_Graph_Follow_RuleRemoved(account, ruleConfig.ruleAddress);
+            }
         }
         // if (_hasAccess(SKIP_FOLLOW_RULES_CHECKS_PID)) {
         //     return; // Skip processing the graph rules if you have the right access
         // }
-        _graphProcessFollowRulesChange(account, rules, graphRulesData);
-    }
-
-    function updateFollowRules(
-        address account,
-        RuleConfiguration[] calldata rules,
-        RuleExecutionData calldata graphRulesData
-    ) external override {
-        require(msg.sender == account);
-        for (uint256 i = 0; i < rules.length; i++) {
-            _updateFollowRule(account, rules[i]);
-            emit Lens_Graph_Follow_RuleUpdated(account, rules[i].ruleAddress, rules[i]);
-        }
-        _graphProcessFollowRulesChange(account, rules, graphRulesData);
-    }
-
-    function removeFollowRules(
-        address account,
-        address[] calldata rules,
-        RuleExecutionData calldata /* graphRulesData */
-    ) external override {
-        require(msg.sender == account);
-        for (uint256 i = 0; i < rules.length; i++) {
-            _removeFollowRule(account, rules[i]);
-            emit Lens_Graph_Follow_RuleRemoved(account, rules[i]);
-        }
-        // _graphProcessFollowRulesChange(account, rules, graphRulesData); TODO: FIX!!!!
+        _graphProcessFollowRuleChanges(account, ruleChanges, graphRulesData);
     }
 
     function follow(

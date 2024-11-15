@@ -2,7 +2,7 @@
 // Copyright (C) 2024 Lens Labs. All Rights Reserved.
 pragma solidity ^0.8.0;
 
-import {DataElement, RuleConfiguration, RuleExecutionData, DataElementValue, SourceStamp} from "./../types/Types.sol";
+import {DataElement, RuleChange, RuleExecutionData, DataElementValue, SourceStamp} from "./../types/Types.sol";
 import {IMetadataBased} from "./IMetadataBased.sol";
 
 interface IUsername is IMetadataBased {
@@ -32,11 +32,7 @@ interface IUsername is IMetadataBased {
 
     function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external;
 
-    function addUsernameRules(RuleConfiguration[] calldata ruleConfigurations) external;
-
-    function updateUsernameRules(RuleConfiguration[] calldata ruleConfigurations) external;
-
-    function removeUsernameRules(address[] calldata rules) external;
+    function changeUsernameRules(RuleChange[] calldata ruleChanges) external;
 
     function createUsername(
         address account,

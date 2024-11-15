@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 import {IFollowRule} from "./../../interfaces/IFollowRule.sol";
 import {IGraphRule} from "./../../interfaces/IGraphRule.sol";
 import {RulesStorage, RulesLib} from "./../../libraries/RulesLib.sol";
-import {RuleConfiguration, RuleExecutionData} from "./../../types/Types.sol";
+import {RuleConfiguration, RuleChange, RuleExecutionData} from "./../../types/Types.sol";
 
 contract RuleBasedGraph {
     using RulesLib for RulesStorage;
@@ -34,11 +34,11 @@ contract RuleBasedGraph {
 
     // Internal
 
-    function _addGraphRule(RuleConfiguration calldata rule) internal {
+    function _addGraphRule(RuleConfiguration memory rule) internal {
         $graphRulesStorage().addRule(rule, abi.encodeCall(IGraphRule.configure, (rule.configData)));
     }
 
-    function _updateGraphRule(RuleConfiguration calldata rule) internal {
+    function _updateGraphRule(RuleConfiguration memory rule) internal {
         $graphRulesStorage().updateRule(rule, abi.encodeCall(IGraphRule.configure, (rule.configData)));
     }
 
@@ -46,11 +46,11 @@ contract RuleBasedGraph {
         $graphRulesStorage().removeRule(rule);
     }
 
-    function _addFollowRule(address account, RuleConfiguration calldata rule) internal {
+    function _addFollowRule(address account, RuleConfiguration memory rule) internal {
         $followRulesStorage(account).addRule(rule, abi.encodeCall(IFollowRule.configure, (account, rule.configData)));
     }
 
-    function _updateFollowRule(address account, RuleConfiguration calldata rule) internal {
+    function _updateFollowRule(address account, RuleConfiguration memory rule) internal {
         $followRulesStorage(account).updateRule(rule, abi.encodeCall(IFollowRule.configure, (account, rule.configData)));
     }
 
@@ -60,16 +60,16 @@ contract RuleBasedGraph {
 
     // TODO: Unfortunately we had to copy-paste this code because we couldn't think of a better solution for encoding yet.
 
-    function _graphProcessFollowRulesChange(
+    function _graphProcessFollowRuleChanges(
         address account,
-        RuleConfiguration[] calldata followRules,
+        RuleChange[] calldata ruleChanges,
         RuleExecutionData calldata graphRulesData
     ) internal {
         // Check required rules (AND-combined rules)
         for (uint256 i = 0; i < $graphRulesStorage().requiredRules.length; i++) {
             (bool callNotReverted,) = $graphRulesStorage().requiredRules[i].call(
                 abi.encodeCall(
-                    IGraphRule.processFollowRulesChange, (account, followRules, graphRulesData.dataForRequiredRules[i])
+                    IGraphRule.processFollowRuleChanges, (account, ruleChanges, graphRulesData.dataForRequiredRules[i])
                 )
             );
             require(callNotReverted, "Some required rule failed");
@@ -81,7 +81,7 @@ contract RuleBasedGraph {
         for (uint256 i = 0; i < $graphRulesStorage().anyOfRules.length; i++) {
             (bool callNotReverted, bytes memory returnData) = $graphRulesStorage().anyOfRules[i].call(
                 abi.encodeCall(
-                    IGraphRule.processFollowRulesChange, (account, followRules, graphRulesData.dataForAnyOfRules[i])
+                    IGraphRule.processFollowRuleChanges, (account, ruleChanges, graphRulesData.dataForAnyOfRules[i])
                 )
             );
             if (callNotReverted && abi.decode(returnData, (bool))) {
