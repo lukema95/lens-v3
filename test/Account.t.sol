@@ -98,4 +98,42 @@ contract AccountTest is Test {
         console.log("Post ContentURI:", post.contentURI);
         console.log("Post Author:", post.author);
     }
+
+    function testAccountErrorForwarding() public {
+        address errorsTest = address(new ErrorsTest());
+
+        vm.expectRevert("This is an error message");
+        vm.prank(owner);
+        account.executeTransaction({to: errorsTest, value: 0, data: abi.encodeCall(ErrorsTest.stringError, ())});
+
+        vm.expectRevert(ErrorsTest.CustomError.selector);
+        vm.prank(owner);
+        account.executeTransaction({to: errorsTest, value: 0, data: abi.encodeCall(ErrorsTest.customError, ())});
+
+        vm.expectRevert(abi.encodeWithSelector(ErrorsTest.CustomErrorWithValue.selector, uint256(123)));
+        vm.prank(owner);
+        account.executeTransaction({
+            to: errorsTest,
+            value: 0,
+            data: abi.encodeWithSelector(ErrorsTest.customErrorWithValue.selector, uint256(123))
+        });
+    }
+}
+
+contract ErrorsTest {
+    function stringError() public pure {
+        revert("This is an error message");
+    }
+
+    error CustomError();
+
+    function customError() public pure {
+        revert CustomError();
+    }
+
+    error CustomErrorWithValue(uint256 value);
+
+    function customErrorWithValue(uint256 value) public pure {
+        revert CustomErrorWithValue(value);
+    }
 }
