@@ -9,7 +9,7 @@ import {FeedFactory} from "../../contracts/dashboard/factories/FeedFactory.sol";
 import {GraphFactory} from "../../contracts/dashboard/factories/GraphFactory.sol";
 import {UsernameFactory} from "../../contracts/dashboard/factories/UsernameFactory.sol";
 import {Username} from "../../contracts/core/primitives/username/Username.sol";
-import {RuleConfiguration, DataElement, SourceStamp, RuleExecutionData} from "../../contracts/core/types/Types.sol";
+import {RuleChange, DataElement, SourceStamp, RuleExecutionData} from "../../contracts/core/types/Types.sol";
 import {AccountManagerPermissions} from "../../contracts/dashboard/account/Account.sol";
 
 contract LensFactoryTest is Test {
@@ -32,7 +32,7 @@ contract LensFactoryTest is Test {
                 metadataURI: "satoshi://nakamoto",
                 owner: address(this),
                 admins: new address[](0),
-                rules: new RuleConfiguration[](0),
+                rules: new RuleChange[](0),
                 extraData: new DataElement[](0),
                 nftName: "Bitcoin",
                 nftSymbol: "BTC"
