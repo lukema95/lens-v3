@@ -37,10 +37,7 @@ contract ApprovalGroupRule is IGroupRule {
         _accessControl[msg.sender] = accessControl;
     }
 
-    function processJoining(address account, uint256, /* membershipId */ bytes calldata /* data */ )
-        external
-        returns (bool)
-    {
+    function processJoining(address account, bytes calldata /* data */ ) external returns (bool) {
         require(_membershipRequests[msg.sender][account].isApproved);
         delete _membershipRequests[msg.sender][account];
         emit Lens_ApprovalGroupRule_MembershipGranted(msg.sender, account);
@@ -63,11 +60,7 @@ contract ApprovalGroupRule is IGroupRule {
         }
     }
 
-    function processRemoval(address, /* account */ uint256, /* membershipId */ bytes calldata /*data*/ )
-        external
-        pure
-        returns (bool)
-    {
+    function processRemoval(address, /* account */ bytes calldata /*data*/ ) external pure returns (bool) {
         return false;
     }
 }

@@ -70,7 +70,7 @@ interface IGraph is IMetadataBased {
     function follow(
         address followerAccount,
         address targetAccount,
-        uint256 followId,
+        uint256 followId, // TODO: If we add `bytes data` to all core calls, we can remove this tokenized-ad-hoc param
         RuleExecutionData calldata graphRulesData,
         RuleExecutionData calldata followRulesData,
         SourceStamp calldata sourceStamp

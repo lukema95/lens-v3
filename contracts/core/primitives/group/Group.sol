@@ -96,7 +96,7 @@ contract Group is IGroup, RuleBasedGroup, AccessControlled {
     {
         require(msg.sender == account);
         uint256 membershipId = Core._grantMembership(account, sourceStamp.source);
-        _processJoining(account, membershipId, groupRulesData);
+        _processJoining(account, groupRulesData);
         if (sourceStamp.source != address(0)) {
             ISource(sourceStamp.source).validateSource(sourceStamp);
         }
@@ -123,7 +123,7 @@ contract Group is IGroup, RuleBasedGroup, AccessControlled {
     {
         _requireAccess(msg.sender, REMOVE_MEMBER_PID);
         uint256 membershipId = Core._revokeMembership(account);
-        _processRemoval(account, membershipId, groupRulesData);
+        _processRemoval(account, groupRulesData);
         if (sourceStamp.source != address(0)) {
             ISource(sourceStamp.source).validateSource(sourceStamp);
         }

@@ -11,14 +11,14 @@ contract RestrictedSignersGraphRule is RestrictedSignersRule, IGraphRule {
         _configure(data);
     }
 
-    function processFollow(address followerAccount, address accountToFollow, uint256 followId, bytes calldata data)
+    function processFollow(address followerAccount, address accountToFollow, bytes calldata data)
         external
         override
         returns (bool)
     {
         _validateRestrictedSignerMessage({
             functionSelector: IGraphRule.processFollow.selector,
-            abiEncodedFunctionParams: abi.encode(followerAccount, accountToFollow, followId),
+            abiEncodedFunctionParams: abi.encode(followerAccount, accountToFollow),
             signature: abi.decode(data, (EIP712Signature))
         });
         return true;

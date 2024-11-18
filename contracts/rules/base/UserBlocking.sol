@@ -49,12 +49,11 @@ contract UserBlocking is IFeedRule, IGraphRule {
         return true;
     }
 
-    function processFollow(
-        address followerAcount,
-        address accountToFollow,
-        uint256, /* followId */
-        bytes calldata /* data */
-    ) external view returns (bool) {
+    function processFollow(address followerAcount, address accountToFollow, bytes calldata /* data */ )
+        external
+        view
+        returns (bool)
+    {
         if (_isBlocked({source: accountToFollow, blockTarget: followerAcount})) {
             revert("User is blocked from following this user");
         }

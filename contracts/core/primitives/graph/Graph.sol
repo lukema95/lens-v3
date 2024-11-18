@@ -108,8 +108,8 @@ contract Graph is IGraph, RuleBasedGraph, AccessControlled {
         if (sourceStamp.source != address(0)) {
             ISource(sourceStamp.source).validateSource(sourceStamp);
         }
-        _graphProcessFollow(followerAccount, accountToFollow, followId, graphRulesData);
-        _accountProcessFollow(followerAccount, accountToFollow, followId, followRulesData);
+        _graphProcessFollow(followerAccount, accountToFollow, graphRulesData);
+        _accountProcessFollow(followerAccount, accountToFollow, followRulesData);
         emit Lens_Graph_Followed(
             followerAccount, accountToFollow, assignedFollowId, graphRulesData, followRulesData, sourceStamp.source
         );
