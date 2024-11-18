@@ -121,7 +121,13 @@ contract Account is IAccount, Ownable, IERC721Receiver {
             }
         }
         (bool success, bytes memory ret) = to.call{value: value}(data);
-        require(success, "Transaction execution failed");
+        if (!success) {
+            assembly {
+                // Equivalent to reverting with the returned error selector if the length is not zero.
+                let length := mload(ret)
+                if iszero(iszero(length)) { revert(add(ret, 32), length) }
+            }
+        }
         emit Lens_Account_TransactionExecuted(to, value, data, msg.sender);
         return ret;
     }
