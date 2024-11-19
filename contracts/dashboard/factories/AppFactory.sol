@@ -7,7 +7,7 @@ import {AppInitialProperties, App} from "./../primitives/app/App.sol";
 import {DataElement} from "./../../core/types/Types.sol";
 
 contract AppFactory {
-    event Lens_AppFactory_Deployment(address indexed app);
+    event Lens_AppFactory_Deployment(address indexed app, string metadataURI);
 
     function deployApp(
         string memory metadataURI,
@@ -17,7 +17,7 @@ contract AppFactory {
         DataElement[] calldata extraData
     ) external returns (address) {
         App app = new App(metadataURI, sourceStampVerificationEnabled, accessControl, initialProperties, extraData);
-        emit Lens_AppFactory_Deployment(address(app));
+        emit Lens_AppFactory_Deployment(address(app), metadataURI);
         return address(app);
     }
 }

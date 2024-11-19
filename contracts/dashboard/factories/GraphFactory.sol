@@ -8,7 +8,7 @@ import {RoleBasedAccessControl} from "./../../core/access/RoleBasedAccessControl
 import {RuleChange, DataElement} from "./../../core/types/Types.sol";
 
 contract GraphFactory {
-    event Lens_GraphFactory_Deployment(address indexed graph);
+    event Lens_GraphFactory_Deployment(address indexed graph, string metadataURI);
 
     IAccessControl internal immutable _factoryOwnedAccessControl;
 
@@ -26,7 +26,7 @@ contract GraphFactory {
         graph.changeGraphRules(rules);
         graph.setExtraData(extraData);
         graph.setAccessControl(accessControl);
-        emit Lens_GraphFactory_Deployment(address(graph));
+        emit Lens_GraphFactory_Deployment(address(graph), metadataURI);
         return address(graph);
     }
 }

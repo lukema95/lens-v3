@@ -9,7 +9,7 @@ import {RuleChange, DataElement} from "./../../core/types/Types.sol";
 import {ITokenURIProvider} from "./../../core/interfaces/ITokenURIProvider.sol";
 
 contract UsernameFactory {
-    event Lens_UsernameFactory_Deployment(address indexed username, string namespace);
+    event Lens_UsernameFactory_Deployment(address indexed username, string namespace, string metadataURI);
 
     IAccessControl internal immutable _factoryOwnedAccessControl;
 
@@ -32,7 +32,7 @@ contract UsernameFactory {
         username.changeUsernameRules(rules);
         username.setExtraData(extraData);
         username.setAccessControl(accessControl);
-        emit Lens_UsernameFactory_Deployment(address(username), namespace);
+        emit Lens_UsernameFactory_Deployment(address(username), namespace, metadataURI);
         return address(username);
     }
 }

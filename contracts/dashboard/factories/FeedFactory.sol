@@ -8,7 +8,7 @@ import {RoleBasedAccessControl} from "./../../core/access/RoleBasedAccessControl
 import {RuleChange, DataElement} from "./../../core/types/Types.sol";
 
 contract FeedFactory {
-    event Lens_FeedFactory_Deployment(address indexed feed);
+    event Lens_FeedFactory_Deployment(address indexed feed, string metadataURI);
 
     IAccessControl internal immutable _factoryOwnedAccessControl;
 
@@ -26,7 +26,7 @@ contract FeedFactory {
         feed.changeFeedRules(rules);
         feed.setExtraData(extraData);
         feed.setAccessControl(accessControl);
-        emit Lens_FeedFactory_Deployment(address(feed));
+        emit Lens_FeedFactory_Deployment(address(feed), metadataURI);
         return address(feed);
     }
 }
