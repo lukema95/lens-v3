@@ -8,7 +8,7 @@ import {RoleBasedAccessControl} from "./../../core/access/RoleBasedAccessControl
 import {RuleConfiguration, DataElement} from "./../../core/types/Types.sol";
 
 contract GroupFactory {
-    event Lens_GroupFactory_Deployment(address indexed group);
+    event Lens_GroupFactory_Deployment(address indexed group, string metadataURI);
 
     IAccessControl internal immutable _factoryOwnedAccessControl;
 
@@ -26,7 +26,7 @@ contract GroupFactory {
         group.addGroupRules(rules);
         group.setExtraData(extraData);
         group.setAccessControl(accessControl);
-        emit Lens_GroupFactory_Deployment(address(group));
+        emit Lens_GroupFactory_Deployment(address(group), metadataURI);
         return address(group);
     }
 }
