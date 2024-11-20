@@ -83,6 +83,7 @@ export default async function deployFactories(): Promise<{
   // lens factory
   const lensFactory_artifactName = 'LensFactory';
   const lensFactory_args = [
+    await accessControlFactory.getAddress(),
     await accountFactory.getAddress(),
     await appFactory.getAddress(),
     await groupFactory.getAddress(),

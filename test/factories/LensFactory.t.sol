@@ -11,6 +11,7 @@ import {UsernameFactory} from "../../contracts/dashboard/factories/UsernameFacto
 import {Username} from "../../contracts/core/primitives/username/Username.sol";
 import {RuleChange, DataElement, SourceStamp, RuleExecutionData} from "../../contracts/core/types/Types.sol";
 import {AccountManagerPermissions} from "../../contracts/dashboard/account/Account.sol";
+import {AccessControlFactory} from "../../contracts/dashboard/factories/AccessControlFactory.sol";
 
 contract LensFactoryTest is Test {
     LensFactory lensFactory;
@@ -18,6 +19,7 @@ contract LensFactoryTest is Test {
 
     function setUp() public {
         lensFactory = new LensFactory({
+            accessControlFactory: new AccessControlFactory(),
             accountFactory: new AccountFactory(),
             appFactory: new AppFactory(),
             groupFactory: new GroupFactory(),

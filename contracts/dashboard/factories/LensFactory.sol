@@ -13,6 +13,7 @@ import {FeedFactory} from "./FeedFactory.sol";
 import {GraphFactory} from "./GraphFactory.sol";
 import {UsernameFactory} from "./UsernameFactory.sol";
 import {AppFactory, AppInitialProperties} from "./AppFactory.sol";
+import {AccessControlFactory} from "./AccessControlFactory.sol";
 import {AccountFactory} from "./AccountFactory.sol";
 import {IAccount, AccountManagerPermissions} from "./../account/IAccount.sol";
 import {IUsername} from "./../../core/interfaces/IUsername.sol";
@@ -40,7 +41,7 @@ interface IOwnable {
 // uint8 decimals; TODO ???
 
 contract LensFactory {
-    uint256 immutable ADMIN_ROLE_ID = uint256(keccak256("ADMIN"));
+    AccessControlFactory internal immutable ACCESS_CONTROL_FACTORY;
     AccountFactory internal immutable ACCOUNT_FACTORY;
     AppFactory internal immutable APP_FACTORY;
     GroupFactory internal immutable GROUP_FACTORY;
@@ -50,6 +51,7 @@ contract LensFactory {
     IAccessControl internal immutable _factoryOwnedAccessControl;
 
     constructor(
+        AccessControlFactory accessControlFactory,
         AccountFactory accountFactory,
         AppFactory appFactory,
         GroupFactory groupFactory,
@@ -57,6 +59,7 @@ contract LensFactory {
         GraphFactory graphFactory,
         UsernameFactory usernameFactory
     ) {
+        ACCESS_CONTROL_FACTORY = accessControlFactory;
         ACCOUNT_FACTORY = accountFactory;
         APP_FACTORY = appFactory;
         GROUP_FACTORY = groupFactory;
@@ -177,45 +180,10 @@ contract LensFactory {
         );
     }
 
-    // function deployRoleBasedAccessControl(
-    //     address owner,
-    //     RoleConfiguration[] calldata roleConfigs,
-    //     AccessConfiguration[] calldata accessConfigs
-    // ) external returns (address) {
-    //     RoleBasedAccessControl accessControl = new RoleBasedAccessControl({owner: address(this)});
-    //     for (uint256 i = 0; i < roleConfigs.length; i++) {
-    //         for (uint256 j = 0; j < roleConfigs[i].accounts.length; j++) {
-    //             accessControl.grantRole(roleConfigs[i].accounts[j], roleConfigs[i].roleId);
-    //         }
-    //     }
-    //     for (uint256 i = 0; i < accessConfigs.length; i++) {
-    //         if (accessConfigs[i].contractAddress == address(0)) {
-    //             accessControl.setGlobalAccess(
-    //                 accessConfigs[i].roleId, accessConfigs[i].permissionId, accessConfigs[i].access, ""
-    //             );
-    //         } else {
-    //             accessControl.setScopedAccess(
-    //                 accessConfigs[i].roleId,
-    //                 accessConfigs[i].contractAddress,
-    //                 accessConfigs[i].permissionId,
-    //                 accessConfigs[i].access,
-    //                 ""
-    //             );
-    //         }
-    //     }
-    //     accessControl.transferOwnership(owner);
-    //     return address(accessControl);
-    // }
-
     function _deployAccessControl(address owner, address[] calldata admins)
         internal
         returns (IRoleBasedAccessControl)
     {
-        RoleBasedAccessControl accessControl = new RoleBasedAccessControl({owner: address(this)});
-        for (uint256 i = 0; i < admins.length; i++) {
-            accessControl.grantRole(admins[i], ADMIN_ROLE_ID);
-        }
-        accessControl.transferOwnership(owner);
-        return accessControl;
+        return ACCESS_CONTROL_FACTORY.deployOwnerAdminOnlyAccessControl(owner, admins);
     }
 }
