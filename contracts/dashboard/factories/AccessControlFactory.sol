@@ -3,7 +3,7 @@
 pragma solidity ^0.8.0;
 
 import {IRoleBasedAccessControl} from "./../../core/interfaces/IRoleBasedAccessControl.sol";
-import {RoleBasedAccessControl} from "./../../core/access/RoleBasedAccessControl.sol";
+import {OwnerAdminOnlyAccessControl} from "./../access/OwnerAdminOnlyAccessControl.sol";
 
 contract AccessControlFactory {
     uint256 immutable ADMIN_ROLE_ID = uint256(keccak256("ADMIN"));
@@ -14,7 +14,7 @@ contract AccessControlFactory {
         external
         returns (IRoleBasedAccessControl)
     {
-        RoleBasedAccessControl accessControl = new RoleBasedAccessControl({owner: address(this)});
+        OwnerAdminOnlyAccessControl accessControl = new OwnerAdminOnlyAccessControl({owner: address(this)});
         emit Lens_AccessControlFactory_OwnerAdminDeployment(address(accessControl), owner);
         for (uint256 i = 0; i < admins.length; i++) {
             accessControl.grantRole(admins[i], ADMIN_ROLE_ID);
