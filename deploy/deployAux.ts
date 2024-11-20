@@ -229,7 +229,7 @@ export async function deployAccessControl(accessControlFactoryAddress: string) {
   );
 
   const transaction = await accessControlFactory.deployOwnerAdminOnlyAccessControl(
-    getWallet().address
+    getWallet().address, []
   );
 
   const txReceipt = (await transaction.wait()) as ethers.TransactionReceipt;
