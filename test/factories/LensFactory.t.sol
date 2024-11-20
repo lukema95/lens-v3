@@ -12,19 +12,22 @@ import {Username} from "../../contracts/core/primitives/username/Username.sol";
 import {RuleChange, DataElement, SourceStamp, RuleExecutionData} from "../../contracts/core/types/Types.sol";
 import {AccountManagerPermissions} from "../../contracts/dashboard/account/Account.sol";
 import {AccessControlFactory} from "../../contracts/dashboard/factories/AccessControlFactory.sol";
+import {UserBlockingRule} from "../../contracts/rules/base/UserBlockingRule.sol";
 
 contract LensFactoryTest is Test {
     LensFactory lensFactory;
     Username username;
 
     function setUp() public {
+        UserBlockingRule userBlockingRule = new UserBlockingRule();
+
         lensFactory = new LensFactory({
             accessControlFactory: new AccessControlFactory(),
             accountFactory: new AccountFactory(),
             appFactory: new AppFactory(),
             groupFactory: new GroupFactory(),
-            feedFactory: new FeedFactory(),
-            graphFactory: new GraphFactory(),
+            feedFactory: new FeedFactory(address(userBlockingRule)),
+            graphFactory: new GraphFactory(address(userBlockingRule)),
             usernameFactory: new UsernameFactory()
         });
 
