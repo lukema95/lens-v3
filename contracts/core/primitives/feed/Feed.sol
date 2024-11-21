@@ -8,14 +8,7 @@ import {IAccessControl} from "./../../interfaces/IAccessControl.sol";
 import {DataElement} from "./../../types/Types.sol";
 import {RuleBasedFeed} from "./RuleBasedFeed.sol";
 import {AccessControlled} from "./../../access/AccessControlled.sol";
-import {
-    RuleConfiguration,
-    RuleChange,
-    RuleOperation,
-    RuleExecutionData,
-    DataElementValue,
-    SourceStamp
-} from "./../../types/Types.sol";
+import {RuleConfiguration, RuleChange, RuleOperation, RuleExecutionData, SourceStamp} from "./../../types/Types.sol";
 import {Events} from "./../../types/Events.sol";
 import {ISource} from "./../../interfaces/ISource.sol";
 
@@ -213,20 +206,19 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     function setExtraData(DataElement[] calldata extraDataToSet) external override {
         _requireAccess(msg.sender, SET_EXTRA_DATA_PID);
         for (uint256 i = 0; i < extraDataToSet.length; i++) {
-            bool wasExtraDataAlreadySet = Core._setExtraData(extraDataToSet[i]);
-            if (wasExtraDataAlreadySet) {
-                emit Lens_Feed_ExtraDataUpdated(extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value);
-            } else {
+            bool hadAValueSetBefore = Core._setExtraData(extraDataToSet[i]);
+            bool isNewValueEmpty = extraDataToSet[i].value.length == 0;
+            if (hadAValueSetBefore) {
+                if (isNewValueEmpty) {
+                    emit Lens_Feed_ExtraDataRemoved(extraDataToSet[i].key);
+                } else {
+                    emit Lens_Feed_ExtraDataUpdated(
+                        extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value
+                    );
+                }
+            } else if (!isNewValueEmpty) {
                 emit Lens_Feed_ExtraDataAdded(extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value);
             }
-        }
-    }
-
-    function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external override {
-        _requireAccess(msg.sender, SET_EXTRA_DATA_PID);
-        for (uint256 i = 0; i < extraDataKeysToRemove.length; i++) {
-            Core._removeExtraData(extraDataKeysToRemove[i]);
-            emit Lens_Feed_ExtraDataRemoved(extraDataKeysToRemove[i]);
         }
     }
 
@@ -272,11 +264,11 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         return Core.$storage().metadataURI;
     }
 
-    function getPostExtraData(uint256 postId, bytes32 key) external view override returns (DataElementValue memory) {
+    function getPostExtraData(uint256 postId, bytes32 key) external view override returns (bytes memory) {
         return Core.$storage().posts[postId].extraData[key];
     }
 
-    function getExtraData(bytes32 key) external view override returns (DataElementValue memory) {
+    function getExtraData(bytes32 key) external view override returns (bytes memory) {
         return Core.$storage().extraData[key];
     }
 }

@@ -3,7 +3,6 @@
 pragma solidity ^0.8.17;
 
 import "./../../../core/libraries/ExtraDataLib.sol";
-import {DataElement, DataElementValue} from "./../../../core/types/Types.sol";
 
 struct ArrayStorageHelper {
     uint8 index;
@@ -11,7 +10,7 @@ struct ArrayStorageHelper {
 }
 
 library AppCore {
-    using ExtraDataLib for mapping(bytes32 => DataElementValue);
+    using ExtraDataLib for mapping(bytes32 => bytes);
 
     // Storage
 
@@ -36,7 +35,7 @@ library AppCore {
         address defaultUsername;
         address defaultGroup;
         address defaultPaymaster;
-        mapping(bytes32 => DataElementValue) extraData;
+        mapping(bytes32 => bytes) extraData;
     }
 
     // keccak256('lens.app.core.storage')
@@ -189,15 +188,7 @@ library AppCore {
         return _setExtraData(extraDataToSet);
     }
 
-    function removeExtraData(bytes32 extraDataKeyToRemove) external {
-        _removeExtraData(extraDataKeyToRemove);
-    }
-
     function _setExtraData(DataElement memory extraDataToSet) internal returns (bool) {
         return $storage().extraData.set(extraDataToSet);
-    }
-
-    function _removeExtraData(bytes32 extraDataKeyToRemove) internal {
-        require(!$storage().extraData.remove(extraDataKeyToRemove), "EXTRA_DATA_WAS_NOT_SET");
     }
 }

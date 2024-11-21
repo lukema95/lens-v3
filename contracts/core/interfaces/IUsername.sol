@@ -2,7 +2,7 @@
 // Copyright (C) 2024 Lens Labs. All Rights Reserved.
 pragma solidity ^0.8.0;
 
-import {DataElement, RuleChange, RuleExecutionData, DataElementValue, SourceStamp} from "./../types/Types.sol";
+import {DataElement, RuleChange, RuleExecutionData, SourceStamp} from "./../types/Types.sol";
 import {IMetadataBased} from "./IMetadataBased.sol";
 
 interface IUsername is IMetadataBased {
@@ -29,8 +29,6 @@ interface IUsername is IMetadataBased {
     event Lens_Username_MetadataURISet(string metadataURI);
 
     function setExtraData(DataElement[] calldata extraDataToSet) external;
-
-    function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external;
 
     function changeUsernameRules(RuleChange[] calldata ruleChanges) external;
 
@@ -62,5 +60,5 @@ interface IUsername is IMetadataBased {
 
     function getUsernameRules(bool isRequired) external view returns (address[] memory);
 
-    function getExtraData(bytes32 key) external view returns (DataElementValue memory);
+    function getExtraData(bytes32 key) external view returns (bytes memory);
 }

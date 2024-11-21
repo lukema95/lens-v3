@@ -17,11 +17,11 @@ struct PostStorage {
     address creationSource;
     uint80 lastUpdatedTimestamp;
     address lastUpdateSource;
-    mapping(bytes32 => DataElementValue) extraData;
+    mapping(bytes32 => bytes) extraData;
 }
 
 library FeedCore {
-    using ExtraDataLib for mapping(bytes32 => DataElementValue);
+    using ExtraDataLib for mapping(bytes32 => bytes);
 
     // Storage
 
@@ -29,7 +29,7 @@ library FeedCore {
         string metadataURI;
         uint256 postCount;
         mapping(uint256 => PostStorage) posts;
-        mapping(bytes32 => DataElementValue) extraData;
+        mapping(bytes32 => bytes) extraData;
     }
 
     // keccak256('lens.feed.core.storage')
@@ -65,18 +65,10 @@ library FeedCore {
         return _setExtraData(extraDataToSet);
     }
 
-    function removeExtraData(bytes32 extraDataKeyToRemove) external {
-        _removeExtraData(extraDataKeyToRemove);
-    }
-
     // Internal functions - Use these functions to be called as an inlined library
 
     function _setExtraData(DataElement calldata extraDataToSet) internal returns (bool) {
         return $storage().extraData.set(extraDataToSet);
-    }
-
-    function _removeExtraData(bytes32 extraDataKeyToRemove) internal {
-        require(!$storage().extraData.remove(extraDataKeyToRemove), "EXTRA_DATA_WAS_NOT_SET");
     }
 
     function _generatePostId(uint256 localSequentialId) internal view returns (uint256) {
@@ -139,7 +131,7 @@ library FeedCore {
 
     // TODO(by: @donosonaumczuk): We should do soft-delete (disable/enable post feature), keep the storage there.
     function _deletePost(uint256 postId, bytes32[] calldata extraDataKeysToDelete) internal {
-        $storage().posts[postId].extraData.remove(extraDataKeysToDelete);
+        // $storage().posts[postId].extraData.remove(extraDataKeysToDelete); // TODO: What do we do? What about ExtraData Deleted events?
         delete $storage().posts[postId];
     }
 

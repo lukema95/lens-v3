@@ -2,7 +2,7 @@
 // Copyright (C) 2024 Lens Labs. All Rights Reserved.
 pragma solidity ^0.8.0;
 
-import {DataElement, RuleChange, RuleExecutionData, DataElementValue} from "./../types/Types.sol";
+import {DataElement, RuleChange, RuleExecutionData} from "./../types/Types.sol";
 import {IMetadataBased} from "./IMetadataBased.sol";
 import {SourceStamp} from "./../types/Types.sol";
 
@@ -31,8 +31,6 @@ interface IGroup is IMetadataBased {
 
     function setExtraData(DataElement[] calldata extraDataToSet) external;
 
-    function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external;
-
     function joinGroup(address account, RuleExecutionData calldata data, SourceStamp calldata sourceStamp) external;
 
     function leaveGroup(address account, RuleExecutionData calldata data, SourceStamp calldata sourceStamp) external;
@@ -48,5 +46,5 @@ interface IGroup is IMetadataBased {
 
     function getGroupRules(bool isRequired) external view returns (address[] memory);
 
-    function getExtraData(bytes32 key) external view returns (DataElementValue memory);
+    function getExtraData(bytes32 key) external view returns (bytes memory);
 }

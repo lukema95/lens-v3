@@ -2,14 +2,7 @@
 // Copyright (C) 2024 Lens Labs. All Rights Reserved.
 pragma solidity ^0.8.0;
 
-import {
-    DataElement,
-    RuleConfiguration,
-    RuleChange,
-    RuleExecutionData,
-    DataElementValue,
-    SourceStamp
-} from "./../types/Types.sol";
+import {DataElement, RuleConfiguration, RuleChange, RuleExecutionData, SourceStamp} from "./../types/Types.sol";
 import {IMetadataBased} from "./../interfaces/IMetadataBased.sol";
 
 // TODO: Discuss if there's a need for anything else to be added here
@@ -110,6 +103,7 @@ interface IFeed is IMetadataBased {
 
     // "Delete" - u know u cannot delete stuff from the internet, right? :]
     // But this will at least remove it from the current state, so contracts accesing it will know.
+    // TODO: Debate post deletion, soft vs. hard delete, extra data deletion, etc.
     function deletePost(
         uint256 postId,
         bytes32[] calldata extraDataKeysToDelete,
@@ -125,8 +119,6 @@ interface IFeed is IMetadataBased {
 
     function setExtraData(DataElement[] calldata extraDataToSet) external;
 
-    function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external;
-
     // Getters
 
     function getPost(uint256 postId) external view returns (Post memory);
@@ -139,7 +131,7 @@ interface IFeed is IMetadataBased {
 
     function getPostCount() external view returns (uint256);
 
-    function getPostExtraData(uint256 postId, bytes32 key) external view returns (DataElementValue memory);
+    function getPostExtraData(uint256 postId, bytes32 key) external view returns (bytes memory);
 
-    function getExtraData(bytes32 key) external view returns (DataElementValue memory);
+    function getExtraData(bytes32 key) external view returns (bytes memory);
 }

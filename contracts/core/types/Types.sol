@@ -7,12 +7,6 @@ struct DataElement {
     bytes value;
 }
 
-struct DataElementValue {
-    bool isSet;
-    uint80 lastUpdatedTimestamp;
-    bytes value;
-}
-
 struct RuleConfiguration {
     address ruleAddress;
     bytes configData;
