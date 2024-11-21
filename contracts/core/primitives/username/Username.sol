@@ -11,7 +11,6 @@ import {
     RuleOperation,
     RuleChange,
     RuleConfiguration,
-    DataElementValue,
     SourceStamp
 } from "./../../types/Types.sol";
 import {RuleBasedUsername} from "./RuleBasedUsername.sol";
@@ -150,24 +149,21 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
     function setExtraData(DataElement[] calldata extraDataToSet) external override {
         _requireAccess(msg.sender, SET_EXTRA_DATA_PID);
         for (uint256 i = 0; i < extraDataToSet.length; i++) {
-            bool wasExtraDataAlreadySet = Core._setExtraData(extraDataToSet[i]);
-            if (wasExtraDataAlreadySet) {
-                emit Lens_Username_ExtraDataUpdated(
-                    extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value
-                );
-            } else {
+            bool hadAValueSetBefore = Core._setExtraData(extraDataToSet[i]);
+            bool isNewValueEmpty = extraDataToSet[i].value.length == 0;
+            if (hadAValueSetBefore) {
+                if (isNewValueEmpty) {
+                    emit Lens_Username_ExtraDataRemoved(extraDataToSet[i].key);
+                } else {
+                    emit Lens_Username_ExtraDataUpdated(
+                        extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value
+                    );
+                }
+            } else if (!isNewValueEmpty) {
                 emit Lens_Username_ExtraDataAdded(
                     extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value
                 );
             }
-        }
-    }
-
-    function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external override {
-        _requireAccess(msg.sender, SET_EXTRA_DATA_PID);
-        for (uint256 i = 0; i < extraDataKeysToRemove.length; i++) {
-            Core._removeExtraData(extraDataKeysToRemove[i]);
-            emit Lens_Username_ExtraDataRemoved(extraDataKeysToRemove[i]);
         }
     }
 
@@ -211,7 +207,7 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
         return Core.$storage().namespace;
     }
 
-    function getExtraData(bytes32 key) external view override returns (DataElementValue memory) {
+    function getExtraData(bytes32 key) external view override returns (bytes memory) {
         return Core.$storage().extraData[key];
     }
 

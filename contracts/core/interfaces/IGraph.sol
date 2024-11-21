@@ -2,14 +2,7 @@
 // Copyright (C) 2024 Lens Labs. All Rights Reserved.
 pragma solidity ^0.8.0;
 
-import {
-    RuleConfiguration,
-    RuleChange,
-    RuleExecutionData,
-    DataElement,
-    DataElementValue,
-    SourceStamp
-} from "./../types/Types.sol";
+import {RuleConfiguration, RuleChange, RuleExecutionData, DataElement, SourceStamp} from "./../types/Types.sol";
 import {IMetadataBased} from "./IMetadataBased.sol";
 
 // TODO: Might worth to add extraData to the follow entity
@@ -85,8 +78,6 @@ interface IGraph is IMetadataBased {
 
     function setExtraData(DataElement[] calldata extraDataToSet) external;
 
-    function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external;
-
     // Getters
 
     function isFollowing(address followerAccount, address targetAccount) external view returns (bool);
@@ -101,5 +92,5 @@ interface IGraph is IMetadataBased {
 
     function getFollowRules(address account, bool isRequired) external view returns (address[] memory);
 
-    function getExtraData(bytes32 key) external view returns (DataElementValue memory);
+    function getExtraData(bytes32 key) external view returns (bytes memory);
 }
