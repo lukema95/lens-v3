@@ -14,13 +14,11 @@ interface IUsername is IMetadataBased {
 
     event Lens_Username_Created(string username, address indexed account, RuleExecutionData data, address source);
 
-    event Lens_Username_Removed(string username, address indexed account, RuleExecutionData data, address source);
+    event Lens_Username_Removed(string username, address indexed account, address source);
 
     event Lens_Username_Assigned(string username, address indexed account, RuleExecutionData data, address source);
 
-    event Lens_Username_Unassigned(
-        string username, address indexed previousAccount, RuleExecutionData data, address source
-    );
+    event Lens_Username_Unassigned(string username, address indexed previousAccount, address source);
 
     event Lens_Username_ExtraDataAdded(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
     event Lens_Username_ExtraDataUpdated(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
@@ -41,8 +39,7 @@ interface IUsername is IMetadataBased {
         SourceStamp calldata sourceStamp
     ) external;
 
-    function removeUsername(string memory username, RuleExecutionData calldata data, SourceStamp calldata sourceStamp)
-        external;
+    function removeUsername(string memory username, SourceStamp calldata sourceStamp) external;
 
     function assignUsername(
         address account,
@@ -51,8 +48,7 @@ interface IUsername is IMetadataBased {
         SourceStamp calldata sourceStamp
     ) external;
 
-    function unassignUsername(string memory username, RuleExecutionData calldata data, SourceStamp calldata sourceStamp)
-        external;
+    function unassignUsername(string memory username, SourceStamp calldata sourceStamp) external;
 
     function usernameOf(address user) external view returns (string memory);
 
