@@ -39,5 +39,12 @@ interface IAccount {
 
     function getMetadataURI(address source) external view returns (string memory);
 
+    function getAccountManagerPermissions(address accountManager)
+        external
+        view
+        returns (AccountManagerPermissions memory);
+
+    function canExecuteTransactions(address executor) external view returns (bool);
+
     receive() external payable;
 }

@@ -57,6 +57,8 @@ contract Account is IAccount, Ownable, IERC721Receiver {
         onlyOwner
     {
         require(!_accountManagerPermissions[accountManager].canExecuteTransactions, "Account manager already exists");
+        require(accountManager != owner(), "Cannot add owner as account manager");
+        require(accountManager != address(0), "Cannot add zero address as account manager");
         _accountManagerPermissions[accountManager] = accountManagerPermissions;
         emit Lens_Account_AccountManagerAdded(accountManager, accountManagerPermissions);
     }
@@ -77,7 +79,16 @@ contract Account is IAccount, Ownable, IERC721Receiver {
         emit Lens_Account_AccountManagerUpdated(accountManager, accountManagerPermissions);
     }
 
-    function canExecuteTransactions(address executor) external view returns (bool) {
+    function getAccountManagerPermissions(address accountManager)
+        external
+        view
+        override
+        returns (AccountManagerPermissions memory)
+    {
+        return _accountManagerPermissions[accountManager];
+    }
+
+    function canExecuteTransactions(address executor) external view override returns (bool) {
         return _accountManagerPermissions[executor].canExecuteTransactions || executor == owner();
     }
 
