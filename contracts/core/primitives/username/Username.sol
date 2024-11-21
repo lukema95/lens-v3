@@ -99,26 +99,24 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
         _safeMint(account, id);
         _idToUsername[id] = username;
         Core._createUsername(username);
+        _processCreation(account, username, data);
+        emit Lens_Username_Created(username, account, data, sourceStamp.source);
         if (sourceStamp.source != address(0)) {
             ISource(sourceStamp.source).validateSource(sourceStamp);
         }
-        _processCreation(account, username, data);
-        emit Lens_Username_Created(username, account, data, sourceStamp.source);
     }
 
-    function removeUsername(string calldata username, RuleExecutionData calldata data, SourceStamp calldata sourceStamp)
-        external
-        override
-    {
+    function removeUsername(string calldata username, SourceStamp calldata sourceStamp) external override {
         uint256 id = _computeId(username);
         address owner = _ownerOf(id);
         require(msg.sender == owner); // msg.sender must be the owner of the username
+        _unassignIfAssigned(username, sourceStamp.source);
         _burn(id);
         Core._removeUsername(username);
+        emit Lens_Username_Removed(username, owner, sourceStamp.source);
         if (sourceStamp.source != address(0)) {
             ISource(sourceStamp.source).validateSource(sourceStamp);
         }
-        emit Lens_Username_Removed(username, owner, data, sourceStamp.source);
     }
 
     function assignUsername(
@@ -129,26 +127,24 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
     ) external override {
         require(msg.sender == account); // msg.sender must be the account
         require(account == _ownerOf(_computeId(username))); // account should own the tokenized username
+        _unassignIfAssigned(account, sourceStamp.source);
+        _unassignIfAssigned(username, sourceStamp.source);
         Core._assignUsername(account, username);
+        _processAssigning(account, username, data);
+        emit Lens_Username_Assigned(username, account, data, sourceStamp.source);
         if (sourceStamp.source != address(0)) {
             ISource(sourceStamp.source).validateSource(sourceStamp);
         }
-        _processAssigning(account, username, data);
-        emit Lens_Username_Assigned(username, account, data, sourceStamp.source);
     }
 
-    function unassignUsername(
-        string calldata username,
-        RuleExecutionData calldata data,
-        SourceStamp calldata sourceStamp
-    ) external override {
+    function unassignUsername(string calldata username, SourceStamp calldata sourceStamp) external override {
         address account = Core.$storage().usernameToAccount[username];
         require(msg.sender == account || msg.sender == _ownerOf(_computeId(username)));
         Core._unassignUsername(username);
+        emit Lens_Username_Unassigned(username, account, sourceStamp.source);
         if (sourceStamp.source != address(0)) {
             ISource(sourceStamp.source).validateSource(sourceStamp);
         }
-        emit Lens_Username_Unassigned(username, account, data, sourceStamp.source);
     }
 
     function setExtraData(DataElement[] calldata extraDataToSet) external override {
@@ -177,24 +173,28 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
 
     // Internal
 
-    function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal virtual override {
-        if (from != address(0) && to != address(0)) {
-            string memory username = _idToUsername[tokenId];
-            if (Core.$storage().usernameToAccount[username] != address(0)) {
-                Core._unassignUsername(Core.$storage().accountToUsername[to]);
-                emit Lens_Username_Unassigned(
-                    username, from, RuleExecutionData(new bytes[](0), new bytes[](0)), address(0)
-                );
-            }
-        }
-    }
-
     function _afterTokenTransfer(address from, address to, uint256 tokenId) internal virtual override {
         emit Lens_Username_Transfer(from, to, tokenId);
     }
 
-    function _computeId(string memory username) internal pure returns (uint256) {
+    function _computeId(string memory username) internal pure virtual returns (uint256) {
         return uint256(keccak256(bytes(username)));
+    }
+
+    function _unassignIfAssigned(string memory username, address source) internal virtual {
+        address assignedAccount = Core.$storage().usernameToAccount[username];
+        if (assignedAccount != address(0)) {
+            Core._unassignUsername(username);
+            emit Lens_Username_Unassigned(username, assignedAccount, source);
+        }
+    }
+
+    function _unassignIfAssigned(address account, address source) internal virtual {
+        string memory assignedUsername = Core.$storage().accountToUsername[account];
+        if (bytes(assignedUsername).length != 0) {
+            Core._unassignUsername(assignedUsername);
+            emit Lens_Username_Unassigned(assignedUsername, account, source);
+        }
     }
 
     // Getters
