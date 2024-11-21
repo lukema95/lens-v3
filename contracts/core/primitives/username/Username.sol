@@ -173,14 +173,6 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
 
     // Internal
 
-    function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal virtual override {
-        // This is just for transfers. Creation and removal cases are handled in its corresponding functions.
-        if (from != address(0) && to != address(0)) {
-            // TODO: We do not have source for this :( unless we do a custom transfer function...
-            _unassignIfAssigned({username: _idToUsername[tokenId], source: address(0)});
-        }
-    }
-
     function _afterTokenTransfer(address from, address to, uint256 tokenId) internal virtual override {
         emit Lens_Username_Transfer(from, to, tokenId);
     }
