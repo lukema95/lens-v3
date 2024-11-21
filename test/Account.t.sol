@@ -99,6 +99,119 @@ contract AccountTest is Test {
         console.log("Post Author:", post.author);
     }
 
+    function testCanAddAccountManager(
+        address accountManager,
+        bool canTransferTokens,
+        bool canTransferNative,
+        bool canSetMetadataURI
+    ) public {
+        vm.assume(accountManager != address(0));
+        vm.assume(accountManager != owner);
+        vm.assume(accountManager != manager);
+
+        vm.prank(owner);
+        account.addAccountManager(
+            accountManager, AccountManagerPermissions(true, canTransferTokens, canTransferNative, canSetMetadataURI)
+        );
+
+        AccountManagerPermissions memory permissions = account.getAccountManagerPermissions(accountManager);
+        assertEq(permissions.canExecuteTransactions, true, "canExecuteTransaction assertion failed");
+        assertEq(permissions.canTransferTokens, canTransferTokens, "canTransferTokens assertion failed");
+        assertEq(permissions.canTransferNative, canTransferNative, "canTransferNative assertion failed");
+        assertEq(permissions.canSetMetadataURI, canSetMetadataURI, "canSetMetadataURI assertion failed");
+    }
+
+    function testCannotAddAccountManager_Twice() public {
+        vm.prank(owner);
+        vm.expectRevert("Account manager already exists");
+        account.addAccountManager(manager, AccountManagerPermissions(true, true, true, true));
+    }
+
+    function testCannotAdd_Owner_AsAccountManager() public {
+        vm.prank(owner);
+        vm.expectRevert("Cannot add owner as account manager");
+        account.addAccountManager(owner, AccountManagerPermissions(true, true, true, true));
+    }
+
+    function testCannotAdd_ZeroAddress_AsManagerTwiceOrWrongly() public {
+        vm.prank(owner);
+        vm.expectRevert("Cannot add zero address as account manager");
+        account.addAccountManager(address(0), AccountManagerPermissions(true, true, true, true));
+    }
+
+    function testCanUpdateAccountManagerPermissions(
+        address accountManager,
+        bool canTransferTokensBefore,
+        bool canTransferNativeBefore,
+        bool canSetMetadataURIBefore,
+        bool canTransferTokensAfter,
+        bool canTransferNativeAfter,
+        bool canSetMetadataURIAfter
+    ) public {
+        vm.assume(accountManager != address(0));
+        vm.assume(accountManager != owner);
+        vm.assume(accountManager != manager);
+
+        vm.prank(owner);
+        account.addAccountManager(
+            accountManager,
+            AccountManagerPermissions(true, canTransferTokensBefore, canTransferNativeBefore, canSetMetadataURIBefore)
+        );
+
+        AccountManagerPermissions memory permissionsBefore = account.getAccountManagerPermissions(accountManager);
+        assertEq(permissionsBefore.canExecuteTransactions, true);
+        assertEq(permissionsBefore.canTransferTokens, canTransferTokensBefore);
+        assertEq(permissionsBefore.canTransferNative, canTransferNativeBefore);
+        assertEq(permissionsBefore.canSetMetadataURI, canSetMetadataURIBefore);
+
+        vm.prank(owner);
+        account.updateAccountManagerPermissions(
+            accountManager,
+            AccountManagerPermissions(true, canTransferTokensAfter, canTransferNativeAfter, canSetMetadataURIAfter)
+        );
+
+        AccountManagerPermissions memory permissions = account.getAccountManagerPermissions(accountManager);
+        assertEq(permissions.canExecuteTransactions, true);
+        assertEq(permissions.canTransferTokens, canTransferTokensAfter);
+        assertEq(permissions.canTransferNative, canTransferNativeAfter);
+        assertEq(permissions.canSetMetadataURI, canSetMetadataURIAfter);
+    }
+
+    function testCanRemoveAccountManager(
+        address accountManager,
+        bool canTransferTokens,
+        bool canTransferNative,
+        bool canSetMetadataURI
+    ) public {
+        vm.assume(accountManager != address(0));
+        vm.assume(accountManager != owner);
+        vm.assume(accountManager != manager);
+
+        vm.prank(owner);
+        account.addAccountManager(
+            accountManager, AccountManagerPermissions(true, canTransferTokens, canTransferNative, canSetMetadataURI)
+        );
+
+        AccountManagerPermissions memory permissionsBefore = account.getAccountManagerPermissions(accountManager);
+        assertEq(permissionsBefore.canExecuteTransactions, true, "canExecuteTransactionBefore assertion failed");
+        assertEq(permissionsBefore.canTransferTokens, canTransferTokens, "canTransferTokensBefore assertion failed");
+        assertEq(permissionsBefore.canTransferNative, canTransferNative, "canTransferNativeBefore assertion failed");
+        assertEq(permissionsBefore.canSetMetadataURI, canSetMetadataURI, "canSetMetadataURIBefore assertion failed");
+
+        vm.prank(owner);
+        account.removeAccountManager(accountManager);
+
+        AccountManagerPermissions memory permissionsAfter = account.getAccountManagerPermissions(accountManager);
+        assertEq(permissionsAfter.canExecuteTransactions, false, "canExecuteTransactionAfter assertion failed");
+        assertEq(permissionsAfter.canTransferTokens, false, "canTransferTokensAfter assertion failed");
+        assertEq(permissionsAfter.canTransferNative, false, "canTransferNativeAfter assertion failed");
+        assertEq(permissionsAfter.canSetMetadataURI, false, "canSetMetadataURIAfter assertion failed");
+
+        assertEq(
+            account.canExecuteTransactions(accountManager), false, "canExecuteTransactions function assertion failed"
+        );
+    }
+
     function testAccountErrorForwarding() public {
         address errorsTest = address(new ErrorsTest());
 
