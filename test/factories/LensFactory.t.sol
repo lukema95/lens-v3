@@ -26,9 +26,10 @@ contract LensFactoryTest is Test {
             accountFactory: new AccountFactory(),
             appFactory: new AppFactory(),
             groupFactory: new GroupFactory(),
-            feedFactory: new FeedFactory(address(userBlockingRule)),
-            graphFactory: new GraphFactory(address(userBlockingRule)),
-            usernameFactory: new UsernameFactory()
+            feedFactory: new FeedFactory(),
+            graphFactory: new GraphFactory(),
+            usernameFactory: new UsernameFactory(),
+            userBlockingRule: address(userBlockingRule)
         });
 
         username = Username(

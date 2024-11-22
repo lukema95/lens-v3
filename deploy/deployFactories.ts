@@ -47,7 +47,7 @@ export default async function deployFactories(): Promise<{
 
   // graph factory
   const graphFactory_artifactName = 'GraphFactory';
-  const graphFactory_args: any[] = [await userBlockingRule.getAddress()];
+  const graphFactory_args: any[] = [];
 
   const graphFactory = await deployContract(graphFactory_artifactName, graphFactory_args);
 
@@ -56,7 +56,7 @@ export default async function deployFactories(): Promise<{
 
   // feed factory
   const feedFactory_artifactName = 'FeedFactory';
-  const feedFactory_args: any[] = [await userBlockingRule.getAddress()];
+  const feedFactory_args: any[] = [];
 
   const feedFactory = await deployContract(feedFactory_artifactName, feedFactory_args);
 
@@ -100,6 +100,7 @@ export default async function deployFactories(): Promise<{
     await feedFactory.getAddress(),
     await graphFactory.getAddress(),
     await usernameFactory.getAddress(),
+    await userBlockingRule.getAddress(),
   ];
 
   const lensFactory = await deployContract(lensFactory_artifactName, lensFactory_args);
