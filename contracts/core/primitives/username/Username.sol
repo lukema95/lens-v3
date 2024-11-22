@@ -87,6 +87,29 @@ contract Username is IUsername, LensERC721, RuleBasedUsername, AccessControlled 
 
     // Permissionless functions
 
+    function createAndAssignUsername(
+        address account,
+        string calldata username,
+        RuleExecutionData calldata createData,
+        RuleExecutionData calldata assignData,
+        SourceStamp calldata sourceStamp
+    ) external {
+        require(msg.sender == account); // msg.sender must be the account
+        uint256 id = _computeId(username);
+        _safeMint(account, id);
+        _idToUsername[id] = username;
+        Core._createUsername(username);
+        emit Lens_Username_Created(username, account, createData, sourceStamp.source);
+        _unassignIfAssigned(account, sourceStamp.source);
+        Core._assignUsername(account, username);
+        emit Lens_Username_Assigned(username, account, assignData, sourceStamp.source);
+        _processCreation(account, username, createData);
+        _processAssigning(account, username, assignData);
+        if (sourceStamp.source != address(0)) {
+            ISource(sourceStamp.source).validateSource(sourceStamp);
+        }
+    }
+
     function createUsername(
         address account,
         string calldata username,
