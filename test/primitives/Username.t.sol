@@ -38,9 +38,9 @@ contract UsernameTest is Test {
         username.assignUsername(account, localName, _emptyExecutionData(), _emptySourceStamp());
 
         vm.prank(account);
-        username.unassignUsername(localName, _emptyExecutionData(), _emptySourceStamp());
+        username.unassignUsername(localName, _emptySourceStamp());
 
         vm.prank(account);
-        username.removeUsername(localName, _emptyExecutionData(), _emptySourceStamp());
+        username.removeUsername(localName, _emptySourceStamp());
     }
 }
