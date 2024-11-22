@@ -1,3 +1,4 @@
+import { AppInitialProperties, deployApp } from './deployAux';
 import {
   deployContract,
   getWallet,
@@ -151,6 +152,22 @@ export default async function deployFactories(): Promise<{
     constructorParams: ['lens', metadataURI, ownerAddress, 'Lens Usernames', 'LENS'],
   });
   outputLines.push(`LENS_USERNAME="${lensUsernameAddress}"`);
+
+    // deploy testnet app
+  console.log('Deploying Testnet App...');
+  const initialProperties: AppInitialProperties = {
+    graph: globalGraphAddress,
+    feeds: [globalFeedAddress],
+    username: lensUsernameAddress,
+    groups: [],
+    defaultFeed: globalFeedAddress,
+    signers: [],
+    paymaster: getWallet().address,
+    treasury: getWallet().address,
+  };
+  
+  const testnetAppAddress = await deployApp(lensFactory, initialProperties);
+  outputLines.push(`TESTNET_APP="${testnetAppAddress}"`);
 
   const output = outputLines.join('\n');
   writeFileSync('deployed_primitives.txt', output);

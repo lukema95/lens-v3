@@ -17,7 +17,7 @@ export const emptySourceStamp = {
   signature: '0x',
 };
 
-interface AppInitialProperties {
+export interface AppInitialProperties {
   graph: string;
   feeds: string[];
   username: string;
@@ -185,7 +185,7 @@ export async function deployUsername(
   return usernameAddress;
 }
 
-async function deployApp(
+export async function deployApp(
   lensFactory: ethers.Contract,
   initialProperties: AppInitialProperties
 ): Promise<string> {
