@@ -8,15 +8,13 @@ import {CreatePostParams, EditPostParams} from "./../../core/interfaces/IFeed.so
 import {RuleChange} from "./../../core/types/Types.sol";
 import {IFeed} from "./../../core/interfaces/IFeed.sol";
 
-contract UserBlocking is IFeedRule, IGraphRule {
+contract UserBlockingRule is IFeedRule, IGraphRule {
     event Lens_UserBlocking_UserBlocked(address indexed source, address indexed target, uint256 timestamp);
     event Lens_UserBlocking_UserUnblocked(address indexed source, address indexed target);
 
     mapping(address => mapping(address => uint256)) public userBlocks;
 
-    function configure(bytes calldata /*data*/ ) external pure override(IFeedRule, IGraphRule) {
-        revert();
-    }
+    function configure(bytes calldata /*data*/ ) external pure override(IFeedRule, IGraphRule) {}
 
     function blockUser(address source, address target) external {
         require(msg.sender == source, "Only the source can block a user");

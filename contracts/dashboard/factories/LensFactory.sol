@@ -7,7 +7,14 @@ import {IAccessControl} from "./../../core/interfaces/IAccessControl.sol";
 import {Group} from "./../../core/primitives/group/Group.sol";
 import {RoleBasedAccessControl} from "./../../core/access/RoleBasedAccessControl.sol";
 import {RoleBasedAccessControl} from "./../../core/access/RoleBasedAccessControl.sol";
-import {RuleChange, RuleExecutionData, DataElement, SourceStamp} from "./../../core/types/Types.sol";
+import {
+    RuleChange,
+    RuleExecutionData,
+    RuleConfiguration,
+    RuleOperation,
+    DataElement,
+    SourceStamp
+} from "./../../core/types/Types.sol";
 import {GroupFactory} from "./GroupFactory.sol";
 import {FeedFactory} from "./FeedFactory.sol";
 import {GraphFactory} from "./GraphFactory.sol";
@@ -49,6 +56,7 @@ contract LensFactory {
     GraphFactory internal immutable GRAPH_FACTORY;
     UsernameFactory internal immutable USERNAME_FACTORY;
     IAccessControl internal immutable _factoryOwnedAccessControl;
+    address internal immutable _userBlockingRule;
 
     constructor(
         AccessControlFactory accessControlFactory,
@@ -57,7 +65,8 @@ contract LensFactory {
         GroupFactory groupFactory,
         FeedFactory feedFactory,
         GraphFactory graphFactory,
-        UsernameFactory usernameFactory
+        UsernameFactory usernameFactory,
+        address userBlockingRule
     ) {
         ACCESS_CONTROL_FACTORY = accessControlFactory;
         ACCOUNT_FACTORY = accountFactory;
@@ -67,6 +76,7 @@ contract LensFactory {
         GRAPH_FACTORY = graphFactory;
         USERNAME_FACTORY = usernameFactory;
         _factoryOwnedAccessControl = new RoleBasedAccessControl({owner: address(this)});
+        _userBlockingRule = userBlockingRule;
     }
 
     // TODO: This function belongs to an App probably.
@@ -144,7 +154,21 @@ contract LensFactory {
         RuleChange[] calldata rules,
         DataElement[] calldata extraData
     ) external returns (address) {
-        return FEED_FACTORY.deployFeed(metadataURI, _deployAccessControl(owner, admins), rules, extraData);
+        return FEED_FACTORY.deployFeed(
+            metadataURI, _deployAccessControl(owner, admins), _prependUserBlocking(rules), extraData
+        );
+    }
+
+    function _prependUserBlocking(RuleChange[] calldata rules) internal returns (RuleChange[] memory) {
+        RuleChange[] memory rulesPrependedWithUserBlocking = new RuleChange[](rules.length + 1);
+        rulesPrependedWithUserBlocking[0] = RuleChange({
+            configuration: RuleConfiguration({ruleAddress: _userBlockingRule, configData: "", isRequired: true}),
+            operation: RuleOperation.ADD
+        });
+        for (uint256 i = 0; i < rules.length; i++) {
+            rulesPrependedWithUserBlocking[i + 1] = rules[i];
+        }
+        return rulesPrependedWithUserBlocking;
     }
 
     function deployGraph(
@@ -154,7 +178,9 @@ contract LensFactory {
         RuleChange[] calldata rules,
         DataElement[] calldata extraData
     ) external returns (address) {
-        return GRAPH_FACTORY.deployGraph(metadataURI, _deployAccessControl(owner, admins), rules, extraData);
+        return GRAPH_FACTORY.deployGraph(
+            metadataURI, _deployAccessControl(owner, admins), _prependUserBlocking(rules), extraData
+        );
     }
 
     function deployUsername(

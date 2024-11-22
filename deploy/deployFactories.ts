@@ -27,6 +27,16 @@ export default async function deployFactories(): Promise<{
   console.log(`\n✔ AccessControlFactory deployed at ${await accessControlFactory.getAddress()}`);
   outputLines.push(`ACCESS_CONTROL_FACTORY="${await accessControlFactory.getAddress()}"`);
 
+  // userBlocking rule/registry
+
+  const userBlockingRule_artifactName = 'UserBlockingRule';
+  const userBlockingRule_args: any[] = [];
+
+  const userBlockingRule = await deployContract(userBlockingRule_artifactName, userBlockingRule_args);
+
+  console.log(`\n✔ UserBlockingRule deployed at ${await userBlockingRule.getAddress()}`);
+  outputLines.push(`USER_BLOCKING_RULE="${await userBlockingRule.getAddress()}"`);
+
   // username factory
   const usernameFactory_artifactName = 'UsernameFactory';
   const usernameFactory_args: any[] = [];
@@ -91,6 +101,7 @@ export default async function deployFactories(): Promise<{
     await feedFactory.getAddress(),
     await graphFactory.getAddress(),
     await usernameFactory.getAddress(),
+    await userBlockingRule.getAddress(),
   ];
 
   const lensFactory = await deployContract(lensFactory_artifactName, lensFactory_args);
