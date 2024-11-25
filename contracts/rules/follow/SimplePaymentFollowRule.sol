@@ -14,12 +14,10 @@ contract SimplePaymentFollowRule is SimplePaymentRule, IFollowRule {
         _configuration[msg.sender][account] = configuration;
     }
 
-    function processFollow(
-        address followerAccount,
-        address accountToFollow,
-        uint256, /* followId */
-        bytes calldata data
-    ) external returns (bool) {
+    function processFollow(address followerAccount, address accountToFollow, bytes calldata data)
+        external
+        returns (bool)
+    {
         _processPayment(
             _configuration[msg.sender][accountToFollow], abi.decode(data, (PaymentConfiguration)), followerAccount
         );

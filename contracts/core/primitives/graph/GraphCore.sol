@@ -6,7 +6,7 @@ import {Follow} from "./../../interfaces/IGraph.sol";
 import "./../../libraries/ExtraDataLib.sol";
 
 library GraphCore {
-    using ExtraDataLib for mapping(bytes32 => DataElementValue);
+    using ExtraDataLib for mapping(bytes32 => bytes);
 
     // Storage
 
@@ -16,7 +16,7 @@ library GraphCore {
         mapping(address => mapping(address => Follow)) follows;
         mapping(address => mapping(uint256 => address)) followers;
         mapping(address => uint256) followersCount;
-        mapping(bytes32 => DataElementValue) extraData;
+        mapping(bytes32 => bytes) extraData;
     }
 
     // keccak256('lens.graph.core.storage')
@@ -40,10 +40,6 @@ library GraphCore {
 
     function setExtraData(DataElement calldata extraDataToSet) external returns (bool) {
         return _setExtraData(extraDataToSet);
-    }
-
-    function removeExtraData(bytes32 extraDataKeyToRemove) external {
-        _removeExtraData(extraDataKeyToRemove);
     }
 
     // Internal functions - Use these functions to be called as an inlined library
@@ -74,9 +70,5 @@ library GraphCore {
 
     function _setExtraData(DataElement calldata extraDataToSet) internal returns (bool) {
         return $storage().extraData.set(extraDataToSet);
-    }
-
-    function _removeExtraData(bytes32 extraDataKeyToRemove) internal {
-        require(!$storage().extraData.remove(extraDataKeyToRemove), "EXTRA_DATA_WAS_NOT_SET");
     }
 }

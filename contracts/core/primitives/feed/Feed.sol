@@ -8,7 +8,7 @@ import {IAccessControl} from "./../../interfaces/IAccessControl.sol";
 import {DataElement} from "./../../types/Types.sol";
 import {RuleBasedFeed} from "./RuleBasedFeed.sol";
 import {AccessControlled} from "./../../access/AccessControlled.sol";
-import {RuleConfiguration, RuleExecutionData, DataElementValue, SourceStamp} from "./../../types/Types.sol";
+import {RuleConfiguration, RuleChange, RuleOperation, RuleExecutionData, SourceStamp} from "./../../types/Types.sol";
 import {Events} from "./../../types/Events.sol";
 import {ISource} from "./../../interfaces/ISource.sol";
 
@@ -42,81 +42,52 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         emit Lens_Feed_MetadataURISet(metadataURI);
     }
 
-    function addFeedRules(RuleConfiguration[] calldata rules) external override {
+    function changeFeedRules(RuleChange[] calldata ruleChanges) external override {
         _requireAccess(msg.sender, SET_RULES_PID);
-        for (uint256 i = 0; i < rules.length; i++) {
-            _addFeedRule(rules[i]);
-            emit Lens_Feed_RuleAdded(rules[i].ruleAddress, rules[i].configData, rules[i].isRequired);
+        for (uint256 i = 0; i < ruleChanges.length; i++) {
+            RuleConfiguration memory ruleConfig = ruleChanges[i].configuration;
+            if (ruleChanges[i].operation == RuleOperation.ADD) {
+                _addFeedRule(ruleConfig);
+                emit Lens_Feed_RuleAdded(ruleConfig.ruleAddress, ruleConfig.configData, ruleConfig.isRequired);
+            } else if (ruleChanges[i].operation == RuleOperation.UPDATE) {
+                _updateFeedRule(ruleConfig);
+                emit Lens_Feed_RuleUpdated(ruleConfig.ruleAddress, ruleConfig.configData, ruleConfig.isRequired);
+            } else {
+                _removeFeedRule(ruleConfig.ruleAddress);
+                emit Lens_Feed_RuleRemoved(ruleConfig.ruleAddress);
+            }
         }
     }
 
-    function updateFeedRules(RuleConfiguration[] calldata rules) external override {
-        _requireAccess(msg.sender, SET_RULES_PID);
-        for (uint256 i = 0; i < rules.length; i++) {
-            _updateFeedRule(rules[i]);
-            emit Lens_Feed_RuleUpdated(rules[i].ruleAddress, rules[i].configData, rules[i].isRequired);
-        }
-    }
+    // PostRules functions
 
-    function removeFeedRules(address[] calldata rules) external override {
-        _requireAccess(msg.sender, SET_RULES_PID);
-        for (uint256 i = 0; i < rules.length; i++) {
-            _removeFeedRule(rules[i]);
-            emit Lens_Feed_RuleRemoved(rules[i]);
-        }
-    }
-
-    // PostRules functions // TODO: Move these in a proper place later
-
-    function addPostRules(uint256 postId, RuleConfiguration[] calldata rules, RuleExecutionData calldata feedRulesData)
-        external
-        override
-    {
-        address author = Core.$storage().posts[postId].author;
-        require(msg.sender == author, "MSG_SENDER_NOT_AUTHOR");
-        require(Core.$storage().posts[postId].rootPostId == postId, "ONLY_ROOT_POSTS_CAN_HAVE_RULES");
-        for (uint256 i = 0; i < rules.length; i++) {
-            _addPostRule(postId, rules[i]);
-            emit Lens_Feed_Post_RuleAdded(
-                postId, author, rules[i].ruleAddress, rules[i].configData, rules[i].isRequired
-            );
-        }
-        // Check the feed rules if it accepts the new RuleConfiguration
-        _processChangesOnPostRules(postId, rules, feedRulesData);
-    }
-
-    function updatePostRules(
+    function changePostRules(
         uint256 postId,
-        RuleConfiguration[] calldata rules,
+        RuleChange[] calldata ruleChanges,
         RuleExecutionData calldata feedRulesData
     ) external override {
         address author = Core.$storage().posts[postId].author;
         require(msg.sender == author, "MSG_SENDER_NOT_AUTHOR");
         require(Core.$storage().posts[postId].rootPostId == postId, "ONLY_ROOT_POSTS_CAN_HAVE_RULES");
-        for (uint256 i = 0; i < rules.length; i++) {
-            _updatePostRule(postId, rules[i]);
-            emit Lens_Feed_Post_RuleUpdated(
-                postId, author, rules[i].ruleAddress, rules[i].configData, rules[i].isRequired
-            );
+        for (uint256 i = 0; i < ruleChanges.length; i++) {
+            RuleConfiguration memory ruleConfig = ruleChanges[i].configuration;
+            if (ruleChanges[i].operation == RuleOperation.ADD) {
+                _addPostRule(postId, ruleConfig);
+                emit Lens_Feed_Post_RuleAdded(
+                    postId, author, ruleConfig.ruleAddress, ruleConfig.configData, ruleConfig.isRequired
+                );
+            } else if (ruleChanges[i].operation == RuleOperation.UPDATE) {
+                _updatePostRule(postId, ruleConfig);
+                emit Lens_Feed_Post_RuleUpdated(
+                    postId, author, ruleConfig.ruleAddress, ruleConfig.configData, ruleConfig.isRequired
+                );
+            } else {
+                _removePostRule(postId, ruleConfig.ruleAddress);
+                emit Lens_Feed_Post_RuleRemoved(postId, author, ruleConfig.ruleAddress);
+            }
         }
         // Check the feed rules if it accepts the new RuleConfiguration
-        _processChangesOnPostRules(postId, rules, feedRulesData);
-    }
-
-    function removePostRules(
-        uint256 postId,
-        RuleConfiguration[] calldata rules,
-        RuleExecutionData calldata feedRulesData
-    ) external override {
-        address author = Core.$storage().posts[postId].author;
-        require(msg.sender == author, "MSG_SENDER_NOT_AUTHOR");
-        require(Core.$storage().posts[postId].rootPostId == postId, "ONLY_ROOT_POSTS_CAN_HAVE_RULES");
-        for (uint256 i = 0; i < rules.length; i++) {
-            _removePostRule(postId, rules[i].ruleAddress);
-            emit Lens_Feed_Post_RuleRemoved(postId, author, rules[i].ruleAddress);
-        }
-        // Check the feed rules if it accepts the new RuleConfiguration
-        _processChangesOnPostRules(postId, rules, feedRulesData);
+        _processChangesOnPostRules(postId, ruleChanges, feedRulesData);
     }
 
     // Public user functions
@@ -150,6 +121,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         if (postId != rootPostId) {
             require(createPostParams.rules.length == 0, "ONLY_ROOT_POSTS_CAN_HAVE_RULES");
         } else {
+            RuleChange[] memory ruleChanges = new RuleChange[](createPostParams.rules.length);
             // We can only add rules to the post on creation, or by calling dedicated functions after (not on editPost)
             for (uint256 i = 0; i < createPostParams.rules.length; i++) {
                 _addPostRule(postId, createPostParams.rules[i]);
@@ -158,10 +130,11 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
                     createPostParams.rules[i].configData,
                     createPostParams.rules[i].isRequired
                 );
+                ruleChanges[i] = RuleChange({operation: RuleOperation.ADD, configuration: createPostParams.rules[i]});
             }
 
             // Check if Feed rules allows the given Post's rule configuration
-            _processChangesOnPostRules(postId, createPostParams.rules, createPostParams.feedRulesData);
+            _processChangesOnPostRules(postId, ruleChanges, createPostParams.feedRulesData);
         }
 
         emit Lens_Feed_PostCreated(
@@ -233,20 +206,19 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     function setExtraData(DataElement[] calldata extraDataToSet) external override {
         _requireAccess(msg.sender, SET_EXTRA_DATA_PID);
         for (uint256 i = 0; i < extraDataToSet.length; i++) {
-            bool wasExtraDataAlreadySet = Core._setExtraData(extraDataToSet[i]);
-            if (wasExtraDataAlreadySet) {
-                emit Lens_Feed_ExtraDataUpdated(extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value);
-            } else {
+            bool hadAValueSetBefore = Core._setExtraData(extraDataToSet[i]);
+            bool isNewValueEmpty = extraDataToSet[i].value.length == 0;
+            if (hadAValueSetBefore) {
+                if (isNewValueEmpty) {
+                    emit Lens_Feed_ExtraDataRemoved(extraDataToSet[i].key);
+                } else {
+                    emit Lens_Feed_ExtraDataUpdated(
+                        extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value
+                    );
+                }
+            } else if (!isNewValueEmpty) {
                 emit Lens_Feed_ExtraDataAdded(extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value);
             }
-        }
-    }
-
-    function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external override {
-        _requireAccess(msg.sender, SET_EXTRA_DATA_PID);
-        for (uint256 i = 0; i < extraDataKeysToRemove.length; i++) {
-            Core._removeExtraData(extraDataKeysToRemove[i]);
-            emit Lens_Feed_ExtraDataRemoved(extraDataKeysToRemove[i]);
         }
     }
 
@@ -292,11 +264,11 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         return Core.$storage().metadataURI;
     }
 
-    function getPostExtraData(uint256 postId, bytes32 key) external view override returns (DataElementValue memory) {
+    function getPostExtraData(uint256 postId, bytes32 key) external view override returns (bytes memory) {
         return Core.$storage().posts[postId].extraData[key];
     }
 
-    function getExtraData(bytes32 key) external view override returns (DataElementValue memory) {
+    function getExtraData(bytes32 key) external view override returns (bytes memory) {
         return Core.$storage().extraData[key];
     }
 }

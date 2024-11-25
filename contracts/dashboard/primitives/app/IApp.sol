@@ -3,7 +3,7 @@
 pragma solidity ^0.8.0;
 
 import {IMetadataBased} from "./../../../core/interfaces/IMetadataBased.sol";
-import {DataElement, DataElementValue} from "./../../../core/types/Types.sol";
+import {DataElement} from "./../../../core/types/Types.sol";
 
 interface IApp is IMetadataBased {
     // Graph
@@ -66,7 +66,6 @@ interface IApp is IMetadataBased {
     function setTreasury(address treasury) external;
 
     function setExtraData(DataElement[] calldata extraDataToSet) external;
-    function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external;
 
     function setSourceStampVerification(bool isEnabled) external;
 
@@ -86,7 +85,7 @@ interface IApp is IMetadataBased {
 
     function getTreasury() external view returns (address);
 
-    function getExtraData(bytes32 key) external view returns (DataElementValue memory);
+    function getExtraData(bytes32 key) external view returns (bytes memory);
 
     function getDefaultGraph() external view returns (address);
     function getDefaultFeed() external view returns (address);

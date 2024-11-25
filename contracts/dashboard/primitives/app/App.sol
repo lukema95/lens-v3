@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 import {IAccessControl} from "./../../../core/interfaces/IAccessControl.sol";
 import {IApp} from "./IApp.sol";
 import {AppCore as Core} from "./AppCore.sol";
-import {DataElement, DataElementValue, SourceStamp} from "./../../../core/types/Types.sol";
+import {DataElement, SourceStamp} from "./../../../core/types/Types.sol";
 import {AccessControlled} from "./../../../core/access/AccessControlled.sol";
 import {Events} from "./../../../core/types/Events.sol";
 import {BaseSource} from "./../../../core/base/BaseSource.sol";
@@ -285,20 +285,19 @@ contract App is IApp, BaseSource, AccessControlled {
 
     function _setExtraData(DataElement[] memory extraDataToSet) internal {
         for (uint256 i = 0; i < extraDataToSet.length; i++) {
-            bool wasExtraDataAlreadySet = Core._setExtraData(extraDataToSet[i]);
-            if (wasExtraDataAlreadySet) {
-                emit Lens_App_ExtraDataUpdated(extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value);
-            } else {
+            bool hadAValueSetBefore = Core._setExtraData(extraDataToSet[i]);
+            bool isNewValueEmpty = extraDataToSet[i].value.length == 0;
+            if (hadAValueSetBefore) {
+                if (isNewValueEmpty) {
+                    emit Lens_App_ExtraDataRemoved(extraDataToSet[i].key);
+                } else {
+                    emit Lens_App_ExtraDataUpdated(
+                        extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value
+                    );
+                }
+            } else if (!isNewValueEmpty) {
                 emit Lens_App_ExtraDataAdded(extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value);
             }
-        }
-    }
-
-    function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external override {
-        _requireAccess(msg.sender, SET_EXTRA_DATA_PID);
-        for (uint256 i = 0; i < extraDataKeysToRemove.length; i++) {
-            Core._removeExtraData(extraDataKeysToRemove[i]);
-            emit Lens_App_ExtraDataRemoved(extraDataKeysToRemove[i]);
         }
     }
 
@@ -346,7 +345,7 @@ contract App is IApp, BaseSource, AccessControlled {
         return Core.$storage().signers;
     }
 
-    function getExtraData(bytes32 key) external view override returns (DataElementValue memory) {
+    function getExtraData(bytes32 key) external view override returns (bytes memory) {
         return Core.$storage().extraData[key];
     }
 

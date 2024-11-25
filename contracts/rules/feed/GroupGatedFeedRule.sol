@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 import {CreatePostParams, EditPostParams} from "./../../core/interfaces/IFeed.sol";
 import {IFeedRule} from "./../../core/interfaces/IFeedRule.sol";
-import {RuleConfiguration} from "./../../core/types/Types.sol";
+import {RuleChange} from "./../../core/types/Types.sol";
 import {IGroup} from "./../../core/interfaces/IGroup.sol";
 
 contract GroupGatedFeedRule is IFeedRule {
@@ -32,9 +32,9 @@ contract GroupGatedFeedRule is IFeedRule {
         return false;
     }
 
-    function processPostRulesChanged(
+    function processPostRuleChanges(
         uint256, /* postId */
-        RuleConfiguration[] calldata, /* newPostRules */
+        RuleChange[] calldata, /* ruleChanges */
         bytes calldata /* data */
     ) external pure override returns (bool) {
         return false;

@@ -7,16 +7,21 @@ struct DataElement {
     bytes value;
 }
 
-struct DataElementValue {
-    bool isSet;
-    uint80 lastUpdatedTimestamp;
-    bytes value;
-}
-
 struct RuleConfiguration {
     address ruleAddress;
     bytes configData;
     bool isRequired;
+}
+
+enum RuleOperation {
+    ADD,
+    UPDATE,
+    REMOVE
+}
+
+struct RuleChange {
+    RuleConfiguration configuration;
+    RuleOperation operation;
 }
 
 struct RuleExecutionData {

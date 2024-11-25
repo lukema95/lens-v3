@@ -6,7 +6,7 @@ import {IPostRule} from "./../../interfaces/IPostRule.sol";
 import {IFeedRule} from "./../../interfaces/IFeedRule.sol";
 import {FeedCore as Core} from "./FeedCore.sol";
 import {RulesStorage, RulesLib} from "./../../libraries/RulesLib.sol";
-import {RuleConfiguration, RuleExecutionData} from "./../../types/Types.sol";
+import {RuleConfiguration, RuleChange, RuleExecutionData} from "./../../types/Types.sol";
 import {EditPostParams, CreatePostParams} from "./../../interfaces/IFeed.sol";
 
 contract RuleBasedFeed {
@@ -36,11 +36,11 @@ contract RuleBasedFeed {
 
     // Internal
 
-    function _addFeedRule(RuleConfiguration calldata rule) internal {
+    function _addFeedRule(RuleConfiguration memory rule) internal {
         $feedRulesStorage().addRule(rule, abi.encodeCall(IFeedRule.configure, (rule.configData)));
     }
 
-    function _updateFeedRule(RuleConfiguration calldata rule) internal {
+    function _updateFeedRule(RuleConfiguration memory rule) internal {
         $feedRulesStorage().updateRule(rule, abi.encodeCall(IFeedRule.configure, (rule.configData)));
     }
 
@@ -48,11 +48,11 @@ contract RuleBasedFeed {
         $feedRulesStorage().removeRule(rule);
     }
 
-    function _addPostRule(uint256 postId, RuleConfiguration calldata rule) internal {
+    function _addPostRule(uint256 postId, RuleConfiguration memory rule) internal {
         $postRulesStorage(postId).addRule(rule, abi.encodeCall(IPostRule.configure, (postId, rule.configData)));
     }
 
-    function _updatePostRule(uint256 postId, RuleConfiguration calldata rule) internal {
+    function _updatePostRule(uint256 postId, RuleConfiguration memory rule) internal {
         $postRulesStorage(postId).updateRule(rule, abi.encodeCall(IPostRule.configure, (postId, rule.configData)));
     }
 
@@ -230,14 +230,14 @@ contract RuleBasedFeed {
 
     function _processChangesOnPostRules(
         uint256 postId,
-        RuleConfiguration[] calldata newPostRules,
+        RuleChange[] memory ruleChanges,
         RuleExecutionData calldata feedRulesData
     ) internal {
         // Check required rules (AND-combined rules)
         for (uint256 i = 0; i < $feedRulesStorage().requiredRules.length; i++) {
             (bool callNotReverted,) = $feedRulesStorage().requiredRules[i].call(
                 abi.encodeCall(
-                    IFeedRule.processPostRulesChanged, (postId, newPostRules, feedRulesData.dataForRequiredRules[i])
+                    IFeedRule.processPostRuleChanges, (postId, ruleChanges, feedRulesData.dataForRequiredRules[i])
                 )
             );
             require(callNotReverted, "Some required rule failed");
@@ -249,7 +249,7 @@ contract RuleBasedFeed {
         for (uint256 i = 0; i < $feedRulesStorage().anyOfRules.length; i++) {
             (bool callNotReverted, bytes memory returnData) = $feedRulesStorage().anyOfRules[i].call(
                 abi.encodeCall(
-                    IFeedRule.processPostRulesChanged, (postId, newPostRules, feedRulesData.dataForAnyOfRules[i])
+                    IFeedRule.processPostRuleChanges, (postId, ruleChanges, feedRulesData.dataForAnyOfRules[i])
                 )
             );
             if (callNotReverted && abi.decode(returnData, (bool))) {

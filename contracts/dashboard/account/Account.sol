@@ -57,6 +57,8 @@ contract Account is IAccount, Ownable, IERC721Receiver {
         onlyOwner
     {
         require(!_accountManagerPermissions[accountManager].canExecuteTransactions, "Account manager already exists");
+        require(accountManager != owner(), "Cannot add owner as account manager");
+        require(accountManager != address(0), "Cannot add zero address as account manager");
         _accountManagerPermissions[accountManager] = accountManagerPermissions;
         emit Lens_Account_AccountManagerAdded(accountManager, accountManagerPermissions);
     }
@@ -77,7 +79,16 @@ contract Account is IAccount, Ownable, IERC721Receiver {
         emit Lens_Account_AccountManagerUpdated(accountManager, accountManagerPermissions);
     }
 
-    function canExecuteTransactions(address executor) external view returns (bool) {
+    function getAccountManagerPermissions(address accountManager)
+        external
+        view
+        override
+        returns (AccountManagerPermissions memory)
+    {
+        return _accountManagerPermissions[accountManager];
+    }
+
+    function canExecuteTransactions(address executor) external view override returns (bool) {
         return _accountManagerPermissions[executor].canExecuteTransactions || executor == owner();
     }
 
@@ -96,7 +107,12 @@ contract Account is IAccount, Ownable, IERC721Receiver {
         return _metadataURI[source];
     }
 
-    function executeTransaction(address to, uint256 value, bytes calldata data) external payable override {
+    function executeTransaction(address to, uint256 value, bytes calldata data)
+        external
+        payable
+        override
+        returns (bytes memory)
+    {
         if (msg.sender != owner()) {
             require(
                 _accountManagerPermissions[msg.sender].canExecuteTransactions, "No permissions to execute transactions"
@@ -115,9 +131,16 @@ contract Account is IAccount, Ownable, IERC721Receiver {
                 require(_accountManagerPermissions[msg.sender].canTransferTokens, "No permissions to transfer tokens");
             }
         }
-        (bool success,) = to.call{value: value}(data);
-        require(success, "Transaction execution failed");
+        (bool success, bytes memory ret) = to.call{value: value}(data);
+        if (!success) {
+            assembly {
+                // Equivalent to reverting with the returned error selector if the length is not zero.
+                let length := mload(ret)
+                if iszero(iszero(length)) { revert(add(ret, 32), length) }
+            }
+        }
         emit Lens_Account_TransactionExecuted(to, value, data, msg.sender);
+        return ret;
     }
 
     receive() external payable override {}

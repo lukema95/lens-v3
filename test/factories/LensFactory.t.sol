@@ -9,21 +9,27 @@ import {FeedFactory} from "../../contracts/dashboard/factories/FeedFactory.sol";
 import {GraphFactory} from "../../contracts/dashboard/factories/GraphFactory.sol";
 import {UsernameFactory} from "../../contracts/dashboard/factories/UsernameFactory.sol";
 import {Username} from "../../contracts/core/primitives/username/Username.sol";
-import {RuleConfiguration, DataElement, SourceStamp, RuleExecutionData} from "../../contracts/core/types/Types.sol";
+import {RuleChange, DataElement, SourceStamp, RuleExecutionData} from "../../contracts/core/types/Types.sol";
 import {AccountManagerPermissions} from "../../contracts/dashboard/account/Account.sol";
+import {AccessControlFactory} from "../../contracts/dashboard/factories/AccessControlFactory.sol";
+import {UserBlockingRule} from "../../contracts/rules/base/UserBlockingRule.sol";
 
 contract LensFactoryTest is Test {
     LensFactory lensFactory;
     Username username;
 
     function setUp() public {
+        UserBlockingRule userBlockingRule = new UserBlockingRule();
+
         lensFactory = new LensFactory({
+            accessControlFactory: new AccessControlFactory(),
             accountFactory: new AccountFactory(),
             appFactory: new AppFactory(),
             groupFactory: new GroupFactory(),
             feedFactory: new FeedFactory(),
             graphFactory: new GraphFactory(),
-            usernameFactory: new UsernameFactory()
+            usernameFactory: new UsernameFactory(),
+            userBlockingRule: address(userBlockingRule)
         });
 
         username = Username(
@@ -32,7 +38,7 @@ contract LensFactoryTest is Test {
                 metadataURI: "satoshi://nakamoto",
                 owner: address(this),
                 admins: new address[](0),
-                rules: new RuleConfiguration[](0),
+                rules: new RuleChange[](0),
                 extraData: new DataElement[](0),
                 nftName: "Bitcoin",
                 nftSymbol: "BTC"
@@ -40,7 +46,7 @@ contract LensFactoryTest is Test {
         );
     }
 
-    function testItYeahYeahWhoohoooo() public {
+    function testCreateAccountWithUsernameFree() public {
         lensFactory.createAccountWithUsernameFree({
             metadataURI: "someMetadataURI",
             owner: address(this),

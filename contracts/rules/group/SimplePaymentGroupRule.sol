@@ -14,16 +14,12 @@ contract SimplePaymentGroupRule is SimplePaymentRule, IGroupRule {
         _configuration[msg.sender] = configuration;
     }
 
-    function processJoining(address account, uint256, /* membershipId */ bytes calldata data) external returns (bool) {
+    function processJoining(address account, bytes calldata data) external returns (bool) {
         _processPayment(_configuration[msg.sender], abi.decode(data, (PaymentConfiguration)), account);
         return true;
     }
 
-    function processRemoval(address, /* account */ uint256, /* membershipId */ bytes calldata /*data*/ )
-        external
-        pure
-        returns (bool)
-    {
+    function processRemoval(address, /* account */ bytes calldata /*data*/ ) external pure returns (bool) {
         return false;
     }
 }

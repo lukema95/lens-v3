@@ -10,14 +10,14 @@ import { ethers, ZeroAddress } from 'ethers';
 
 const metadataURI = 'https://ipfs.io/ipfs/QmZ';
 
-const emptySourceStamp = {
+export const emptySourceStamp = {
   source: ZeroAddress,
   nonce: 0,
   deadline: 0,
   signature: '0x',
 };
 
-interface AppInitialProperties {
+export interface AppInitialProperties {
   graph: string;
   feeds: string[];
   username: string;
@@ -185,7 +185,7 @@ export async function deployUsername(
   return usernameAddress;
 }
 
-async function deployApp(
+export async function deployApp(
   lensFactory: ethers.Contract,
   initialProperties: AppInitialProperties
 ): Promise<string> {
@@ -229,7 +229,7 @@ export async function deployAccessControl(accessControlFactoryAddress: string) {
   );
 
   const transaction = await accessControlFactory.deployOwnerAdminOnlyAccessControl(
-    getWallet().address
+    getWallet().address, []
   );
 
   const txReceipt = (await transaction.wait()) as ethers.TransactionReceipt;

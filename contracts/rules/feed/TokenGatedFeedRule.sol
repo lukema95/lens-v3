@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 import {CreatePostParams, EditPostParams} from "./../../core/interfaces/IFeed.sol";
 import {IFeedRule} from "./../../core/interfaces/IFeedRule.sol";
-import {RuleConfiguration} from "./../../core/types/Types.sol";
+import {RuleChange} from "./../../core/types/Types.sol";
 import {TokenGatedRule} from "./../base/TokenGatedRule.sol";
 
 contract TokenGatedFeedRule is TokenGatedRule, IFeedRule {
@@ -34,9 +34,9 @@ contract TokenGatedFeedRule is TokenGatedRule, IFeedRule {
         return false;
     }
 
-    function processPostRulesChanged(
+    function processPostRuleChanges(
         uint256, /* postId */
-        RuleConfiguration[] calldata, /* newPostRules */
+        RuleChange[] calldata, /* ruleChanges */
         bytes calldata /* data */
     ) external pure override returns (bool) {
         return false;

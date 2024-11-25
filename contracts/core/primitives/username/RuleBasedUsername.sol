@@ -29,11 +29,11 @@ contract RuleBasedUsername {
 
     // Internal
 
-    function _addUsernameRule(RuleConfiguration calldata rule) internal {
+    function _addUsernameRule(RuleConfiguration memory rule) internal {
         $usernameRulesStorage().addRule(rule, abi.encodeCall(IUsernameRule.configure, (rule.configData)));
     }
 
-    function _updateUsernameRule(RuleConfiguration calldata rule) internal {
+    function _updateUsernameRule(RuleConfiguration memory rule) internal {
         $usernameRulesStorage().updateRule(rule, abi.encodeCall(IUsernameRule.configure, (rule.configData)));
     }
 

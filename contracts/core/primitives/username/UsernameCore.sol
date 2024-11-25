@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 import "./../../libraries/ExtraDataLib.sol";
 
 library UsernameCore {
-    using ExtraDataLib for mapping(bytes32 => DataElementValue);
+    using ExtraDataLib for mapping(bytes32 => bytes);
 
     // Storage
 
@@ -15,7 +15,7 @@ library UsernameCore {
         mapping(string => bool) usernameExists; // TODO: Should this store the owner instead???
         mapping(string => address) usernameToAccount;
         mapping(address => string) accountToUsername;
-        mapping(bytes32 => DataElementValue) extraData;
+        mapping(bytes32 => bytes) extraData;
     }
 
     // keccak256('lens.username.core.storage')
@@ -49,10 +49,6 @@ library UsernameCore {
         return _setExtraData(extraDataToSet);
     }
 
-    function removeExtraData(bytes32 extraDataKeyToRemove) external {
-        _removeExtraData(extraDataKeyToRemove);
-    }
-
     // Internal functions - Use these functions to be called as an inlined library
 
     function _createUsername(string memory username) internal {
@@ -84,9 +80,5 @@ library UsernameCore {
 
     function _setExtraData(DataElement calldata extraDataToSet) internal returns (bool) {
         return $storage().extraData.set(extraDataToSet);
-    }
-
-    function _removeExtraData(bytes32 extraDataKeyToRemove) internal {
-        require(!$storage().extraData.remove(extraDataKeyToRemove), "EXTRA_DATA_WAS_NOT_SET");
     }
 }

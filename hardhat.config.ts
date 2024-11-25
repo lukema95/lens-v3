@@ -11,7 +11,7 @@ const config: HardhatUserConfig = {
       chainId: 37111,
       zksync: true,
       ethNetwork: 'sepolia',
-      verifyURL: 'https://block-explorer-verify.testnet.lens.dev/contract_verification',
+      verifyURL: 'https://api-explorer-verify.staging.lens.zksync.dev/contract_verification',
     },
     dockerizedNode: {
       url: 'http://localhost:3050',

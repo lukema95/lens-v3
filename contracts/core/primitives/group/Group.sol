@@ -6,7 +6,12 @@ import {IGroup} from "./../../interfaces/IGroup.sol";
 import {GroupCore as Core} from "./GroupCore.sol";
 import {IAccessControl} from "./../../interfaces/IAccessControl.sol";
 import {
-    RuleConfiguration, RuleExecutionData, DataElement, DataElementValue, SourceStamp
+    RuleConfiguration,
+    RuleOperation,
+    RuleChange,
+    RuleExecutionData,
+    DataElement,
+    SourceStamp
 } from "./../../types/Types.sol";
 import {RuleBasedGroup} from "./RuleBasedGroup.sol";
 import {AccessControlled} from "./../../access//AccessControlled.sol";
@@ -43,49 +48,39 @@ contract Group is IGroup, RuleBasedGroup, AccessControlled {
         emit Lens_Group_MetadataURISet(metadataURI);
     }
 
-    function addGroupRules(RuleConfiguration[] calldata rules) external override {
+    function changeGroupRules(RuleChange[] calldata ruleChanges) external override {
         _requireAccess(msg.sender, SET_RULES_PID);
-        for (uint256 i = 0; i < rules.length; i++) {
-            _addGroupRule(rules[i]);
-            emit Lens_Group_RuleAdded(rules[i].ruleAddress, rules[i].configData, rules[i].isRequired);
-        }
-    }
-
-    function updateGroupRules(RuleConfiguration[] calldata rules) external override {
-        _requireAccess(msg.sender, SET_RULES_PID);
-        for (uint256 i = 0; i < rules.length; i++) {
-            _updateGroupRule(rules[i]);
-            emit Lens_Group_RuleUpdated(rules[i].ruleAddress, rules[i].configData, rules[i].isRequired);
-        }
-    }
-
-    function removeGroupRules(address[] calldata rules) external override {
-        _requireAccess(msg.sender, SET_RULES_PID);
-        for (uint256 i = 0; i < rules.length; i++) {
-            _removeGroupRule(rules[i]);
-            emit Lens_Group_RuleRemoved(rules[i]);
+        for (uint256 i = 0; i < ruleChanges.length; i++) {
+            RuleConfiguration memory ruleConfig = ruleChanges[i].configuration;
+            if (ruleChanges[i].operation == RuleOperation.ADD) {
+                _addGroupRule(ruleConfig);
+                emit Lens_Group_RuleAdded(ruleConfig.ruleAddress, ruleConfig.configData, ruleConfig.isRequired);
+            } else if (ruleChanges[i].operation == RuleOperation.UPDATE) {
+                _updateGroupRule(ruleConfig);
+                emit Lens_Group_RuleUpdated(ruleConfig.ruleAddress, ruleConfig.configData, ruleConfig.isRequired);
+            } else {
+                _removeGroupRule(ruleConfig.ruleAddress);
+                emit Lens_Group_RuleRemoved(ruleConfig.ruleAddress);
+            }
         }
     }
 
     function setExtraData(DataElement[] calldata extraDataToSet) external override {
         _requireAccess(msg.sender, SET_EXTRA_DATA_PID);
         for (uint256 i = 0; i < extraDataToSet.length; i++) {
-            bool wasExtraDataAlreadySet = Core._setExtraData(extraDataToSet[i]);
-            if (wasExtraDataAlreadySet) {
-                emit Lens_Group_ExtraDataUpdated(
-                    extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value
-                );
-            } else {
+            bool hadAValueSetBefore = Core._setExtraData(extraDataToSet[i]);
+            bool isNewValueEmpty = extraDataToSet[i].value.length == 0;
+            if (hadAValueSetBefore) {
+                if (isNewValueEmpty) {
+                    emit Lens_Group_ExtraDataRemoved(extraDataToSet[i].key);
+                } else {
+                    emit Lens_Group_ExtraDataUpdated(
+                        extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value
+                    );
+                }
+            } else if (!isNewValueEmpty) {
                 emit Lens_Group_ExtraDataAdded(extraDataToSet[i].key, extraDataToSet[i].value, extraDataToSet[i].value);
             }
-        }
-    }
-
-    function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external override {
-        _requireAccess(msg.sender, SET_EXTRA_DATA_PID);
-        for (uint256 i = 0; i < extraDataKeysToRemove.length; i++) {
-            Core._removeExtraData(extraDataKeysToRemove[i]);
-            emit Lens_Group_ExtraDataRemoved(extraDataKeysToRemove[i]);
         }
     }
 
@@ -97,7 +92,7 @@ contract Group is IGroup, RuleBasedGroup, AccessControlled {
     {
         require(msg.sender == account);
         uint256 membershipId = Core._grantMembership(account, sourceStamp.source);
-        _processJoining(account, membershipId, groupRulesData);
+        _processJoining(account, groupRulesData);
         if (sourceStamp.source != address(0)) {
             ISource(sourceStamp.source).validateSource(sourceStamp);
         }
@@ -124,7 +119,7 @@ contract Group is IGroup, RuleBasedGroup, AccessControlled {
     {
         _requireAccess(msg.sender, REMOVE_MEMBER_PID);
         uint256 membershipId = Core._revokeMembership(account);
-        _processRemoval(account, membershipId, groupRulesData);
+        _processRemoval(account, groupRulesData);
         if (sourceStamp.source != address(0)) {
             ISource(sourceStamp.source).validateSource(sourceStamp);
         }
@@ -153,7 +148,7 @@ contract Group is IGroup, RuleBasedGroup, AccessControlled {
         return _getGroupRules(isRequired);
     }
 
-    function getExtraData(bytes32 key) external view override returns (DataElementValue memory) {
+    function getExtraData(bytes32 key) external view override returns (bytes memory) {
         return Core.$storage().extraData[key];
     }
 }

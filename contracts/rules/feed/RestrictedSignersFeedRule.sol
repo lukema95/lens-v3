@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 import {CreatePostParams, EditPostParams} from "./../../core/interfaces/IFeed.sol";
 import {IFeedRule} from "./../../core/interfaces/IFeedRule.sol";
 import {RestrictedSignersRule, EIP712Signature} from "./../base/RestrictedSignersRule.sol";
-import {RuleConfiguration} from "./../../core/types/Types.sol";
+import {RuleChange} from "./../../core/types/Types.sol";
 
 contract RestrictedSignersFeedRule is RestrictedSignersRule, IFeedRule {
     function configure(bytes calldata data) external override {
@@ -38,14 +38,14 @@ contract RestrictedSignersFeedRule is RestrictedSignersRule, IFeedRule {
         return true;
     }
 
-    function processPostRulesChanged(uint256 postId, RuleConfiguration[] calldata newPostRules, bytes calldata data)
+    function processPostRuleChanges(uint256 postId, RuleChange[] calldata ruleChanges, bytes calldata data)
         external
         override
         returns (bool)
     {
         _validateRestrictedSignerMessage({
-            functionSelector: IFeedRule.processPostRulesChanged.selector,
-            abiEncodedFunctionParams: abi.encode(postId, newPostRules),
+            functionSelector: IFeedRule.processPostRuleChanges.selector,
+            abiEncodedFunctionParams: abi.encode(postId, ruleChanges),
             signature: abi.decode(data, (EIP712Signature))
         });
         return true;

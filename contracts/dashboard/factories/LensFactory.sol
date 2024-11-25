@@ -7,12 +7,20 @@ import {IAccessControl} from "./../../core/interfaces/IAccessControl.sol";
 import {Group} from "./../../core/primitives/group/Group.sol";
 import {RoleBasedAccessControl} from "./../../core/access/RoleBasedAccessControl.sol";
 import {RoleBasedAccessControl} from "./../../core/access/RoleBasedAccessControl.sol";
-import {RuleConfiguration, RuleExecutionData, DataElement, SourceStamp} from "./../../core/types/Types.sol";
+import {
+    RuleChange,
+    RuleExecutionData,
+    RuleConfiguration,
+    RuleOperation,
+    DataElement,
+    SourceStamp
+} from "./../../core/types/Types.sol";
 import {GroupFactory} from "./GroupFactory.sol";
 import {FeedFactory} from "./FeedFactory.sol";
 import {GraphFactory} from "./GraphFactory.sol";
 import {UsernameFactory} from "./UsernameFactory.sol";
 import {AppFactory, AppInitialProperties} from "./AppFactory.sol";
+import {AccessControlFactory} from "./AccessControlFactory.sol";
 import {AccountFactory} from "./AccountFactory.sol";
 import {IAccount, AccountManagerPermissions} from "./../account/IAccount.sol";
 import {IUsername} from "./../../core/interfaces/IUsername.sol";
@@ -40,7 +48,7 @@ interface IOwnable {
 // uint8 decimals; TODO ???
 
 contract LensFactory {
-    uint256 immutable ADMIN_ROLE_ID = uint256(keccak256("ADMIN"));
+    AccessControlFactory internal immutable ACCESS_CONTROL_FACTORY;
     AccountFactory internal immutable ACCOUNT_FACTORY;
     AppFactory internal immutable APP_FACTORY;
     GroupFactory internal immutable GROUP_FACTORY;
@@ -48,15 +56,19 @@ contract LensFactory {
     GraphFactory internal immutable GRAPH_FACTORY;
     UsernameFactory internal immutable USERNAME_FACTORY;
     IAccessControl internal immutable _factoryOwnedAccessControl;
+    address internal immutable _userBlockingRule;
 
     constructor(
+        AccessControlFactory accessControlFactory,
         AccountFactory accountFactory,
         AppFactory appFactory,
         GroupFactory groupFactory,
         FeedFactory feedFactory,
         GraphFactory graphFactory,
-        UsernameFactory usernameFactory
+        UsernameFactory usernameFactory,
+        address userBlockingRule
     ) {
+        ACCESS_CONTROL_FACTORY = accessControlFactory;
         ACCOUNT_FACTORY = accountFactory;
         APP_FACTORY = appFactory;
         GROUP_FACTORY = groupFactory;
@@ -64,6 +76,7 @@ contract LensFactory {
         GRAPH_FACTORY = graphFactory;
         USERNAME_FACTORY = usernameFactory;
         _factoryOwnedAccessControl = new RoleBasedAccessControl({owner: address(this)});
+        _userBlockingRule = userBlockingRule;
     }
 
     // TODO: This function belongs to an App probably.
@@ -128,7 +141,7 @@ contract LensFactory {
         string calldata metadataURI,
         address owner,
         address[] calldata admins,
-        RuleConfiguration[] calldata rules,
+        RuleChange[] calldata rules,
         DataElement[] calldata extraData
     ) external returns (address) {
         return GROUP_FACTORY.deployGroup(metadataURI, _deployAccessControl(owner, admins), rules, extraData);
@@ -138,20 +151,36 @@ contract LensFactory {
         string calldata metadataURI,
         address owner,
         address[] calldata admins,
-        RuleConfiguration[] calldata rules,
+        RuleChange[] calldata rules,
         DataElement[] calldata extraData
     ) external returns (address) {
-        return FEED_FACTORY.deployFeed(metadataURI, _deployAccessControl(owner, admins), rules, extraData);
+        return FEED_FACTORY.deployFeed(
+            metadataURI, _deployAccessControl(owner, admins), _prependUserBlocking(rules), extraData
+        );
+    }
+
+    function _prependUserBlocking(RuleChange[] calldata rules) internal returns (RuleChange[] memory) {
+        RuleChange[] memory rulesPrependedWithUserBlocking = new RuleChange[](rules.length + 1);
+        rulesPrependedWithUserBlocking[0] = RuleChange({
+            configuration: RuleConfiguration({ruleAddress: _userBlockingRule, configData: "", isRequired: true}),
+            operation: RuleOperation.ADD
+        });
+        for (uint256 i = 0; i < rules.length; i++) {
+            rulesPrependedWithUserBlocking[i + 1] = rules[i];
+        }
+        return rulesPrependedWithUserBlocking;
     }
 
     function deployGraph(
         string calldata metadataURI,
         address owner,
         address[] calldata admins,
-        RuleConfiguration[] calldata rules,
+        RuleChange[] calldata rules,
         DataElement[] calldata extraData
     ) external returns (address) {
-        return GRAPH_FACTORY.deployGraph(metadataURI, _deployAccessControl(owner, admins), rules, extraData);
+        return GRAPH_FACTORY.deployGraph(
+            metadataURI, _deployAccessControl(owner, admins), _prependUserBlocking(rules), extraData
+        );
     }
 
     function deployUsername(
@@ -159,7 +188,7 @@ contract LensFactory {
         string calldata metadataURI,
         address owner,
         address[] calldata admins,
-        RuleConfiguration[] calldata rules,
+        RuleChange[] calldata rules,
         DataElement[] calldata extraData,
         string calldata nftName,
         string calldata nftSymbol
@@ -177,45 +206,10 @@ contract LensFactory {
         );
     }
 
-    // function deployRoleBasedAccessControl(
-    //     address owner,
-    //     RoleConfiguration[] calldata roleConfigs,
-    //     AccessConfiguration[] calldata accessConfigs
-    // ) external returns (address) {
-    //     RoleBasedAccessControl accessControl = new RoleBasedAccessControl({owner: address(this)});
-    //     for (uint256 i = 0; i < roleConfigs.length; i++) {
-    //         for (uint256 j = 0; j < roleConfigs[i].accounts.length; j++) {
-    //             accessControl.grantRole(roleConfigs[i].accounts[j], roleConfigs[i].roleId);
-    //         }
-    //     }
-    //     for (uint256 i = 0; i < accessConfigs.length; i++) {
-    //         if (accessConfigs[i].contractAddress == address(0)) {
-    //             accessControl.setGlobalAccess(
-    //                 accessConfigs[i].roleId, accessConfigs[i].permissionId, accessConfigs[i].access, ""
-    //             );
-    //         } else {
-    //             accessControl.setScopedAccess(
-    //                 accessConfigs[i].roleId,
-    //                 accessConfigs[i].contractAddress,
-    //                 accessConfigs[i].permissionId,
-    //                 accessConfigs[i].access,
-    //                 ""
-    //             );
-    //         }
-    //     }
-    //     accessControl.transferOwnership(owner);
-    //     return address(accessControl);
-    // }
-
     function _deployAccessControl(address owner, address[] calldata admins)
         internal
         returns (IRoleBasedAccessControl)
     {
-        RoleBasedAccessControl accessControl = new RoleBasedAccessControl({owner: address(this)});
-        for (uint256 i = 0; i < admins.length; i++) {
-            accessControl.grantRole(admins[i], ADMIN_ROLE_ID);
-        }
-        accessControl.transferOwnership(owner);
-        return accessControl;
+        return ACCESS_CONTROL_FACTORY.deployOwnerAdminOnlyAccessControl(owner, admins);
     }
 }

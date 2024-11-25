@@ -22,14 +22,29 @@ interface IAccount {
 
     function addAccountManager(address _accountManager, AccountManagerPermissions calldata accountManagerPermissions)
         external;
+
     function removeAccountManager(address _accountManager) external;
+
     function updateAccountManagerPermissions(
         address accountManager,
         AccountManagerPermissions calldata accountManagerPermissions
     ) external;
+
     function setMetadataURI(string calldata _metadataURI, SourceStamp calldata sourceStamp) external;
-    function executeTransaction(address to, uint256 value, bytes calldata data) external payable;
+
+    function executeTransaction(address to, uint256 value, bytes calldata data)
+        external
+        payable
+        returns (bytes memory);
+
     function getMetadataURI(address source) external view returns (string memory);
+
+    function getAccountManagerPermissions(address accountManager)
+        external
+        view
+        returns (AccountManagerPermissions memory);
+
+    function canExecuteTransactions(address executor) external view returns (bool);
 
     receive() external payable;
 }

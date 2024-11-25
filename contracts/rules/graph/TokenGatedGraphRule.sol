@@ -3,7 +3,7 @@
 pragma solidity ^0.8.0;
 
 import {IGraphRule} from "./../../core/interfaces/IGraphRule.sol";
-import {RuleConfiguration} from "./../../core/types/Types.sol";
+import {RuleChange} from "./../../core/types/Types.sol";
 import {TokenGatedRule} from "./../base/TokenGatedRule.sol";
 
 contract TokenGatedGraphRule is TokenGatedRule, IGraphRule {
@@ -15,12 +15,11 @@ contract TokenGatedGraphRule is TokenGatedRule, IGraphRule {
         _configuration[msg.sender] = configuration;
     }
 
-    function processFollow(
-        address followerAccount,
-        address accountToFollow,
-        uint256, /* followId */
-        bytes calldata /* data*/
-    ) external view returns (bool) {
+    function processFollow(address followerAccount, address accountToFollow, bytes calldata /* data */ )
+        external
+        view
+        returns (bool)
+    {
         TokenGateConfiguration memory configuration = _configuration[msg.sender];
         /**
          * Both ends of the follow connection must comply with the token-gate restriction, then the graph is purely
@@ -31,10 +30,10 @@ contract TokenGatedGraphRule is TokenGatedRule, IGraphRule {
         return true;
     }
 
-    function processFollowRulesChange(
-        address, /* account*/
-        RuleConfiguration[] calldata, /*followRules*/
-        bytes calldata /* data*/
+    function processFollowRuleChanges(
+        address, /* account */
+        RuleChange[] calldata, /* ruleChanges */
+        bytes calldata /* data */
     ) external pure returns (bool) {
         return false;
     }

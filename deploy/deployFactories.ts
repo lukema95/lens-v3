@@ -1,3 +1,4 @@
+import { AppInitialProperties, deployApp } from './deployAux';
 import {
   deployContract,
   getWallet,
@@ -25,6 +26,16 @@ export default async function deployFactories(): Promise<{
 
   console.log(`\n✔ AccessControlFactory deployed at ${await accessControlFactory.getAddress()}`);
   outputLines.push(`ACCESS_CONTROL_FACTORY="${await accessControlFactory.getAddress()}"`);
+
+  // userBlocking rule/registry
+
+  const userBlockingRule_artifactName = 'UserBlockingRule';
+  const userBlockingRule_args: any[] = [];
+
+  const userBlockingRule = await deployContract(userBlockingRule_artifactName, userBlockingRule_args);
+
+  console.log(`\n✔ UserBlockingRule deployed at ${await userBlockingRule.getAddress()}`);
+  outputLines.push(`USER_BLOCKING_RULE="${await userBlockingRule.getAddress()}"`);
 
   // username factory
   const usernameFactory_artifactName = 'UsernameFactory';
@@ -83,12 +94,14 @@ export default async function deployFactories(): Promise<{
   // lens factory
   const lensFactory_artifactName = 'LensFactory';
   const lensFactory_args = [
+    await accessControlFactory.getAddress(),
     await accountFactory.getAddress(),
     await appFactory.getAddress(),
     await groupFactory.getAddress(),
     await feedFactory.getAddress(),
     await graphFactory.getAddress(),
     await usernameFactory.getAddress(),
+    await userBlockingRule.getAddress(),
   ];
 
   const lensFactory = await deployContract(lensFactory_artifactName, lensFactory_args);
@@ -150,6 +163,22 @@ export default async function deployFactories(): Promise<{
     constructorParams: ['lens', metadataURI, ownerAddress, 'Lens Usernames', 'LENS'],
   });
   outputLines.push(`LENS_USERNAME="${lensUsernameAddress}"`);
+
+    // deploy testnet app
+  console.log('Deploying Testnet App...');
+  const initialProperties: AppInitialProperties = {
+    graph: globalGraphAddress,
+    feeds: [globalFeedAddress],
+    username: lensUsernameAddress,
+    groups: [],
+    defaultFeed: globalFeedAddress,
+    signers: [],
+    paymaster: getWallet().address,
+    treasury: getWallet().address,
+  };
+  
+  const testnetAppAddress = await deployApp(lensFactory, initialProperties);
+  outputLines.push(`TESTNET_APP="${testnetAppAddress}"`);
 
   const output = outputLines.join('\n');
   writeFileSync('deployed_primitives.txt', output);

@@ -2,7 +2,7 @@
 // Copyright (C) 2024 Lens Labs. All Rights Reserved.
 pragma solidity ^0.8.0;
 
-import {DataElement, RuleConfiguration, RuleExecutionData, DataElementValue, SourceStamp} from "./../types/Types.sol";
+import {DataElement, RuleChange, RuleExecutionData, SourceStamp} from "./../types/Types.sol";
 import {IMetadataBased} from "./IMetadataBased.sol";
 
 interface IUsername is IMetadataBased {
@@ -14,13 +14,11 @@ interface IUsername is IMetadataBased {
 
     event Lens_Username_Created(string username, address indexed account, RuleExecutionData data, address source);
 
-    event Lens_Username_Removed(string username, address indexed account, RuleExecutionData data, address source);
+    event Lens_Username_Removed(string username, address indexed account, address source);
 
     event Lens_Username_Assigned(string username, address indexed account, RuleExecutionData data, address source);
 
-    event Lens_Username_Unassigned(
-        string username, address indexed previousAccount, RuleExecutionData data, address source
-    );
+    event Lens_Username_Unassigned(string username, address indexed previousAccount, address source);
 
     event Lens_Username_ExtraDataAdded(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
     event Lens_Username_ExtraDataUpdated(bytes32 indexed key, bytes value, bytes indexed valueIndexed);
@@ -30,13 +28,7 @@ interface IUsername is IMetadataBased {
 
     function setExtraData(DataElement[] calldata extraDataToSet) external;
 
-    function removeExtraData(bytes32[] calldata extraDataKeysToRemove) external;
-
-    function addUsernameRules(RuleConfiguration[] calldata ruleConfigurations) external;
-
-    function updateUsernameRules(RuleConfiguration[] calldata ruleConfigurations) external;
-
-    function removeUsernameRules(address[] calldata rules) external;
+    function changeUsernameRules(RuleChange[] calldata ruleChanges) external;
 
     function createUsername(
         address account,
@@ -45,8 +37,7 @@ interface IUsername is IMetadataBased {
         SourceStamp calldata sourceStamp
     ) external;
 
-    function removeUsername(string memory username, RuleExecutionData calldata data, SourceStamp calldata sourceStamp)
-        external;
+    function removeUsername(string memory username, SourceStamp calldata sourceStamp) external;
 
     function assignUsername(
         address account,
@@ -55,8 +46,7 @@ interface IUsername is IMetadataBased {
         SourceStamp calldata sourceStamp
     ) external;
 
-    function unassignUsername(string memory username, RuleExecutionData calldata data, SourceStamp calldata sourceStamp)
-        external;
+    function unassignUsername(string memory username, SourceStamp calldata sourceStamp) external;
 
     function usernameOf(address user) external view returns (string memory);
 
@@ -66,5 +56,5 @@ interface IUsername is IMetadataBased {
 
     function getUsernameRules(bool isRequired) external view returns (address[] memory);
 
-    function getExtraData(bytes32 key) external view returns (DataElementValue memory);
+    function getExtraData(bytes32 key) external view returns (bytes memory);
 }
