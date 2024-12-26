@@ -66,6 +66,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         RuleChange[] calldata ruleChanges,
         RuleExecutionData calldata feedRulesData
     ) external override {
+        Core._requirePostExistence(postId);
         address author = Core.$storage().posts[postId].author;
         require(msg.sender == author, "MSG_SENDER_NOT_AUTHOR");
         require(Core.$storage().posts[postId].rootPostId == postId, "ONLY_ROOT_POSTS_CAN_HAVE_RULES");
@@ -159,6 +160,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         RuleExecutionData calldata editPostFeedRulesData,
         SourceStamp calldata sourceStamp
     ) external override {
+        Core._requirePostExistence(postId);
         address author = Core.$storage().posts[postId].author;
         // TODO: We can have this for moderators:
         // require(msg.sender == author || _hasAccess(msg.sender, EDIT_POST_PID));
@@ -194,6 +196,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
         RuleExecutionData calldata feedRulesData,
         SourceStamp calldata sourceStamp
     ) external override {
+        Core._requirePostExistence(postId);
         address author = Core.$storage().posts[postId].author;
         require(msg.sender == author || _hasAccess(msg.sender, DELETE_POST_PID), "MSG_SENDER_NOT_AUTHOR_NOR_HAS_ACCESS");
         Core._deletePost(postId, extraDataKeysToDelete);
@@ -225,7 +228,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     // Getters
 
     function getPost(uint256 postId) external view override returns (Post memory) {
-        // TODO: Should fail if post doesn't exist
+        Core._requirePostExistence(postId);
         return Post({
             author: Core.$storage().posts[postId].author,
             localSequentialId: Core.$storage().posts[postId].localSequentialId,
@@ -244,7 +247,7 @@ contract Feed is IFeed, RuleBasedFeed, AccessControlled {
     }
 
     function getPostAuthor(uint256 postId) external view override returns (address) {
-        // TODO: Should fail if post doesn't exist
+        Core._requirePostExistence(postId);
         return Core.$storage().posts[postId].author;
     }
 

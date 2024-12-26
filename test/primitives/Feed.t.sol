@@ -51,4 +51,16 @@ contract FeedTest is Test {
         vm.prank(author);
         feed.deletePost(postId, _emptyBytes32Array(), _emptyExecutionData(), _emptySourceStamp());
     }
+
+    function testEditNonExistentPost() public {
+        uint256 nonExistentPostId = 9999;
+        vm.prank(author);
+        vm.expectRevert("POST_DOES_NOT_EXIST");
+        feed.editPost(
+            nonExistentPostId,
+            EditPostParams({contentURI: "some new content uri", extraData: _emptyExtraData()}),
+            _emptyExecutionData(),
+            _emptySourceStamp()
+        );
+    }
 }
